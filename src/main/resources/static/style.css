@@ -1,0 +1,60 @@
+body {
+    background-color: #dfad68;
+}
+
+.bg-chess {
+    background-color: #432618;
+}
+
+.chess-text-light {
+    color: #dfad68;
+}
+
+.chess-text {
+    color: #432618;
+}
+
+.login-box {
+    width: 50em;
+    margin: auto;
+    margin-top: 1em;
+}
+
+.btn-login {
+    margin: 0em 1em;
+}
+
+.login-alert {
+    width: 25em;
+    margin: auto;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    visibility: hidden;
+}
+
+.nav-link {
+    color: #dfad68 !important;       
+}
+
+.game-card {
+    width: 20em;
+}
+
+.game-card-set {
+    margin-top: 2em;
+}
+
+.card {
+    background-color: #432618;
+    color: #dfad68;       
+}
+
+.btn-primary {
+    background-color: #dfad68;
+    color: #432618;  
+}
+
+.btn-primary:hover {
+    background-color: #432618;
+    color: #dfad68;  
+}

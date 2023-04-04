@@ -1,0 +1,24 @@
+# PostGreSQL connection
+spring.main.banner-mode=off
+logging.level.org.springframework=ERROR
+
+spring.jpa.hibernate.ddl-auto=none
+
+spring.datasource.initialization-mode=always
+spring.datasource.platform=postgres
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+
+spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
+
+# web stuff
+server.port = 8081
+
+# thymeleaf (MVC)
+spring.thymeleaf.cache=false
+spring.thymeleaf.enabled=true 
+spring.thymeleaf.prefix=classpath:/templates/
+spring.thymeleaf.suffix=.html
+
+spring.application.name=Games
