@@ -49,6 +49,12 @@ body {
     color: #dfad68;       
 }
 
+.card-img-top {
+    width: 19.9em;
+    height: 11.2em;
+    object-fit: cover;
+}
+
 .btn-primary {
     background-color: #dfad68;
     color: #432618;  

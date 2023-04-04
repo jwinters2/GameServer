@@ -18,4 +18,5 @@ import org.springframework.stereotype.Repository;
 @EntityScan("net.wintersjames.gameserver.User")
 public interface UserRepository extends JpaRepository<User, Integer> {
     public User findByUsername(String username);
+    public User findByUid(int uid);
 }

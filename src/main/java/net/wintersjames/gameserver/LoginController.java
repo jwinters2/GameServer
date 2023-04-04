@@ -41,13 +41,8 @@ public class LoginController {
     UserService userService;
     
     @GetMapping("/login")
-    public String homePage(Model model, HttpServletResponse response) {
+    public String homePage(Model model, HttpServletRequest request, HttpServletResponse response) {             
         return "login";
-    }
-    
-    @GetMapping("/")
-    public RedirectView redirectHome(RedirectAttributes attributes) {
-        return new RedirectView("/login");
     }
     
     @PostMapping("/login")

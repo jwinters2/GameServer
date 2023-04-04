@@ -14,11 +14,17 @@ public class Game implements Serializable {
     public String title;
     public String image;
     public String description;
+    public boolean isSinglePlayer;
+    public boolean isMultiPlayer;
+    
+    protected Game() {};
     
     public Game(String title, String image, String description)  {
         this.title = title;
         this.image = image;
         this.description = description;
+        this.isSinglePlayer = false;
+        this.isMultiPlayer = false;
     }
 
     public String getTitle() {
@@ -44,4 +50,22 @@ public class Game implements Serializable {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public boolean isIsSinglePlayer() {
+        return isSinglePlayer;
+    }
+
+    public void setIsSinglePlayer(boolean isSinglePlayer) {
+        this.isSinglePlayer = isSinglePlayer;
+    }
+
+    public boolean isIsMultiPlayer() {
+        return isMultiPlayer;
+    }
+
+    public void setIsMultiPlayer(boolean isMultiPlayer) {
+        this.isMultiPlayer = isMultiPlayer;
+    }
+    
+    
 }
