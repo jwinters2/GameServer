@@ -111,15 +111,12 @@ public class User implements Serializable {
             return false;
         }
         User other = (User) object;
-        if ((this.uid == null && other.uid != null) || (this.uid != null && !this.uid.equals(other.uid))) {
-            return false;
-        }
-        return true;
+        return !((this.uid == null && other.uid != null) || (this.uid != null && !this.uid.equals(other.uid)));
     }
 
     @Override
     public String toString() {
-        return "net.wintersjames.gameserver.User.Users[ uid=" + uid + " ]";
+        return this.username + "[uid=" + uid + "]";
     }
     
 }

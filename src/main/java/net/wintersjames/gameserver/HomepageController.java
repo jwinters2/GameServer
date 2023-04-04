@@ -11,8 +11,8 @@ import java.util.List;
 import net.wintersjames.gameserver.Session.LoginState;
 import net.wintersjames.gameserver.Session.SessionState;
 import net.wintersjames.gameserver.Session.SessionStateManager;
-import net.wintersjames.gameserver.User.Games.Chess.Chess;
-import net.wintersjames.gameserver.User.Games.Game;
+import net.wintersjames.gameserver.Games.Chess.Chess;
+import net.wintersjames.gameserver.Games.Game;
 import net.wintersjames.gameserver.User.User;
 import net.wintersjames.gameserver.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ public class HomepageController {
             return "login";
         }
         
-        List<Game> games = new ArrayList<>(); 
+        List<Game> games = new ArrayList<>();
         games.add(new Chess());       
         for(int i=0; i<8; i++) {
             games.add(new Game("Title " + Integer.toString(i), 

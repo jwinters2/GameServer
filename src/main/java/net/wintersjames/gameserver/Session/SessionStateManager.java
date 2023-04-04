@@ -4,9 +4,7 @@
  */
 package net.wintersjames.gameserver.Session;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
-import java.security.SecureRandom;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 
@@ -18,13 +16,11 @@ import org.springframework.web.context.annotation.SessionScope;
 @SessionScope
 public class SessionStateManager {
     
-    private HashMap<String, SessionState> cookies;
-    private SecureRandom random;
+    final private HashMap<String, SessionState> cookies;
 
     public SessionStateManager() {
         // TODO: read from DB
         cookies = new HashMap<>();
-        random = new SecureRandom();
     }
     
     public SessionState getSessionState(String id) {

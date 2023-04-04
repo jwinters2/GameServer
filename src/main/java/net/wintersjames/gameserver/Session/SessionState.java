@@ -4,6 +4,7 @@
  */
 package net.wintersjames.gameserver.Session;
 
+import net.wintersjames.gameserver.Games.Queue.GameQueue;
 import net.wintersjames.gameserver.User.User;
 
 /**
@@ -13,6 +14,7 @@ import net.wintersjames.gameserver.User.User;
 public class SessionState {
     
     private LoginState loginState;
+    private GameQueue gameQueue;
     
     public SessionState() {
         this.loginState = new LoginState();
@@ -25,5 +27,13 @@ public class SessionState {
     public void login(User user) {
         loginState.setUid(user.getUid());
         loginState.setUsername(user.getUsername());
+    }
+
+    public GameQueue getGameQueue() {
+        return gameQueue;
+    }
+
+    public void setGameQueue(GameQueue gameQueue) {
+        this.gameQueue = gameQueue;
     }
 }

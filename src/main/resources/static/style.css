@@ -64,3 +64,13 @@ body {
     background-color: #432618;
     color: #dfad68;  
 }
+
+.user-list {
+    width: 30em;
+    margin-top: 1em;
+}
+
+.user-list-entry {
+    border-top: 1px solid #432618 !important;
+    border-bottom: 1px solid #432618 !important;
+}
