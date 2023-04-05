@@ -24,16 +24,16 @@ public class GameQueueManager {
         queues = new HashMap<>();
     }
     
-    public boolean enqueueUser(User user, Class game) {
+    public GameQueue enqueueUser(User user, Class game) {
         
         if(!queues.containsKey(game)) {
-            queues.put(game, new GameQueue());
+            queues.put(game, new GameQueue(game));
         }
         
         GameQueue queue = queues.get(game);
         queue.add(user);
         
-        return true;
+        return queue;
     }
 
     public List<User> getQueue(Class game) {

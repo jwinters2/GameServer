@@ -50,14 +50,12 @@ public class User implements Serializable {
         this.uid = uid;
     }
 
-    /*
-    public Users(Integer uid, String username, String passwordHash, String salt) {
+    private User(Integer uid, String username, String passwordHash, String salt) {
         this.uid = uid;
         this.username = username;
         this.passwordHash = passwordHash;
         this.salt = salt;
     }
-    */
     
     public User(String username, String passwordHash, String salt) {
         this.username = username;
@@ -119,4 +117,7 @@ public class User implements Serializable {
         return this.username + "[uid=" + uid + "]";
     }
     
+    public User clientSafe() {
+        return new User(uid, username, null, null);
+    }
 }

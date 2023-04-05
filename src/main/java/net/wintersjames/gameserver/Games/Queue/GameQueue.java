@@ -15,9 +15,26 @@ import net.wintersjames.gameserver.User.User;
 public class GameQueue {
 
     final private ArrayList<User> enqueuedUsers;
+    final private Class game;
+
     
     public GameQueue() {
-        enqueuedUsers = new ArrayList<>();
+        this.enqueuedUsers = new ArrayList<>();
+        this.game = null;
+    }
+    
+    public GameQueue(Class game) {
+        this.enqueuedUsers = new ArrayList<>();
+        this.game = game;
+    }
+        
+    private User findUser(int uid) {
+        for(User user: enqueuedUsers) {
+            if(user.getUid() == uid) {
+                return user;
+            }
+        }
+        return null;
     }
     
     public void add(User user) {
@@ -26,8 +43,15 @@ public class GameQueue {
         }
     }
     
-    public List getList() {
+    public List<User> getList() {
         return new ArrayList(enqueuedUsers);
+    }
+
+    public void challengeUser(int from_uid, int to_uid) {
+        User fromUser = findUser(from_uid);
+        User toUser = findUser(to_uid);
+        
+        System.out.println("user " + fromUser.getUsername() + " challenges " + toUser.getUsername());
     }
     
 }

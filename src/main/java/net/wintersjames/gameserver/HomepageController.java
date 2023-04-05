@@ -56,6 +56,9 @@ public class HomepageController {
         SessionState state = sessionManager.getSessionState(id);
         String username = state.getLoginState().getUsername();
         
+        // users at the homepage aren't in any queues or games
+        state.setGameQueue(null);
+        
         System.out.println("username: " + username);
 
         if(username == null) {
@@ -81,10 +84,14 @@ public class HomepageController {
     public RedirectView logout(HttpServletRequest request, HttpServletResponse response) {
         
         String id = CookieUtils.getSessionCookie(request, response);
-        LoginState state = sessionManager.getSessionState(id).getLoginState();
+        SessionState state = sessionManager.getSessionState(id);
+        LoginState loginState = state.getLoginState();
         
-        state.setUid(0);
-        state.setUsername(null);
+        // reset everything
+        // TODO: make a function for this
+        loginState.setUid(0);
+        loginState.setUsername(null);
+        state.setGameQueue(null);
         
         return new RedirectView("/login");
     }

@@ -37,8 +37,15 @@ public class CookieUtils {
             cookieStr += charset.charAt((int) Math.floor(Math.random() * charset.length()));
         }
         
-        response.addCookie(new Cookie(cookieName, cookieStr));
+        if(response != null) {
+            response.addCookie(new Cookie(cookieName, cookieStr));
+        }
+        
         return cookieStr;
+    }
+    
+    public static String getSessionCookie(HttpServletRequest request) {
+        return getSessionCookie(request, null);
     }
     
 }
