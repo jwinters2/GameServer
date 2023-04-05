@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
  *
@@ -94,7 +95,7 @@ public class User implements Serializable {
     public void setSalt(String salt) {
         this.salt = salt;
     }
-
+    
     @Override
     public int hashCode() {
         int hash = 0;

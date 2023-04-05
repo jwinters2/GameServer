@@ -6,25 +6,20 @@ package net.wintersjames.gameserver;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import net.wintersjames.gameserver.Session.SessionStateManager;
-import net.wintersjames.gameserver.Config.LoginConfig;
-import net.wintersjames.gameserver.Session.LoginState;
+
 import net.wintersjames.gameserver.User.User;
 import net.wintersjames.gameserver.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.socket.messaging.SessionConnectEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 /**
  *
@@ -47,7 +42,7 @@ public class LoginController {
     
     @PostMapping("/login")
     @ResponseBody
-    public String register(Model model, HttpServletRequest request, HttpServletResponse response) {
+    public String register(Model model, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
         
         
         String id = CookieUtils.getSessionCookie(request, response);
@@ -61,11 +56,22 @@ public class LoginController {
         if(password_hash.equals(db_hash)) {
             // success, add user info to session state
             sessionManager.getSessionState(id).login(user);
+            sessionManager.mapSessionToUser(session.getId(), user);
             return "/homepage";
         } else {
             // bad password
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return "Incorrect username/password";
         }
+    }    
+    
+    @EventListener
+    public void onConnectEvent(SessionConnectEvent event) {
+        System.out.println("SessionStateManager connect");
+    }
+    
+    @EventListener
+    public void onDisconnectEvent(SessionDisconnectEvent event) {
+        System.out.println("SessionStateManager disconnect " + event.getSessionId());
     }
 }

@@ -4,23 +4,30 @@
  */
 package net.wintersjames.gameserver.Session;
 
+import jakarta.inject.Singleton;
 import java.util.HashMap;
+import net.wintersjames.gameserver.User.User;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
+import org.springframework.web.socket.messaging.SessionConnectEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 /**
  *
  * @author james
  */
 @Component
-@SessionScope
+@Singleton
 public class SessionStateManager {
     
     final private HashMap<String, SessionState> cookies;
+    final private HashMap<String, User> users;
 
     public SessionStateManager() {
         // TODO: read from DB
         cookies = new HashMap<>();
+        users = new HashMap<>();
     }
     
     public SessionState getSessionState(String id) {
@@ -31,5 +38,8 @@ public class SessionStateManager {
             cookies.put(id, retval);
             return retval;
         }
+    }
+
+    public void mapSessionToUser(String id, User user) {
     }
 }

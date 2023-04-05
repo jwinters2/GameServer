@@ -4,6 +4,7 @@
  */
 package net.wintersjames.gameserver.Games.Queue;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import net.wintersjames.gameserver.User.User;
 
@@ -11,13 +12,21 @@ import net.wintersjames.gameserver.User.User;
  *
  * @author james
  */
-public class GameQueueUpdate {
+public class GameQueueUpdate implements Serializable {
     private ArrayList<User> userList;
     
-    public GameQueueUpdate(GameQueue gameQueue) {
+    public GameQueueUpdate(GameQueue gameQueue, int uidToIgnore) {
         userList = new ArrayList<>();
         for (User user: gameQueue.getList()) {
-            userList.add(user.clientSafe());
+            if(user.getUid() != uidToIgnore) {
+                userList.add(user.clientSafe());
+            }
         }
     }
+
+    public ArrayList<User> getUserList() {
+        return userList;
+    }
+    
+    
 }
