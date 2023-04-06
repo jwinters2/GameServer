@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 public class GameQueueManager {
     
     final private HashMap<Class, GameQueue> queues;
-    
+  
     public GameQueueManager() {
         queues = new HashMap<>();
     }

@@ -13,7 +13,7 @@
         
         <script src="/queue.js"></script>
     </head>
-    <body th:attr="onload=|connect(${myuid})|">
+    <body th:attr="onload=|init(${myuid})|">
         <div class="nabvar navbar-dark bg-chess">
             <h1 class="chess-text-light" style="margin: 0em 1em" th:text="${game}">%Game Title%</h1>    
         </div>
@@ -26,11 +26,11 @@
                         <th class="user-list-entry"></th>
                     </tr>
                 </thead>
-                <tbody id="userlist">   
+                <tbody id="userlist">  
                     <tr th:each="user: ${users}">
                         <td class="user-list-entry align-middle" th:text="${user.username}"><i>No users waiting to play</i></td>
                         <td class="user-list-entry" th:if="${#lists.size(users) > 0}">
-                            <a class="btn btn-primary border-0" th:attr="onclick=|challenge('${user.uid}')|">Send Invite</a>
+                            <a class="btn btn-primary border-0 float-right" th:attr="onclick=|challenge('${user.uid}')|">Send Invite</a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.size(users) == 0}">

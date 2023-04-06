@@ -90,9 +90,9 @@ public class QueueController implements ListenToDisconnects {
         return "queue";
     }
     
-    @GetMapping("queue/challenge")
+    @GetMapping("/queue/challenge/{uid}")
     @ResponseBody
-    public String challengeUser(@RequestParam(name="uid") int to_uid, HttpServletRequest request) {
+    public String challengeUser(@PathVariable(name="uid") int to_uid, HttpServletRequest request) {
         
         String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
@@ -100,39 +100,43 @@ public class QueueController implements ListenToDisconnects {
         GameQueue queue = state.getGameQueue();
         
         queue.challengeUser(from_uid, to_uid);
+        
+        updateForUser(from_uid, queue);
+        updateForUser(to_uid, queue);
 
-        return "";
+        return "invite sent";
     }
     
-    @MessageMapping("/challenge/{uid}")
-    @SendTo("/websocket/queue/{uid}")
-    public String handleWebsocketMessage(@DestinationVariable("uid") int uid) {        
-        String message = "challenging user " + Integer.toString(uid);
-        System.out.println(message);
-        return message;
-    }
-    
-    public void updateQueues(@DestinationVariable("uid") int uid, GameQueue queue) {
-        System.out.println("updating " + Integer.toString(uid));
-        GameQueueUpdate payload = new GameQueueUpdate(queue, uid);
+    public void updateQueues(@DestinationVariable("uid") int recipient_uid, GameQueue queue) {
+        System.out.println("updating " + Integer.toString(recipient_uid));
+        GameQueueUpdate payload = new GameQueueUpdate(queue);
+        payload.cleanForUser(recipient_uid);
         
         simpMessageTemplate.convertAndSend(
-            "/websocket/queue/" + Integer.toString(uid),
+            "/websocket/queue/" + Integer.toString(recipient_uid),
              payload);
     }
-
-    @Override
-    public void handleDisconnects(int uid) {
-        System.out.println("queue controller handling disconnected user " + Integer.toString(uid));
-        
+    
+    private void updateForUser(int uid) {
         User user = userService.findByUid(uid);    
         GameQueue queue = sessionManager.getUserSession(uid).getGameQueue();
         queue.remove(user);
+        
+        updateForUser(uid, queue);
+    }
+    
+    private void updateForUser(int uid, GameQueue queue) {
         
         List<User> users = queueManager.getQueue(queue.getGame());
         
         for(User u: users) {
             updateQueues(u.getUid(), queue);
-        }
+        } 
+    }
+
+    @Override
+    public void handleDisconnects(int uid) {
+        System.out.println("queue controller handling disconnected user " + Integer.toString(uid));   
+        updateForUser(uid);
     }
 }
