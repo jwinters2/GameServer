@@ -55,7 +55,7 @@ public class WebSocketSessionManager {
         long timestamp = currentTimestamp();
         
         if(!users.isEmpty()) {
-            Set<Integer> keys = users.keySet();
+            Set<Integer> keys = new HashSet(users.keySet());
             for(int uid: keys) {
                 if(timestamp - users.get(uid) > timeout) {
                     users.remove(uid);
@@ -67,7 +67,6 @@ public class WebSocketSessionManager {
     
     @MessageMapping("/heart/{uid}")
     public void handleWebsocketMessage(@DestinationVariable("uid") int uid) {                
-        System.out.println("heartbeat");
         users.put(uid, currentTimestamp());
     }
     

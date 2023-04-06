@@ -10,31 +10,21 @@ function challenge(uid) {
     request.send();
 }
 
-function accept(inviteId) {
+function handleInvite(command, inviteId) {
     const request = new XMLHttpRequest();  
-    request.open('GET', `/queue/accept/${inviteId}`);
+    request.open('GET', `/queue/${command}/${inviteId}`);
     request.onload = function() {
         console.log(request.response);
     };
     request.send();
+}
+
+function accept(inviteId) {
+    handleInvite("accept", inviteId);
 }
 
 function cancel(inviteId) {
-    const request = new XMLHttpRequest();  
-    request.open('GET', `/queue/cancel/${inviteId}`);
-    request.onload = function() {
-        console.log(request.response);
-    };
-    request.send();
-}
-
-function decline(inviteId) {
-    const request = new XMLHttpRequest();  
-    request.open('GET', `/queue/decline/${inviteId}`);
-    request.onload = function() {
-        console.log(request.response);
-    };
-    request.send();
+    handleInvite("cancel", inviteId);
 }
 
 function init(uid) {
@@ -45,7 +35,7 @@ function init(uid) {
     stompClient.connect({}, function (frame) {
         console.log("connected", frame);
         stompClient.subscribe(`/websocket/queue/${uid}`, function(message) {
-            updateQueue(JSON.parse(message.body));
+            handleUpdate(JSON.parse(message.body));
         });
         heartbeat();
     });
@@ -59,6 +49,14 @@ function heartbeat() {
 }
 
 setInterval(heartbeat, 10000);
+
+function handleUpdate(body) {
+    if(body.messageType === "queueUpdate") {
+        updateQueue(body);
+    } else if (body.messageType === "gameInvite") {
+        goToGame(body);
+    }
+}
 
 function updateQueue(body) {
     console.log(body);
@@ -158,7 +156,7 @@ function generateUserButton(userUid, listUid, invites) {
         decline.classList.add("btn");
         decline.classList.add("btn-primary");
         decline.classList.add("border-0");
-        decline.onclick = function() {decline(timestamp);};
+        decline.onclick = function() {cancel(timestamp);};
         decline.innerHTML = "Decline";
         
         let buttonGroup = document.createElement("div");
@@ -174,3 +172,6 @@ function generateUserButton(userUid, listUid, invites) {
     }
 }
 
+function goToGame(body) {
+    window.location.href = (`${window.location.origin}/game/${body.gameStr}/${body.timestamp}`);
+}

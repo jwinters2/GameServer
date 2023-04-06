@@ -14,8 +14,9 @@ import net.wintersjames.gameserver.User.User;
  * @author james
  */
 public class GameQueueUpdate implements Serializable {
-    private ArrayList<User> userList;
+    final private ArrayList<User> userList;
     private HashMap<Long, GameInvite> invites;
+    final private String messageType = "queueUpdate";
     
     public GameQueueUpdate(GameQueue gameQueue) {
         userList = new ArrayList<>();
@@ -62,5 +63,8 @@ public class GameQueueUpdate implements Serializable {
     public HashMap<Long, GameInvite> getInvites() {
         return invites;
     }
-    
+
+    public String getMessageType() {
+        return messageType;
+    }
 }

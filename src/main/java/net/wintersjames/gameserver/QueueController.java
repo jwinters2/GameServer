@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import net.wintersjames.gameserver.Games.GameUtils;
+import net.wintersjames.gameserver.Games.Queue.GameInvite;
 import net.wintersjames.gameserver.Games.Queue.GameQueue;
 import net.wintersjames.gameserver.Games.Queue.GameQueueManager;
 import net.wintersjames.gameserver.Games.Queue.GameQueueUpdate;
@@ -107,6 +108,51 @@ public class QueueController implements ListenToDisconnects {
         return "invite sent";
     }
     
+    @GetMapping("/queue/accept/{inviteid}")
+    @ResponseBody
+    public String acceptInvite(@PathVariable(name="inviteid") long timestamp, HttpServletRequest request) {
+        
+        System.out.println("accept invite");
+        
+        String id = CookieUtils.getSessionCookie(request);
+        SessionState state = sessionManager.getSessionState(id);
+        int uid = state.getLoginState().getUid();
+        GameQueue queue = state.getGameQueue();
+        
+        System.out.println(uid);
+        
+        GameInvite invite = queue.getInvite(timestamp);
+        System.out.println(invite);
+        if(invite != null && invite.getToUid() == uid) {
+            boolean inviteSuccess = queue.startGame(invite);
+            if(inviteSuccess) {
+                sendToGame(invite.getFromUid(), invite);
+                sendToGame(invite.getToUid(), invite);
+                return "invite accepted"; 
+            }
+        }
+
+        return "invite accept failed";
+    }
+    
+    @GetMapping("/queue/cancel/{inviteid}")
+    @ResponseBody
+    public String cancelInvite(@PathVariable(name="inviteid") long timestamp, HttpServletRequest request) {
+        
+        String id = CookieUtils.getSessionCookie(request);
+        SessionState state = sessionManager.getSessionState(id);
+        int uid = state.getLoginState().getUid();
+        GameQueue queue = state.getGameQueue();
+        
+        GameInvite invite = queue.getInvite(timestamp);
+        if(invite.includesUser(uid)) {
+            queue.removeInvite(timestamp);
+            updateForUser(uid, queue);
+        }
+
+        return "invite canceled";
+    }
+    
     public void updateQueues(@DestinationVariable("uid") int recipient_uid, GameQueue queue) {
         System.out.println("updating " + Integer.toString(recipient_uid));
         GameQueueUpdate payload = new GameQueueUpdate(queue);
@@ -117,6 +163,7 @@ public class QueueController implements ListenToDisconnects {
              payload);
     }
     
+    // user ${uid} has either joined or left, notify the others
     private void updateForUser(int uid) {
         User user = userService.findByUid(uid);    
         GameQueue queue = sessionManager.getUserSession(uid).getGameQueue();
@@ -133,10 +180,17 @@ public class QueueController implements ListenToDisconnects {
             updateQueues(u.getUid(), queue);
         } 
     }
+    
+    public void sendToGame(@DestinationVariable("uid") int recipient_uid, GameInvite invite) {
+        System.out.println("sending to game " + Integer.toString(recipient_uid));
+        
+        simpMessageTemplate.convertAndSend(
+            "/websocket/queue/" + Integer.toString(recipient_uid),
+             invite);
+    }
 
     @Override
     public void handleDisconnects(int uid) {
-        System.out.println("queue controller handling disconnected user " + Integer.toString(uid));   
         updateForUser(uid);
     }
 }

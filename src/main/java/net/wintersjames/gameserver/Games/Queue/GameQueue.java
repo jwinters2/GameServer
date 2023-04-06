@@ -55,6 +55,10 @@ public class GameQueue {
     public Map<Long, GameInvite> getInvites() {
         return invites;
     }
+    
+    public GameInvite getInvite(long timestamp) {
+        return invites.get(timestamp);
+    }
 
     public void challengeUser(int from_uid, int to_uid) {
         User fromUser = findUser(from_uid);
@@ -72,6 +76,34 @@ public class GameQueue {
     
     public void remove(User user) {
         enqueuedUsers.remove(user);
+    }
+    
+    public boolean startGame(GameInvite invite) {
+        
+        // if the invite or either party is missing, we can't start the game
+        if(!invites.containsKey(invite.getTimestamp())
+           || findUser(invite.getFromUid()) == null
+           || findUser(invite.getToUid()) == null) {
+            return false;
+        }
+        
+        ArrayList<User> tempList = new ArrayList<>(enqueuedUsers);
+        for(User user: tempList) {
+            if(user.getUid() == invite.getFromUid() || user.getUid() == invite.getToUid()) {
+                enqueuedUsers.remove(user);
+            }
+        }
+        invites.remove(invite.getTimestamp());
+        
+        System.out.println("starting game");
+        System.out.println(enqueuedUsers);
+        System.out.println(invites);
+        
+        return true;
+    }
+
+    public void removeInvite(long timestamp) {
+        invites.remove(timestamp);
     }
     
 }
