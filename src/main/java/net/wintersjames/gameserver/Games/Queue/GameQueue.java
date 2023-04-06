@@ -53,5 +53,13 @@ public class GameQueue {
         
         System.out.println("user " + fromUser.getUsername() + " challenges " + toUser.getUsername());
     }
+
+    public Class getGame() {
+        return game;
+    }
+    
+    public void remove(User user) {
+        enqueuedUsers.remove(user);
+    }
     
 }

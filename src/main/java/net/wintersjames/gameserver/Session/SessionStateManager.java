@@ -5,7 +5,9 @@
 package net.wintersjames.gameserver.Session;
 
 import jakarta.inject.Singleton;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Set;
 import net.wintersjames.gameserver.User.User;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -22,7 +24,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 public class SessionStateManager {
     
     final private HashMap<String, SessionState> cookies;
-    final private HashMap<String, User> users;
+    final private HashMap<User, String> users;
 
     public SessionStateManager() {
         // TODO: read from DB
@@ -40,6 +42,17 @@ public class SessionStateManager {
         }
     }
 
-    public void mapSessionToUser(String id, User user) {
+    public SessionState getUserSession(User user) {
+        return getUserSession(user.getUid());
+    }
+    
+    public SessionState getUserSession(int uid) {
+        Collection<SessionState> states = cookies.values();
+        for(SessionState state: states) {
+            if(state.getLoginState().getUid() == uid) {
+                return state;
+            }
+        }
+        return null;
     }
 }

@@ -56,7 +56,6 @@ public class LoginController {
         if(password_hash.equals(db_hash)) {
             // success, add user info to session state
             sessionManager.getSessionState(id).login(user);
-            sessionManager.mapSessionToUser(session.getId(), user);
             return "/homepage";
         } else {
             // bad password
@@ -64,14 +63,4 @@ public class LoginController {
             return "Incorrect username/password";
         }
     }    
-    
-    @EventListener
-    public void onConnectEvent(SessionConnectEvent event) {
-        System.out.println("SessionStateManager connect");
-    }
-    
-    @EventListener
-    public void onDisconnectEvent(SessionDisconnectEvent event) {
-        System.out.println("SessionStateManager disconnect " + event.getSessionId());
-    }
 }

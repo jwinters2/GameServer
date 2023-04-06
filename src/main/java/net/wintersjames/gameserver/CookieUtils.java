@@ -4,9 +4,12 @@
  */
 package net.wintersjames.gameserver;
 
+import org.springframework.http.HttpHeaders;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+import org.springframework.http.server.ServerHttpRequest;
 
 /**
  *
@@ -46,6 +49,22 @@ public class CookieUtils {
     
     public static String getSessionCookie(HttpServletRequest request) {
         return getSessionCookie(request, null);
+    }
+    
+    public static String getSessionCookie(ServerHttpRequest request) {
+        
+        HttpHeaders headers = request.getHeaders();
+        String cookieStr = headers.get(HttpHeaders.COOKIE).get(0);
+        
+        String[] cookies = cookieStr.split("; ");
+        for(String cookie: cookies) {
+            String[] keyval = cookie.split("=");
+            if(keyval[0].equals(cookieName)) {
+                return keyval[1];
+            }
+        }
+
+        return null;
     }
     
 }

@@ -12,8 +12,10 @@ import net.wintersjames.gameserver.Games.GameUtils;
 import net.wintersjames.gameserver.Games.Queue.GameQueue;
 import net.wintersjames.gameserver.Games.Queue.GameQueueManager;
 import net.wintersjames.gameserver.Games.Queue.GameQueueUpdate;
+import net.wintersjames.gameserver.Session.ListenToDisconnects;
 import net.wintersjames.gameserver.Session.SessionState;
 import net.wintersjames.gameserver.Session.SessionStateManager;
+import net.wintersjames.gameserver.Session.WebSocketSessionManager;
 import net.wintersjames.gameserver.User.User;
 import net.wintersjames.gameserver.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,19 +38,27 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
  * @author james
  */
 @Controller
-public class QueueController {
+public class QueueController implements ListenToDisconnects {
     
     @Autowired
     private GameQueueManager queueManager;
     
     @Autowired
-    SessionStateManager sessionManager;
+    private SessionStateManager sessionManager;
     
     @Autowired
-    UserService userService;
+    private UserService userService;
     
     @Autowired
-    SimpMessagingTemplate simpMessageTemplate;
+    private SimpMessagingTemplate simpMessageTemplate;
+    
+    private WebSocketSessionManager webSocketManager;
+    
+    @Autowired
+    public QueueController(WebSocketSessionManager webSocketManager) {
+        this.webSocketManager = webSocketManager;
+        this.webSocketManager.registerListener(this);
+    }
     
     @GetMapping("/queue/{game}")
     public String homePage(
@@ -95,19 +105,34 @@ public class QueueController {
     }
     
     @MessageMapping("/challenge/{uid}")
-    @SendTo("/websocket/queue-challenge/{uid}")
+    @SendTo("/websocket/queue/{uid}")
     public String handleWebsocketMessage(@DestinationVariable("uid") int uid) {        
         String message = "challenging user " + Integer.toString(uid);
         System.out.println(message);
         return message;
     }
     
-    //@SendTo("/websocket/queue-challenge/{uid}")
     public void updateQueues(@DestinationVariable("uid") int uid, GameQueue queue) {
         System.out.println("updating " + Integer.toString(uid));
         GameQueueUpdate payload = new GameQueueUpdate(queue, uid);
+        
         simpMessageTemplate.convertAndSend(
-            "/websocket/queue-challenge/" + Integer.toString(uid),
+            "/websocket/queue/" + Integer.toString(uid),
              payload);
+    }
+
+    @Override
+    public void handleDisconnects(int uid) {
+        System.out.println("queue controller handling disconnected user " + Integer.toString(uid));
+        
+        User user = userService.findByUid(uid);    
+        GameQueue queue = sessionManager.getUserSession(uid).getGameQueue();
+        queue.remove(user);
+        
+        List<User> users = queueManager.getQueue(queue.getGame());
+        
+        for(User u: users) {
+            updateQueues(u.getUid(), queue);
+        }
     }
 }
