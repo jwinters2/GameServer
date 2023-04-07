@@ -13,7 +13,8 @@ import net.wintersjames.gameserver.Games.GameMatch;
  */
 public class ChessMatch extends GameMatch {
     
-    public ChessMatch() {
+    public ChessMatch(long id, Class game) {
+        super(id, game);
     }
     
 }

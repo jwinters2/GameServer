@@ -7,6 +7,8 @@ package net.wintersjames.gameserver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import net.wintersjames.gameserver.Session.SessionStateManager;
 
 import net.wintersjames.gameserver.User.User;
@@ -47,8 +49,12 @@ public class LoginController {
         
         String id = CookieUtils.getSessionCookie(request, response);
         
-        String username = request.getParameter("username");
-        String password_hash = request.getParameter("password_hash");
+        String username = URLDecoder.decode(
+                request.getParameter("username"),  
+                StandardCharsets.UTF_8);
+        String password_hash = URLDecoder.decode(
+                request.getParameter("password_hash"), 
+                StandardCharsets.UTF_8);
         
         User user = userService.findByUsername(username);
         String db_hash = user.getPasswordHash();

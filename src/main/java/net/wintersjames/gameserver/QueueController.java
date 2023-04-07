@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
+import net.wintersjames.gameserver.Games.GameMatchManager;
 import net.wintersjames.gameserver.Games.GameUtils;
 import net.wintersjames.gameserver.Games.Queue.GameInvite;
 import net.wintersjames.gameserver.Games.Queue.GameQueue;
@@ -52,6 +53,9 @@ public class QueueController implements ListenToDisconnects {
     
     @Autowired
     private SimpMessagingTemplate simpMessageTemplate;
+    
+    @Autowired
+    private GameMatchManager matchManager;
     
     private WebSocketSessionManager webSocketManager;
     
@@ -124,7 +128,8 @@ public class QueueController implements ListenToDisconnects {
         GameInvite invite = queue.getInvite(timestamp);
         System.out.println(invite);
         if(invite != null && invite.getToUid() == uid) {
-            boolean inviteSuccess = queue.startGame(invite);
+            // setup a new game
+            boolean inviteSuccess = queue.startGame(invite, matchManager);
             if(inviteSuccess) {
                 sendToGame(invite.getFromUid(), invite);
                 sendToGame(invite.getToUid(), invite);
@@ -171,7 +176,8 @@ public class QueueController implements ListenToDisconnects {
         
         updateForUser(uid, queue);
     }
-    
+       
+    // user ${uid} has either joined or left, notify the others
     private void updateForUser(int uid, GameQueue queue) {
         
         List<User> users = queueManager.getQueue(queue.getGame());

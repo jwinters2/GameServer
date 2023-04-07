@@ -74,3 +74,38 @@ body {
     border-top: 1px solid #432618 !important;
     border-bottom: 1px solid #432618 !important;
 }
+
+.chat-container {
+    padding-top: 1em;
+    height: 100vh;
+}
+
+.chat-me {
+    background-color: #a4cdfc;
+    color: #000000;
+    border-radius: 10px;
+    max-width: 90%;
+}
+
+.chat-other {
+    background-color: #ffffff;
+    color: #000000;   
+    border-radius: 10px;  
+    max-width: 90%;
+}
+
+.chat-input {
+    position: absolute;
+    bottom: 5em;
+}
+
+.chat-scrollbox {
+    overflow-y: auto; 
+    height: calc(100vh - 8.5em);
+    -ms-overflow-style: none;
+    scrollbar-width: none; 
+}
+
+.chat-scrollbox::-webkit-scrollbar {
+    display: none;
+}

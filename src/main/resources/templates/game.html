@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
+-->
+<html>
+    <head>
+        <title>Game</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css" />
+        
+        <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/webjars/jquery/jquery.min.js"></script>
+        <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+        <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+        
+        <script th:src="'/game/' + ${game} + '.js'"></script>
+        <script src="/chat.js"></script>
+    </head>
+    <body>
+        <div class="nabvar navbar-dark bg-chess">
+            <h1 class="chess-text-light text-capitalize" style="margin: 0em 1em" th:text="${game}"></h1>    
+        </div>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-3 d-none d-lg-block d-xl-block" th:insert="~{chat.html}"></div>
+                <div class="col-lg-9 col-md-12" th:insert="~{'games/' + ${game} + '.html'}"></div>
+            </div>
+        </div>
+
+    </body>
+</html>

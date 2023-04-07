@@ -8,7 +8,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.wintersjames.gameserver.Games.GameMatchManager;
 import net.wintersjames.gameserver.User.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 /**
  *
@@ -19,7 +22,8 @@ public class GameQueue {
     final private ArrayList<User> enqueuedUsers;
     final private HashMap<Long, GameInvite> invites;
     final private Class game;
-
+    
+    private static GameMatchManager matchManager;
     
     public GameQueue() {
         this.enqueuedUsers = new ArrayList<>();
@@ -78,7 +82,7 @@ public class GameQueue {
         enqueuedUsers.remove(user);
     }
     
-    public boolean startGame(GameInvite invite) {
+    public boolean startGame(GameInvite invite, GameMatchManager matchManager) {
         
         // if the invite or either party is missing, we can't start the game
         if(!invites.containsKey(invite.getTimestamp())
@@ -98,6 +102,8 @@ public class GameQueue {
         System.out.println("starting game");
         System.out.println(enqueuedUsers);
         System.out.println(invites);
+        
+        matchManager.newMatch(invite);
         
         return true;
     }
