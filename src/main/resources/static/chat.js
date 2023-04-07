@@ -62,23 +62,24 @@ function chat_handleUpdate(messages) {
         chatLog.appendChild(row);
         
         let flex = document.createElement("div");
-        flex.classList.add("d-sm-inline-flex", "p-2", "border", "border-dark",
-            "text-width", "text-break");
+        flex.classList.add("d-flex");
         row.appendChild(flex);
         
-        let p = document.createElement("p");
-        p.classList.add("text-break");
-        p.innerHTML = message.message;
-        flex.appendChild(p);
+        let span = document.createElement("span");
+        span.classList.add("my-1", "p-2", "border", "border-dark", "text-wrap", "text-break");
+        span.innerHTML = message.message;
+        flex.appendChild(span);
         
         if(message.uid === userid) {
             row.classList.add("justify-content-end");
-            flex.classList.add("text-right", "chat-me");
+            flex.classList.add("flex-row-reverse");
+            span.classList.add("text-end", "chat-me");
         }
         else
         {
             row.classList.add("justify-content-start");
-            flex.classList.add("text-left", "chat-other");
+            flex.classList.add("flex-row");
+            span.classList.add("text-start", "chat-other");
         }
     });
     

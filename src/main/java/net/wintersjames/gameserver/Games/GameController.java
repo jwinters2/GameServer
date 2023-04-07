@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.util.HtmlUtils;
 
 /**
  *
@@ -89,7 +90,7 @@ public class GameController implements ListenToDisconnects {
    
         System.out.println("message received for game " + game);
         
-        String message = URLDecoder.decode(request.getParameter("message"), StandardCharsets.UTF_8);
+        String message = HtmlUtils.htmlEscape(URLDecoder.decode(request.getParameter("message"), StandardCharsets.UTF_8));
         System.out.println(message);
         
         String id = CookieUtils.getSessionCookie(request);
@@ -97,7 +98,7 @@ public class GameController implements ListenToDisconnects {
         int uid = state.getLoginState().getUid();
         
         GameMatch match = matchManager.getMatch(uid, matchid);
-        if(match != null) {
+        if(match != null && message.length() > 0) {
             match.newMessage(uid, message);
             for(int playerid: match.getPlayers()) {
                 updateChatForUsers(match, playerid);

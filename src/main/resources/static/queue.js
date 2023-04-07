@@ -82,7 +82,7 @@ function updateQueue(body) {
         playCell.classList.add('user-list-entry');
         
         let button = generateUserButton(userid, u.uid, body.invites);
-        button.classList.add("float-right");
+        button.classList.add("float-end");
         
         playCell.appendChild(button);
 
@@ -97,15 +97,11 @@ function updateQueue(body) {
         
         let usernameCell = document.createElement("td");
         usernameCell.classList.add('user-list-entry');
-        usernameCell.classList.add('align-middle');
+        usernameCell.classList.add('text-center');
         usernameCell.appendChild(italics);
+        usernameCell.colSpan = 2;
         
         tr.appendChild(usernameCell);
-        
-        let playCell = document.createElement("td");
-        playCell.classList.add('user-list-entry');
-        
-        tr.appendChild(playCell);
     }
 }
 

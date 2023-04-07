@@ -2,15 +2,25 @@
     <script th:inline="javascript">
         chat_init(/*[[${myuid}]]*/, /*[[${game}]]*/, /*[[${matchid}]]*/);
     </script>
-    <div id="chatLog" class="container chat-scrollbox"></div>
-    
-    <div class="row chat-input" style="width: 100%;">
-        <form onsubmit="return false;">               
-            <div class="input-group" style="width: 100%; margin-right: 30px;">
+    <div class="row">
+        <div class="col">
+            <div id="chatLog" class="container chat-scrollbox"></div>
+        </div>
+    </div>
+
+    <div class="row chat-input">
+        <div class="col">
+            <form onsubmit="return false;">               
+                <div class="input-group" style="width: 100%; margin-right: 30px;">
                     <input type="text" class="form-control" id="messageText">
-                    <input type="submit" class="btn" onclick="chat_sendMessage()" value="Send"/>
-            </div>
-        </form>
+                    <input type="submit" 
+                           class="btn btn-light" 
+                           onclick="chat_sendMessage()" 
+                           autocomplete="off"
+                           value="Send"/>
+                </div>
+            </form>
+        </div>
     </div>
 
 </div>

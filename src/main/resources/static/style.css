@@ -15,7 +15,7 @@ body {
 }
 
 .login-box {
-    width: 50em;
+    width: 25em;
     margin: auto;
     margin-top: 1em;
 }
@@ -95,8 +95,7 @@ body {
 }
 
 .chat-input {
-    position: absolute;
-    bottom: 5em;
+    bottom: 1em;
 }
 
 .chat-scrollbox {
