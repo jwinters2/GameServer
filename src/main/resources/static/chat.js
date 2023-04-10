@@ -43,7 +43,16 @@ function chat_sendMessage() {
         console.log(request.response);
     };
     request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+	request.setRequestHeader(getCsrfTokenHeader(), getCsrfToken());
     request.send(`message=${encodeURIComponent(message)}`);
+}
+
+function getCsrfTokenHeader() {
+	return document.querySelector("meta[name='_csrf_header']").content;
+}
+
+function getCsrfToken() {
+	return document.querySelector("meta[name='_csrf']").content;
 }
 
 function chat_handleUpdate(messages) {

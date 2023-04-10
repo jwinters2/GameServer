@@ -35,6 +35,7 @@ public class RegisterController {
     @Autowired
     UserService userService;
     
+	/*
     @GetMapping("/getsalt")
     @ResponseBody
     public String getSalt(HttpServletRequest request, HttpServletResponse response) {
@@ -65,6 +66,7 @@ public class RegisterController {
         }
         return user.getSalt();
     }
+		*/
     
     @PostMapping("/register")
     @ResponseBody

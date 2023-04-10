@@ -4,13 +4,10 @@ if(window.location.href.substring(window.location.href.length - 6) !== '/login')
     window.location.href = "/login";
 }
 
-function sendData(path, username, password_hash, salt) {
+function sendData(path, username, password) {
     const dict = [];
     dict.push(`username=${encodeURI(username)}`);
-    dict.push(`password_hash=${encodeURI(password_hash)}`);
-    if(salt !== null) {
-        dict.push(`salt=${encodeURI(salt)}`);
-    }
+    dict.push(`password=${encodeURI(password)}`);
     const data = dict.join('&');
     
     const request = new XMLHttpRequest();
@@ -30,47 +27,19 @@ function sendData(path, username, password_hash, salt) {
     };
 
     request.open('POST', path);
-    request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	request.setRequestHeader(getCsrfTokenHeader(), getCsrfToken());
+
     request.send(data);
 }
 
-function getSalt() {
-    return new Promise(function(resolve, reject) {
-        const request = new XMLHttpRequest();
-        request.open('GET', 'getsalt');
-        request.onload = function() {
-            if (request.status === 200) {
-                resolve(request.response);
-            } else {
-                reject(request.status);
-            }
-        };
-        request.send();
-    });
-};
+function getCsrfTokenHeader() {
+	return document.querySelector("meta[name='_csrf_header']").content;
+}
 
-function getSaltFromUsername(username) {
-    return new Promise(function(resolve, reject) {
-        const request = new XMLHttpRequest();
-        request.open('GET', encodeURI(`getsaltfromuser?username=${username}`));
-        request.onload = function() {
-            if (request.status === 200) {
-                resolve(request.response);
-            } else {
-                reject(request.status);
-            }
-        };
-        request.send();
-    });
-};
-
-const sha256sum = async (input) => {
-    const buffer = new TextEncoder().encode(input);
-    const hashBuffer = await window.crypto.subtle.digest("SHA-256", buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const retval = hashArray.map((i) => i.toString(16).padStart(2, "0")).join("");
-    return retval;
-};
+function getCsrfToken() {
+	return document.querySelector("meta[name='_csrf']").content;
+}
 
 const login_button = document.getElementById('LoginButton');
 if(login_button !== null) {
@@ -78,14 +47,8 @@ if(login_button !== null) {
         event.preventDefault();
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
-        
-        // get salt
-        const salt = await getSaltFromUsername(username);
-        console.log("salt: ", salt);
 
-        const hash = await sha256sum(password + salt);
-
-        sendData("login", username, hash);
+        sendData("login", username, password);
     });
 }
 
@@ -96,12 +59,6 @@ if(register_button !== null) {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         
-        // get salt
-        const salt = await getSalt();
-        console.log("salt: ", salt);
-
-        const hash = await sha256sum(password + salt);
-
-        sendData("register", username, hash, salt, true);
+        sendData("register", username, password);
     });
 }

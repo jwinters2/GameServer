@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import net.wintersjames.gameserver.Session.SessionStateManager;
 
 import net.wintersjames.gameserver.User.User;
@@ -36,6 +38,32 @@ public class LoginController {
     
     @Autowired
     UserService userService;
+	
+	private String sha256sum(String... s) {
+		try {
+			
+			String message = "";
+			for(String string: s) {
+				message += string;
+			}
+
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(message.getBytes(StandardCharsets.UTF_8));
+
+			StringBuilder retval = new StringBuilder(2*hash.length);
+			for(byte b: hash) {
+				String digit = Integer.toHexString(0xFF & b);
+				if(digit.length() == 1) {
+						retval.append("0");
+				}
+				retval.append(digit);
+			}
+			return retval.toString();
+
+		} catch (NoSuchAlgorithmException e) {
+			return "";
+		}
+	}
     
     @GetMapping("/login")
     public String homePage(Model model, HttpServletRequest request, HttpServletResponse response) {             
@@ -52,14 +80,17 @@ public class LoginController {
         String username = URLDecoder.decode(
                 request.getParameter("username"),  
                 StandardCharsets.UTF_8);
-        String password_hash = URLDecoder.decode(
-                request.getParameter("password_hash"), 
+        String password = URLDecoder.decode(
+                request.getParameter("password"), 
                 StandardCharsets.UTF_8);
         
         User user = userService.findByUsername(username);
-        String db_hash = user.getPasswordHash();
+        String hash = user.getPasswordHash();
+        String salt = user.getSalt();
+
+		String enteredHash = sha256sum(password, salt);
         
-        if(password_hash.equals(db_hash)) {
+        if(enteredHash.toLowerCase().equals(hash.toLowerCase())) {
             // success, add user info to session state
             sessionManager.getSessionState(id).login(user);
             return "/homepage";
