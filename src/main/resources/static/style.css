@@ -77,7 +77,8 @@ body {
 
 .chat-container {
     padding-top: 1em;
-    height: 100vh;
+    height: calc(100vh - 3em);
+    max-height: calc(100vh - 3em);
 }
 
 .chat-me {
@@ -107,4 +108,8 @@ body {
 
 .chat-scrollbox::-webkit-scrollbar {
     display: none;
+}
+
+#canvasParentDiv {
+    height: calc(100% - 5em);
 }

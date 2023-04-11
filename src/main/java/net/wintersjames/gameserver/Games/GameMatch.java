@@ -4,6 +4,7 @@
  */
 package net.wintersjames.gameserver.Games;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +18,14 @@ public abstract class GameMatch {
     private List<Integer> players;
     private List<ChatMessage> messages;
     private Class game;
+	private GameState gameState;
     final private long id;
 
-    public GameMatch(long id, Class game) {
+    public GameMatch(long id, Class game, GameState gameState) {
         this.id = id;
         this.players = new ArrayList<>();
         this.messages = new ArrayList<>();
+		this.gameState = gameState;
         this.game = game;
     }
     
@@ -59,5 +62,11 @@ public abstract class GameMatch {
     public List<ChatMessage> getChatLog() {
         return new ArrayList(messages);
     }
+
+	public GameState getGameState() {
+		return gameState;
+	}
+
+	public abstract String handleMove(int uid, HttpServletRequest request);
     
 }

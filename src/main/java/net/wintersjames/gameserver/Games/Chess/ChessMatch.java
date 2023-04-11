@@ -1,10 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package net.wintersjames.gameserver.Games.Chess;
 
-import net.wintersjames.gameserver.Games.Game;
+import jakarta.servlet.http.HttpServletRequest;
 import net.wintersjames.gameserver.Games.GameMatch;
 
 /**
@@ -13,8 +9,14 @@ import net.wintersjames.gameserver.Games.GameMatch;
  */
 public class ChessMatch extends GameMatch {
     
-    public ChessMatch(long id, Class game) {
-        super(id, game);
+    public ChessMatch(long id) {
+        super(id, Chess.class, new ChessState());
     }
+
+	@Override
+	public String handleMove(int uid, HttpServletRequest request) {
+		System.out.println("ChessMatch handle move for user " + Integer.toString(uid));
+		return "success";
+	}
     
 }

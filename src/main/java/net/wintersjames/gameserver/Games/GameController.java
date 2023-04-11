@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package net.wintersjames.gameserver.Games;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,7 +63,9 @@ public class GameController implements ListenToDisconnects {
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
         
-        matchManager.getMatch(uid, matchid);
+        //GameMatch match = matchManager.getMatch(uid, matchid);
+		//System.out.println(match.getGameState());
+		
         model.addAttribute("matchid", matchid);
         model.addAttribute("game", game);
         model.addAttribute("myuid", uid);
@@ -103,8 +101,10 @@ public class GameController implements ListenToDisconnects {
             for(int playerid: match.getPlayers()) {
                 updateChatForUsers(match, playerid);
             }
+			return "message sent";
         }
         
+		response.setStatus(400);
         return "(game) message failed to send";
     }
     
@@ -116,7 +116,60 @@ public class GameController implements ListenToDisconnects {
                 .replace("${matchid}", Long.toString(match.getId()))
                 .replace("${userid}", Integer.toString(uid));
         
-        System.out.println("sending to " + destination);
+        System.out.println("sending chat to " + destination);
+        simpMessageTemplate.convertAndSend(destination, payload);
+    }
+	
+	@PostMapping("/game/{game}/{matchid}/move")
+	@ResponseBody
+    public String receiveMove(
+			@PathVariable(name="game") String game, 
+			@PathVariable(name="matchid") long matchid, 
+			HttpServletRequest request, 
+			HttpServletResponse response) {
+		String id = CookieUtils.getSessionCookie(request);
+        SessionState state = sessionManager.getSessionState(id);
+        int uid = state.getLoginState().getUid();
+        
+        GameMatch match = matchManager.getMatch(uid, matchid);
+        if(match != null) {
+			return match.handleMove(uid, request);
+		}
+		
+		response.setStatus(400);
+		return "bad request";
+	}
+	
+	@GetMapping("/game/{game}/{matchid}/state")
+	@ResponseBody
+    public String sendState(
+			@PathVariable(name="game") String game, 
+			@PathVariable(name="matchid") long matchid, 
+			HttpServletRequest request, 
+			HttpServletResponse response) {
+		String id = CookieUtils.getSessionCookie(request);
+        SessionState state = sessionManager.getSessionState(id);
+        int uid = state.getLoginState().getUid();
+        
+        GameMatch match = matchManager.getMatch(uid, matchid);
+        if(match != null) {
+			updateGameForUsers(match, uid);
+			return "update sent";
+		}
+		
+		response.setStatus(400);
+		return "error: no match found";
+	}
+	
+	public void updateGameForUsers(GameMatch match, @DestinationVariable("uid") int uid) {
+        GameState payload = match.getGameState();
+        
+        String destination = "/websocket/game/${game}/${matchid}/${userid}"
+                .replace("${game}", match.getGame().getSimpleName().toLowerCase())
+                .replace("${matchid}", Long.toString(match.getId()))
+                .replace("${userid}", Integer.toString(uid));
+        
+        System.out.println("sending game update to " + destination);
         simpMessageTemplate.convertAndSend(destination, payload);
     }
     
