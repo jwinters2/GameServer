@@ -7,7 +7,7 @@ package net.wintersjames.gameserver.Games.Chess.ChessPieces;
 public class Queen extends Piece {
 	
 	public Queen(int x, int y, Piece.Color color) {
-		super(x, y, color, "qween");
+		super(x, y, color, "queen");
 	}
 
 	@Override
@@ -22,6 +22,8 @@ public class Queen extends Piece {
 
 	@Override
 	public void move(int x, int y) {
-
+		this.x = x;
+		this.y = y;
+		this.hasMoved = true;
 	}
 }

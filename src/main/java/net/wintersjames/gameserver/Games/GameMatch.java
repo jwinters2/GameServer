@@ -18,7 +18,7 @@ public abstract class GameMatch {
     private List<Integer> players;
     private List<ChatMessage> messages;
     private Class game;
-	private GameState gameState;
+	protected GameState gameState;
     final private long id;
 
     public GameMatch(long id, Class game, GameState gameState) {
@@ -67,6 +67,6 @@ public abstract class GameMatch {
 		return gameState;
 	}
 
-	public abstract String handleMove(int uid, HttpServletRequest request);
+	public abstract boolean handleMove(int uid, HttpServletRequest request);
     
 }

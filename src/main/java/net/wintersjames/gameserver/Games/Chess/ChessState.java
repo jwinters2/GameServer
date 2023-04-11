@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package net.wintersjames.gameserver.Games.Chess;
 
 import java.io.Serializable;
@@ -20,12 +16,17 @@ import net.wintersjames.gameserver.Games.GameState;
  *
  * @author james
  */
-public class ChessState implements GameState, Serializable {
+public class ChessState extends GameState implements Serializable {
 	
 	private List<Piece> pieces;
 	private boolean whiteToMove;
 	
+	private ChessState(String type) {
+		super(type);
+	}
+	
 	public ChessState() {
+		super("chessState");
 		
 		this.whiteToMove = true;
 		this.pieces = new ArrayList<>();
@@ -56,6 +57,8 @@ public class ChessState implements GameState, Serializable {
 	}
 	
 	public ChessState(ChessState other) {
+		super("chessState");
+
 		this.pieces = new ArrayList<>(other.getPieces());
 		this.whiteToMove = other.isWhiteToMove();
 	}
@@ -122,6 +125,37 @@ public class ChessState implements GameState, Serializable {
 		retval += (this.whiteToMove ? "White" : "Black") + " to move";
 		
 		return retval;
+	}
+
+	void captureAt(String pos) {
+		int x = pos.charAt(0) - 'a';
+		int y = pos.charAt(1) - '1';
+		
+		List<Piece> tempPieces = new ArrayList<>(pieces);
+		for(Piece piece: tempPieces) {
+			if(piece.getX() == x && piece.getY() == y) {
+				System.out.println("removing " + piece);
+				pieces.remove(piece);
+				return;
+			}
+		}
+	}
+
+	void move(String fromPos, String toPos) {
+		int fromX = fromPos.charAt(0) - 'a';
+		int fromY = fromPos.charAt(1) - '1';
+		
+		int toX = toPos.charAt(0) - 'a';
+		int toY = toPos.charAt(1) - '1';
+		
+		
+		for(Piece piece: pieces) {
+			if(piece.getX() == fromX && piece.getY() == fromY) {
+				System.out.println("moving " + piece);
+				piece.move(toX, toY);
+				return;
+			}
+		}
 	}
 	
 }

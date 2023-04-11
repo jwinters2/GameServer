@@ -63,12 +63,13 @@ public class GameController implements ListenToDisconnects {
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
         
-        //GameMatch match = matchManager.getMatch(uid, matchid);
-		//System.out.println(match.getGameState());
+        GameMatch match = matchManager.getMatch(uid, matchid);
+		System.out.println(match.getGameState());
 		
         model.addAttribute("matchid", matchid);
         model.addAttribute("game", game);
         model.addAttribute("myuid", uid);
+		model.addAttribute("players", match.getPlayers());
         
         return "game";
     }
@@ -133,7 +134,13 @@ public class GameController implements ListenToDisconnects {
         
         GameMatch match = matchManager.getMatch(uid, matchid);
         if(match != null) {
-			return match.handleMove(uid, request);
+			boolean success = match.handleMove(uid, request);
+			if(success) {
+				for(int pid: match.getPlayers()) {
+					updateGameForUsers(match, pid);
+				}
+				return "success";
+			}
 		}
 		
 		response.setStatus(400);

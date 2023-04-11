@@ -21,7 +21,7 @@ public abstract class Piece implements Serializable {
 	protected int y;
 	protected boolean hasMoved;
 	protected Color color;
-	private String type;
+	final private String type;
 	
 	public Piece(int x, int y, Color color, String type) {
 		this.x = x;
@@ -49,5 +49,14 @@ public abstract class Piece implements Serializable {
 
 	public Color getColor() {
 		return color;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	@Override
+	public String toString() {
+		return "Piece{" + "x=" + x + ", y=" + y + ", hasMoved=" + hasMoved + ", color=" + color + ", type=" + type + '}';
 	}
 }

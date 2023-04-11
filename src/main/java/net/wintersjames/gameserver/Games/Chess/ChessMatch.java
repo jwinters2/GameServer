@@ -1,6 +1,8 @@
 package net.wintersjames.gameserver.Games.Chess;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import net.wintersjames.gameserver.Games.GameMatch;
 
 /**
@@ -14,9 +16,21 @@ public class ChessMatch extends GameMatch {
     }
 
 	@Override
-	public String handleMove(int uid, HttpServletRequest request) {
-		System.out.println("ChessMatch handle move for user " + Integer.toString(uid));
-		return "success";
+	public boolean handleMove(int uid, HttpServletRequest request) {
+		
+		String fromPos = URLDecoder.decode(
+                request.getParameter("from"),  
+                StandardCharsets.UTF_8);
+		String toPos = URLDecoder.decode(
+                request.getParameter("to"),  
+                StandardCharsets.UTF_8);
+		
+		System.out.println("moving " + fromPos + " -> " + toPos);
+		
+		((ChessState)this.gameState).captureAt(toPos);
+		((ChessState)this.gameState).move(fromPos, toPos);
+		
+		return true;
 	}
     
 }
