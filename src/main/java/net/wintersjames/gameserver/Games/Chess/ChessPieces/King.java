@@ -1,5 +1,7 @@
 package net.wintersjames.gameserver.Games.Chess.ChessPieces;
 
+import net.wintersjames.gameserver.Games.Chess.ChessState;
+
 /**
  *
  * @author james
@@ -16,8 +18,8 @@ public class King extends Piece {
 	}
 
 	@Override
-	public boolean canMove(int x, int y) {
-		return false;
+	public boolean canMove(int x, int y, ChessState state) {
+		return (Math.abs(this.x - x) <= 1 && Math.abs(this.y - y) <= 1);
 	}
 
 	@Override

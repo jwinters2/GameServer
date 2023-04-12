@@ -3,6 +3,8 @@ package net.wintersjames.gameserver.Games.Chess;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import net.wintersjames.gameserver.Games.GameMatch;
 
 /**
@@ -11,8 +13,13 @@ import net.wintersjames.gameserver.Games.GameMatch;
  */
 public class ChessMatch extends GameMatch {
     
-    public ChessMatch(long id) {
+	final private int whitePlayer;
+	final private int blackPlayer;
+	
+    public ChessMatch(long id, int whitePlayer, int blackPlayer) {
         super(id, Chess.class, new ChessState());
+		this.whitePlayer = whitePlayer;
+		this.blackPlayer = blackPlayer;
     }
 
 	@Override
@@ -27,10 +34,29 @@ public class ChessMatch extends GameMatch {
 		
 		System.out.println("moving " + fromPos + " -> " + toPos);
 		
-		((ChessState)this.gameState).captureAt(toPos);
-		((ChessState)this.gameState).move(fromPos, toPos);
+		// get the color of the moving player
+		boolean isWhite = (uid == whitePlayer);
+		
+		ChessState state = (ChessState)this.gameState;
+		
+		// check if move is valid
+		if(!state.canMove(fromPos, toPos, isWhite)) {
+			return false;
+		}
+		
+		state.captureAt(toPos);
+		state.move(fromPos, toPos);
+		
+		state.nextMove();
+		
 		
 		return true;
 	}
     
+	@Override
+	public Map<String, String> getAttributes(int uid) {
+		Map<String, String> retval = new HashMap<>();
+		retval.put("playerColor", uid == whitePlayer ? "white" : "black");
+		return retval;
+	}
 }

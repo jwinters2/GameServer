@@ -69,7 +69,8 @@ public class GameController implements ListenToDisconnects {
         model.addAttribute("matchid", matchid);
         model.addAttribute("game", game);
         model.addAttribute("myuid", uid);
-		model.addAttribute("players", match.getPlayers());
+		
+		model.addAllAttributes(match.getAttributes(uid));
         
         return "game";
     }
@@ -135,6 +136,7 @@ public class GameController implements ListenToDisconnects {
         GameMatch match = matchManager.getMatch(uid, matchid);
         if(match != null) {
 			boolean success = match.handleMove(uid, request);
+			System.out.println("move " + (success ? "succeeded" : "failed"));
 			if(success) {
 				for(int pid: match.getPlayers()) {
 					updateGameForUsers(match, pid);

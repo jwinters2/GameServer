@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -68,5 +69,9 @@ public abstract class GameMatch {
 	}
 
 	public abstract boolean handleMove(int uid, HttpServletRequest request);
+	
+	public Map<String, String> getAttributes(int uid) {
+		return null;
+	}
     
 }

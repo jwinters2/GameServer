@@ -71,6 +71,15 @@ public class ChessState extends GameState implements Serializable {
 		return whiteToMove;
 	}
 	
+	public Piece getPieceAt(int x, int y) {
+		for(Piece piece: pieces) {
+			if(piece.getX() == x && piece.getY() == y) {
+				return piece;
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	public String toString() {
 		
@@ -127,35 +136,74 @@ public class ChessState extends GameState implements Serializable {
 		return retval;
 	}
 
-	void captureAt(String pos) {
+	public void captureAt(String pos) {
 		int x = pos.charAt(0) - 'a';
 		int y = pos.charAt(1) - '1';
 		
-		List<Piece> tempPieces = new ArrayList<>(pieces);
-		for(Piece piece: tempPieces) {
-			if(piece.getX() == x && piece.getY() == y) {
-				System.out.println("removing " + piece);
-				pieces.remove(piece);
-				return;
-			}
+		Piece toRemove = getPieceAt(x, y);
+		if(toRemove != null) {
+			System.out.println("removing " + toRemove);
+			pieces.remove(toRemove);
 		}
 	}
 
-	void move(String fromPos, String toPos) {
+	public void move(String fromPos, String toPos) {
 		int fromX = fromPos.charAt(0) - 'a';
 		int fromY = fromPos.charAt(1) - '1';
 		
 		int toX = toPos.charAt(0) - 'a';
 		int toY = toPos.charAt(1) - '1';
 		
-		
-		for(Piece piece: pieces) {
-			if(piece.getX() == fromX && piece.getY() == fromY) {
-				System.out.println("moving " + piece);
-				piece.move(toX, toY);
-				return;
-			}
+		Piece toMove = getPieceAt(fromX, fromY);
+		if(toMove != null) {
+			System.out.println("moving " + toMove);
+			toMove.move(toX, toY);			
 		}
+	}
+	
+	public boolean canMove(String fromPos, String toPos, boolean isWhite) {
+		
+		int fromX = fromPos.charAt(0) - 'a';
+		int fromY = fromPos.charAt(1) - '1';
+		
+		// check if the position is in bounds
+		if(fromX < 0 || fromX >= 8 || fromY < 0 || fromY >= 8) {
+			return false;
+		}
+		
+		Piece pieceToMove = getPieceAt(fromX, fromY);
+		
+		Piece.Color color = isWhite ? Piece.Color.WHITE : Piece.Color.BLACK;
+		
+		// a piece must exist here, it must be the person to move's color,
+		// and it has to be their turn
+		if(pieceToMove != null 
+			&& pieceToMove.getColor() == color
+			&& (color == Piece.Color.WHITE) == this.whiteToMove) {
+			
+			int toX = toPos.charAt(0) - 'a';
+			int toY = toPos.charAt(1) - '1';
+			
+			// check if the destination is in bounds
+			if(toX < 0 || toX >= 8 || toY < 0 || toY >= 8) {
+				return false;
+			}
+			
+			Piece pieceToCapture = getPieceAt(toX, toY);
+			// if there's a piece in the square we're moving to, and it's the same
+			// color as the moving piece, it's an invalid move
+			if(pieceToCapture != null && pieceToCapture.getColor() == color) {
+				return false;
+			}
+			
+			return pieceToMove.canMove(toX, toY, this);
+		}
+		
+		return false;
+	}
+	
+	public void nextMove() {
+		this.whiteToMove = !this.whiteToMove;
 	}
 	
 }

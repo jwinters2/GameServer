@@ -78,7 +78,7 @@ class Chess {
 		this.stompClient = stompClient;
 		
 		// determine if we're white or not
-		this.playerIsWhite = (JSON.parse(document.querySelector("meta[name='players']").content)[0] === this.userid);
+		this.playerIsWhite = document.querySelector("meta[name='playerColor']").content === "white";
 		console.log(this.playerIsWhite ? "we're white" : "we're black");
 		
 		// setup canvas
@@ -87,8 +87,6 @@ class Chess {
 		this.canvas.width = dim;
 		this.canvas.height = dim;
 		this.context = this.canvas.getContext("2d");
-		this.context.fillStyle = this.lightBg;
-		this.context.fillRect(0,0,this.canvas.width, this.canvas.height);
 		
 		this.draw();
 		
@@ -254,7 +252,7 @@ class Chess {
 		this.context.setTransform(this.canvas.width/this.boardWidth, 0, 0, this.canvas.height/this.boardHeight, 0, 0);
 		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		this.context.fillStyle = this.lightBg;
-		this.context.fillRect(0,0,this.canvas.width, this.canvas.height);
+		this.context.fillRect(0,0,this.boardWidth, this.boardHeight);
 		
 		const offset = this.boardStyle.lineWidth/2;
 		

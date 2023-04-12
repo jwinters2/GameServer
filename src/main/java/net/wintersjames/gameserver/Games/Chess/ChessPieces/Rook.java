@@ -1,5 +1,7 @@
 package net.wintersjames.gameserver.Games.Chess.ChessPieces;
 
+import net.wintersjames.gameserver.Games.Chess.ChessState;
+
 /**
  *
  * @author james
@@ -16,8 +18,15 @@ public class Rook extends Piece {
 	}
 
 	@Override
-	public boolean canMove(int x, int y) {
-		return false;
+	public boolean canMove(int x, int y, ChessState state) {
+		boolean retval = false;
+		
+		retval |= canMoveInLine(x, y,  1,  0, state);
+		retval |= canMoveInLine(x, y, -1,  0, state);
+		retval |= canMoveInLine(x, y,  0,  1, state);
+		retval |= canMoveInLine(x, y,  0, -1, state);
+
+		return retval;
 	}
 
 	@Override

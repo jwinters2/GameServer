@@ -27,7 +27,7 @@ public class GameMatchManager {
         
         GameMatch newMatch = null;
         if(invite.getGameStr().toLowerCase().equals("chess")) {
-            newMatch = new ChessMatch(invite.getTimestamp());
+            newMatch = new ChessMatch(invite.getTimestamp(), invite.getToUid(), invite.getFromUid());
         }
         
         if(newMatch != null) {
