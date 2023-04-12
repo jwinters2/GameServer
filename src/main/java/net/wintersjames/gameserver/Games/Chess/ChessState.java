@@ -20,6 +20,7 @@ public class ChessState extends GameState implements Serializable {
 	
 	private List<Piece> pieces;
 	private boolean whiteToMove;
+	private Integer pendingPromotionFrom;
 	
 	private ChessState(String type) {
 		super(type);
@@ -30,6 +31,7 @@ public class ChessState extends GameState implements Serializable {
 		
 		this.whiteToMove = true;
 		this.pieces = new ArrayList<>();
+		this.pendingPromotionFrom = null;
 
 		// setup initial board
 		for(int i=0; i<8; i++) {
@@ -61,6 +63,7 @@ public class ChessState extends GameState implements Serializable {
 
 		this.pieces = new ArrayList<>(other.getPieces());
 		this.whiteToMove = other.isWhiteToMove();
+		this.pendingPromotionFrom = other.pendingPromotionFrom;
 	}
 
 	public List<Piece> getPieces() {
@@ -69,6 +72,14 @@ public class ChessState extends GameState implements Serializable {
 
 	public boolean isWhiteToMove() {
 		return whiteToMove;
+	}
+
+	public Integer getPendingPromotionFrom() {
+		return pendingPromotionFrom;
+	}
+	
+	public void setPendingPromotionFrom(Integer pendingPromotionFrom) {
+		this.pendingPromotionFrom = pendingPromotionFrom;
 	}
 	
 	public Piece getPieceAt(int x, int y) {
@@ -197,6 +208,50 @@ public class ChessState extends GameState implements Serializable {
 			}
 			
 			return pieceToMove.canMove(toX, toY, this);
+		}
+		
+		return false;
+	}
+	
+	public boolean needsPromotion(String fromPos, String toPos) {
+		int fromX = fromPos.charAt(0) - 'a';
+		int fromY = fromPos.charAt(1) - '1';
+		
+		int toY = toPos.charAt(1) - '1';
+		
+		Piece piece = getPieceAt(fromX, fromY);
+		if(piece instanceof Pawn) {
+			int promotionRank = (piece.getColor() == Piece.Color.WHITE ? 7 : 0);
+			if(toY == promotionRank) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public boolean promote(String pos, String promoteTo) {
+		
+		int x = pos.charAt(0) - 'a';
+		int y = pos.charAt(1) - '1';
+		
+		Piece piece = getPieceAt(x, y);
+		
+		Piece newPiece = null;
+		if(promoteTo != null) {
+			newPiece = switch(promoteTo) {
+				case "knight" -> new Knight(piece.getX(), piece.getY(), piece.getColor());
+				case "bishop" -> new Bishop(piece.getX(), piece.getY(), piece.getColor());
+				case "rook"   -> new Rook  (piece.getX(), piece.getY(), piece.getColor());
+				case "queen"  -> new Queen (piece.getX(), piece.getY(), piece.getColor());
+				default -> null;
+			};
+		}
+
+		if(newPiece != null) {
+			pieces.remove(piece);
+			pieces.add(newPiece);
+			return true;
 		}
 		
 		return false;

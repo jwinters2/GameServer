@@ -64,7 +64,7 @@ public abstract class GameMatch {
         return new ArrayList(messages);
     }
 
-	public GameState getGameState() {
+	public GameState getGameState(int uid) {
 		return gameState;
 	}
 

@@ -16,21 +16,40 @@ public class ChessMatch extends GameMatch {
 	final private int whitePlayer;
 	final private int blackPlayer;
 	
+	private String lastFromPos;
+	private String lastToPos;
+	
     public ChessMatch(long id, int whitePlayer, int blackPlayer) {
         super(id, Chess.class, new ChessState());
 		this.whitePlayer = whitePlayer;
 		this.blackPlayer = blackPlayer;
     }
+	
+	public enum MoveResult {
+		SUCCESS,
+		FAIL,
+		NEEDS_PROMOTION
+	}
 
 	@Override
 	public boolean handleMove(int uid, HttpServletRequest request) {
 		
-		String fromPos = URLDecoder.decode(
-                request.getParameter("from"),  
-                StandardCharsets.UTF_8);
-		String toPos = URLDecoder.decode(
-                request.getParameter("to"),  
-                StandardCharsets.UTF_8);
+		String fromPos = request.getParameter("from");
+		if(fromPos != null) {
+			fromPos = URLDecoder.decode(fromPos, StandardCharsets.UTF_8);
+		}
+		
+		String toPos = request.getParameter("to");
+		if(toPos != null) {
+			toPos = URLDecoder.decode(toPos, StandardCharsets.UTF_8);
+		}
+		
+		String promotion = request.getParameter("promotion");
+		if(promotion != null) {
+			promotion = URLDecoder.decode(promotion, StandardCharsets.UTF_8);
+			fromPos = lastFromPos;
+			toPos = lastToPos;
+		}
 		
 		System.out.println("moving " + fromPos + " -> " + toPos);
 		
@@ -44,11 +63,29 @@ public class ChessMatch extends GameMatch {
 			return false;
 		}
 		
+		// check if we need to promote
+		if(state.needsPromotion(fromPos, toPos)) {
+			System.out.println("promoting " + toPos + " to " + promotion);
+			boolean successfulPromotion = state.promote(fromPos, promotion);
+			if(!successfulPromotion) {
+				state.setPendingPromotionFrom(uid);
+				
+				this.lastFromPos = fromPos;
+				this.lastToPos = toPos;
+				
+				return true;
+			}
+			
+			// we successfully promoted a piece, reset the pending promotion stuff
+			state.setPendingPromotionFrom(null);
+			this.lastFromPos = null;
+			this.lastToPos = null;
+		}
+		
 		state.captureAt(toPos);
 		state.move(fromPos, toPos);
 		
 		state.nextMove();
-		
 		
 		return true;
 	}

@@ -64,7 +64,7 @@ public class GameController implements ListenToDisconnects {
         int uid = state.getLoginState().getUid();
         
         GameMatch match = matchManager.getMatch(uid, matchid);
-		System.out.println(match.getGameState());
+		System.out.println(match.getGameState(uid));
 		
         model.addAttribute("matchid", matchid);
         model.addAttribute("game", game);
@@ -171,7 +171,7 @@ public class GameController implements ListenToDisconnects {
 	}
 	
 	public void updateGameForUsers(GameMatch match, @DestinationVariable("uid") int uid) {
-        GameState payload = match.getGameState();
+        GameState payload = match.getGameState(uid);
         
         String destination = "/websocket/game/${game}/${matchid}/${userid}"
                 .replace("${game}", match.getGame().getSimpleName().toLowerCase())

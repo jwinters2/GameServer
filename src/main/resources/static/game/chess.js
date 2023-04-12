@@ -23,6 +23,7 @@ class Chess {
 		width: 100, 
 		height: 100,
 		lineWidth: 6,
+		textFont: "24px sans-serif",
 		fontSize: 24,
 		pieceFont: "100px times new roman",
 		pieceYOffset: 6
@@ -32,6 +33,11 @@ class Chess {
 	boardHeight = 900;
 	
 	pieceInHand = null;
+	
+	showPromotionMenu = false;
+	promotionPieces = ["knight", "bishop", "rook", "queen"];
+	menuWidth = 0;
+	menuHeight = 0;
 	
 	// two characters each, white then black
 	pieceChars = {
@@ -90,6 +96,10 @@ class Chess {
 		
 		this.draw();
 		
+		// calculate promotion menu location
+		this.menuWidth = 4 * this.boardStyle.width;
+		this.menuHeight = this.boardStyle.height + this.boardStyle.y;
+		
 		// handle resize
 		setInterval((chessObj) => {
 			var dim = Math.min(chessObj.canvas.parentElement.offsetWidth, chessObj.canvas.parentElement.offsetHeight);
@@ -101,6 +111,7 @@ class Chess {
 
 		}, 500, this);
 		
+		// handle mouse events
 		var onClick = function(event) {
 			var chessObj = event.currentTarget.chessObj;
 			
@@ -127,16 +138,28 @@ class Chess {
 			x = Math.floor(x);
 			y = Math.floor(y);
 			
-			chessObj.pieceInHand = {
-				x: x,
-				y: y,
-				xOffset: xOffset,
-				yOffset: yOffset,
-				mouseX: mouseX,
-				mouseY: mouseY
-			};
+			var type = null;
+			chessObj.pieces.forEach(piece => {
+				if(x === chessObj.pieceToCanvasXCoord(piece.x) && 
+				   y === chessObj.pieceToCanvasYCoord(piece.y)) {
+					type = piece.type;
+				}
+			});
 			
-			console.log(chessObj.pieceInHand);
+			if(chessObj.pieceInHand === null) {
+				chessObj.pieceInHand = {
+					x: x,
+					y: y,
+					xOffset: xOffset,
+					yOffset: yOffset,
+					mouseX: mouseX,
+					mouseY: mouseY,
+					destX: 0,
+					destY: 0,
+					type: type
+				};
+			}
+			
 			chessObj.draw();
 		};
 		
@@ -161,6 +184,10 @@ class Chess {
 		var onClickRelease = function(event) {
 			var chessObj = event.currentTarget.chessObj;
 			
+			if(chessObj.pieceInHand === null && !chessObj.showPromotionMenu) {
+				return;
+			}
+
 			var x = (event instanceof MouseEvent) ? event.clientX : 
 					(event instanceof TouchEvent) ? event.changedTouches[0].clientX : 
 					-1;
@@ -171,16 +198,35 @@ class Chess {
 			var rect = chessObj.canvas.getBoundingClientRect();
 			
 			x = (x - rect.left) * chessObj.boardWidth/chessObj.canvas.width;
-			x = (x - chessObj.boardStyle.x)/chessObj.boardStyle.width;
 			y = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;
-			y = (y - chessObj.boardStyle.y)/chessObj.boardStyle.height;
 			
-			x = Math.floor(x);
-			y = Math.floor(y);
-			
-			chessObj.sendMove(chessObj.pieceInHand.x, chessObj.pieceInHand.y, x, y);
-			
-			chessObj.pieceInHand = null;
+			if(chessObj.showPromotionMenu) {
+				console.log("show promotion menu")
+				x = (x - chessObj.boardWidth/2 + chessObj.menuWidth/2)/chessObj.boardStyle.width;
+				y = (y - chessObj.boardHeight/2 + chessObj.menuHeight/2 - chessObj.boardStyle.y)/chessObj.boardStyle.height;
+				
+				x = Math.floor(x);
+				y = Math.floor(y);
+				
+				console.log(`click release (x,y) = (${x},${y})`);
+				
+				if(y === 0 && x >= 0 && x <= chessObj.promotionPieces.length) {
+					chessObj.sendMove(null, null, null, null, chessObj.promotionPieces[x]);
+				}
+			} else {					
+				x = (x - chessObj.boardStyle.x)/chessObj.boardStyle.width;
+				y = (y - chessObj.boardStyle.y)/chessObj.boardStyle.height;
+
+				x = Math.floor(x);
+				y = Math.floor(y);
+
+				chessObj.pieceInHand.destX = x;
+				chessObj.pieceInHand.destY = y;
+
+				chessObj.sendMove(chessObj.pieceInHand.x, chessObj.pieceInHand.y, 
+								  chessObj.pieceInHand.destX, chessObj.pieceInHand.destY);
+				chessObj.pieceInHand = null;
+			}
 			chessObj.draw();
 		};
 		
@@ -191,30 +237,41 @@ class Chess {
 		this.canvas.addEventListener('touchmode', onClickMove);
 		this.canvas.addEventListener('mouseup', onClickRelease);
 		this.canvas.addEventListener('touchend', onClickRelease);
-		
-
 	}
 
-	sendMove(fromX, fromY, toX, toY) {
+	sendMove(fromX, fromY, toX, toY, promotion = null) {
 
 		const dict = [];
-		dict.push(`from=${this.xToFile(fromX)}${this.yToRank(fromY)}`);
-		dict.push(`to=${this.xToFile(toX)}${this.yToRank(toY)}`);
+		if(fromX !== null && fromY !== null) {
+			dict.push(`from=${this.xToFile(fromX)}${this.yToRank(fromY)}`);
+		}
+		if(toX !== null && toY !== null) {
+			dict.push(`to=${this.xToFile(toX)}${this.yToRank(toY)}`);
+		}
+		if(promotion !== null) {
+			dict.push(`promotion=${promotion}`);
+		}
 		const data = dict.join('&');
 
 		const request = new XMLHttpRequest();  
 		request.open('POST', `/game/${this.game}/${this.matchid}/move`);
-		request.onload = function() {
-			console.log(request.response);
+		request.chessObj = this;
+		request.onload = function (response) {
+			console.log(response);
+			if(response.srcElement.status !== 200) {
+				response.srcElement.chessObj.showPromotionMenu = false;
+				response.srcElement.chessObj.draw();
+			}
 		};
 		request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 		request.setRequestHeader(getCsrfTokenHeader(), getCsrfToken());
 		request.send(data);
-	}
+	} 
 
 	handleUpdate(update, chessObj) {
 		chessObj.setPieces(update.pieces);
 		chessObj.setWhiteToMove(update.whiteToMove);
+		chessObj.showPromotionMenu = (update.pendingPromotionFrom === chessObj.userid);
 		chessObj.draw();
 	}
 	
@@ -292,9 +349,10 @@ class Chess {
 		}
 		
 		// draw file letters
+		this.context.fillStyle = this.darkBg;
 		this.context.textBaseline = "middle";
 		this.context.textAlign = "center";
-		this.context.font = `${this.boardStyle.fontSize}px sans-serif`;
+		this.context.font = this.boardStyle.textFont;
 		
 		for(var x=0; x<8; x++) {
 			this.context.fillText(
@@ -328,7 +386,7 @@ class Chess {
 		try {
 			this.context.font = this.boardStyle.pieceFont;
 			this.pieces.forEach(piece => {
-				if(this.pieceInHand !== null 
+				if(this.pieceInHand !== null && !this.showPromotionMenu
 						&& this.pieceInHand.x === this.pieceToCanvasXCoord(piece.x)
 						&& this.pieceInHand.y === this.pieceToCanvasYCoord(piece.y)) {
 					
@@ -360,6 +418,46 @@ class Chess {
 			});
 		} catch (e) {
 			console.log(e);
+		}
+		
+		// draw promotion menu
+		if(this.showPromotionMenu) {
+			
+			this.context.fillStyle = this.darkBg;
+			this.context.fillRect(
+				this.boardWidth/2 - this.menuWidth/2 - this.boardStyle.lineWidth,
+				this.boardHeight/2 - this.menuHeight/2 - this.boardStyle.lineWidth,
+				this.menuWidth + (2 * this.boardStyle.lineWidth),
+				this.menuHeight + (2 * this.boardStyle.lineWidth)
+			);
+			this.context.fillStyle = this.lightBg;
+			this.context.fillRect(
+				this.boardWidth/2 - this.menuWidth/2,
+				this.boardHeight/2 - this.menuHeight/2,
+				this.menuWidth,
+				this.menuHeight
+			);
+	
+			this.context.fillStyle = this.darkBg;
+			this.context.textBaseline = "middle";
+			this.context.textAlign = "center";
+			this.context.font = this.boardStyle.textFont;
+			this.context.fillText(
+				"Select promotion",
+				this.boardWidth/2, 
+				this.boardHeight/2 - this.menuHeight/2 + this.boardStyle.y/2
+			);
+	
+			this.context.fillStyle = this.darkBg;
+			this.context.font = this.boardStyle.pieceFont;
+			for(var i=0; i<this.promotionPieces.length; i++) {
+				var piece = this.promotionPieces[i];
+				this.context.fillText(
+					this.pieceChars[piece].charAt(this.playerIsWhite ? 0 : 1),
+					this.boardWidth/2 - this.menuWidth/2 + ((i + 0.5) * this.boardStyle.width),
+					this.boardHeight/2 - this.menuHeight/2 + this.boardStyle.y + (0.5 * this.boardStyle.height)
+				);
+			}
 		}
 	}
 }
