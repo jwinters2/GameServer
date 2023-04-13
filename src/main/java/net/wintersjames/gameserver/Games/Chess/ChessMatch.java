@@ -44,6 +44,8 @@ public class ChessMatch extends GameMatch {
 			toPos = URLDecoder.decode(toPos, StandardCharsets.UTF_8);
 		}
 		
+		// requests to promote are typically given right after the from/to positions
+		// so just use the last received positions
 		String promotion = request.getParameter("promotion");
 		if(promotion != null) {
 			promotion = URLDecoder.decode(promotion, StandardCharsets.UTF_8);
@@ -65,7 +67,6 @@ public class ChessMatch extends GameMatch {
 		
 		// check if we need to promote
 		if(state.needsPromotion(fromPos, toPos)) {
-			System.out.println("promoting " + toPos + " to " + promotion);
 			boolean successfulPromotion = state.promote(fromPos, promotion);
 			if(!successfulPromotion) {
 				state.setPendingPromotionFrom(uid);
@@ -81,6 +82,8 @@ public class ChessMatch extends GameMatch {
 			this.lastFromPos = null;
 			this.lastToPos = null;
 		}
+		
+		state.resetEnPassant();
 		
 		state.captureAt(toPos);
 		state.move(fromPos, toPos);

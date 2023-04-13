@@ -22,6 +22,10 @@ public class ChessState extends GameState implements Serializable {
 	private boolean whiteToMove;
 	private Integer pendingPromotionFrom;
 	
+	private Integer enPassantTargetX;
+	private Integer enPassantTargetY;
+	private Piece.Color enPassantTargetColor;
+	
 	private ChessState(String type) {
 		super(type);
 	}
@@ -32,6 +36,10 @@ public class ChessState extends GameState implements Serializable {
 		this.whiteToMove = true;
 		this.pieces = new ArrayList<>();
 		this.pendingPromotionFrom = null;
+		
+		this.enPassantTargetX = null;
+		this.enPassantTargetY = null;
+		this.enPassantTargetColor = null;
 
 		// setup initial board
 		for(int i=0; i<8; i++) {
@@ -64,6 +72,10 @@ public class ChessState extends GameState implements Serializable {
 		this.pieces = new ArrayList<>(other.getPieces());
 		this.whiteToMove = other.isWhiteToMove();
 		this.pendingPromotionFrom = other.pendingPromotionFrom;
+		
+		this.enPassantTargetX = other.enPassantTargetX;
+		this.enPassantTargetY = other.enPassantTargetX;
+		this.enPassantTargetColor = other.enPassantTargetColor;
 	}
 
 	public List<Piece> getPieces() {
@@ -157,6 +169,11 @@ public class ChessState extends GameState implements Serializable {
 		int x = pos.charAt(0) - 'a';
 		int y = pos.charAt(1) - '1';
 		
+		captureAt(x, y);
+	}
+	
+	public void captureAt(int x, int y) {
+		
 		Piece toRemove = getPieceAt(x, y);
 		if(toRemove != null) {
 			System.out.println("removing " + toRemove);
@@ -175,13 +192,16 @@ public class ChessState extends GameState implements Serializable {
 	}
 		
 	public void move(int fromX, int fromY, int toX, int toY) {	
+		
+		Piece toCapture = getPieceAt(toX, toY);
 		Piece toMove = getPieceAt(fromX, fromY);
+		
 		if(toMove != null) {
 			System.out.println("moving " + toMove);
 			toMove.move(toX, toY);			
 		}
 		
-		// check if castling
+		// check for castling
 		if(toMove instanceof King) {
 			// kingside
 			if(toX == fromX + 2) {
@@ -197,6 +217,23 @@ public class ChessState extends GameState implements Serializable {
 					move(fromX - 4, fromY, fromX - 1, fromY);
 				}
 			}
+		}
+		
+		// check for opening up an en passant capture
+		if(toMove instanceof Pawn && Math.abs(fromY - toY) == 2) {
+			this.enPassantTargetX = fromX;
+			this.enPassantTargetY = (fromY + toY)/2;
+			this.enPassantTargetColor = toMove.getColor();
+			
+			System.out.println("en passant possible next turn (" + 
+					Integer.toString(this.enPassantTargetX) + "," + 
+					Integer.toString(this.enPassantTargetY) + "," + 
+					this.enPassantTargetColor.name() + ")");
+		}
+		
+		// check for capturing en passant
+		if(toMove instanceof Pawn && fromX != toX && toCapture == null) {
+			captureAt(toX, fromY);
 		}
 	}
 	
@@ -299,4 +336,21 @@ public class ChessState extends GameState implements Serializable {
 		this.whiteToMove = !this.whiteToMove;
 	}
 	
+	public void resetEnPassant() {
+		this.enPassantTargetX = null;
+		this.enPassantTargetY = null;
+		this.enPassantTargetColor = null;
+	}
+
+	public Integer getEnPassantTargetX() {
+		return enPassantTargetX;
+	}
+
+	public Integer getEnPassantTargetY() {
+		return enPassantTargetY;
+	}
+
+	public Piece.Color getEnPassantTargetColor() {
+		return enPassantTargetColor;
+	}
 }

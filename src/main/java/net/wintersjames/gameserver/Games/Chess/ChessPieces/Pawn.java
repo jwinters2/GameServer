@@ -39,11 +39,19 @@ public class Pawn extends Piece {
 				pieceToCapture == null && intermediatePiece == null;
 		
 		// we can move diagonally if we're capturing
-		retval |= this.y + direction == y && this.x + 1 == x && 
-				pieceToCapture != null && pieceToCapture.getColor() != getColor();
-		retval |= this.y + direction == y && this.x - 1 == x && 
+		retval |= this.y + direction == y && Math.abs(this.x - x) == 1 && 
 				pieceToCapture != null && pieceToCapture.getColor() != getColor();
 		
+		// we can move diagonally en passant
+		
+		if(state.getEnPassantTargetColor() != null) {
+			if(this.y + direction == y && Math.abs(this.x - x) == 1 && 
+				y == state.getEnPassantTargetY() && x == state.getEnPassantTargetX() &&
+				color != state.getEnPassantTargetColor()) {
+				retval = true;
+			}
+		}
+
 		return retval;
 	}
 
