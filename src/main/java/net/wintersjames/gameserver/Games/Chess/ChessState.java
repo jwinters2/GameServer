@@ -91,6 +91,12 @@ public class ChessState extends GameState implements Serializable {
 		return null;
 	}
 	
+	public Piece getPieceAt(String pos) {
+		int x = pos.charAt(0) - 'a';
+		int y = pos.charAt(1) - '1';
+		return getPieceAt(x, y);
+	}
+	
 	@Override
 	public String toString() {
 		
@@ -165,10 +171,32 @@ public class ChessState extends GameState implements Serializable {
 		int toX = toPos.charAt(0) - 'a';
 		int toY = toPos.charAt(1) - '1';
 		
+		move(fromX, fromY, toX, toY);
+	}
+		
+	public void move(int fromX, int fromY, int toX, int toY) {	
 		Piece toMove = getPieceAt(fromX, fromY);
 		if(toMove != null) {
 			System.out.println("moving " + toMove);
 			toMove.move(toX, toY);			
+		}
+		
+		// check if castling
+		if(toMove instanceof King) {
+			// kingside
+			if(toX == fromX + 2) {
+				Piece castlingRook = getPieceAt(fromX + 3, fromY);
+				if(castlingRook != null) {
+					move(fromX + 3, fromY, fromX + 1, fromY);
+				}
+			}
+			// queenside
+			if(toX == fromX - 2) {
+				Piece castlingRook = getPieceAt(fromX - 4, fromY);
+				if(castlingRook != null) {
+					move(fromX - 4, fromY, fromX - 1, fromY);
+				}
+			}
 		}
 	}
 	
@@ -210,6 +238,16 @@ public class ChessState extends GameState implements Serializable {
 			return pieceToMove.canMove(toX, toY, this);
 		}
 		
+		return false;
+	}
+	
+	public boolean isSquareUnderAttack(int x, int y, Piece.Color attackingColor) {
+		
+		for(Piece piece: this.pieces) {
+			if(piece.getColor() == attackingColor && piece.canMove(x, y, this)) {
+				return true;
+			}
+		}
 		return false;
 	}
 	

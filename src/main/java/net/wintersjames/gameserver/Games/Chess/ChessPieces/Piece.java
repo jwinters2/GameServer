@@ -47,6 +47,10 @@ public abstract class Piece implements Serializable {
 	public boolean isHasMoved() {
 		return hasMoved;
 	}
+	
+	public boolean getHasMoved() {
+		return hasMoved;
+	}
 
 	public Color getColor() {
 		return color;
