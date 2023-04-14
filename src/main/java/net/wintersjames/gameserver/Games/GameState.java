@@ -8,18 +8,20 @@ import java.io.Serializable;
  */
 public abstract class GameState  implements Serializable {
     public enum Status {
-        PLAYER_1_WINS,
-        PLAYER_2_WWINS,
+        WINNER_DECIDED,
+        ABANDONED,
         DRAW,
         INCOMPLETE,
     }
 	
 	final private String type;
 	private Status status;
+	private Integer winner;
 	
 	public GameState(String type) {
 		this.type = type;
 		this.status = Status.INCOMPLETE;
+		this.winner = null;
 	}
 	
 	final public String getType() {
@@ -28,5 +30,17 @@ public abstract class GameState  implements Serializable {
 
 	public Status getStatus() {
 		return status;
+	}
+	
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
+	public Integer getWinner() {
+		return winner;
+	}
+
+	public void setWinner(Integer winner) {
+		this.winner = winner;
 	}
 }

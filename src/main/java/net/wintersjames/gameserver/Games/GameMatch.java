@@ -18,6 +18,7 @@ import java.util.Map;
 public abstract class GameMatch implements Serializable {
     
     private List<Integer> players;
+	private List<Integer> currentPlayers;
     private List<ChatMessage> messages;
     private Class game;
 	protected GameState gameState;
@@ -26,6 +27,7 @@ public abstract class GameMatch implements Serializable {
     public GameMatch(long id, Class game, GameState gameState) {
         this.id = id;
         this.players = new ArrayList<>();
+		this.currentPlayers = new ArrayList<>();
         this.messages = new ArrayList<>();
 		this.gameState = gameState;
         this.game = game;
@@ -34,11 +36,12 @@ public abstract class GameMatch implements Serializable {
     public void addPlayer(int uid) {
         if(!players.contains(uid)) {
             players.add(uid);
+			currentPlayers.add(uid);
         }
     }
     
     public boolean containsPlayer(int uid) {
-        return players.contains(uid);
+        return currentPlayers.contains(uid);
     }
 
     public Class getGame() {
@@ -75,4 +78,14 @@ public abstract class GameMatch implements Serializable {
 		return null;
 	}
     
+	public void resign(int uid) {
+		currentPlayers.remove(currentPlayers.indexOf(uid));
+		
+		// remove user uid from the current players list
+		// and decide the winner if there's only one player left
+		if(currentPlayers.size() == 1) {
+			gameState.setStatus(GameState.Status.WINNER_DECIDED);
+			gameState.setWinner(currentPlayers.get(0));
+		}
+	}
 }

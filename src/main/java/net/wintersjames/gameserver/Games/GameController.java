@@ -12,7 +12,11 @@ import net.wintersjames.gameserver.Session.ListenToDisconnects;
 import net.wintersjames.gameserver.Session.SessionState;
 import net.wintersjames.gameserver.Session.SessionStateManager;
 import net.wintersjames.gameserver.Session.WebSocketSessionManager;
+import net.wintersjames.gameserver.User.User;
 import net.wintersjames.gameserver.User.UserService;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -30,6 +34,8 @@ import org.springframework.web.util.HtmlUtils;
  */
 @Controller
 public class GameController implements ListenToDisconnects {
+	
+	Logger logger = LoggerFactory.getLogger(GameController.class);
     
     @Autowired
     protected SessionStateManager sessionManager;
@@ -65,14 +71,14 @@ public class GameController implements ListenToDisconnects {
             HttpServletRequest request, 
             HttpServletResponse response) {
    
-        System.out.println("message received for game " + game);
+        logger.info("message received for game " + game);
         
         String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
         
         GameMatch match = matchManager.getMatch(uid, matchid);
-		System.out.println(match.getGameState(uid));
+		logger.info("\n{}", match.getGameState(uid));
 		
         model.addAttribute("matchid", matchid);
         model.addAttribute("game", game);
@@ -96,10 +102,10 @@ public class GameController implements ListenToDisconnects {
     @ResponseBody
     public String receiveChatMessage(@PathVariable(name="game") String game, @PathVariable(name="matchid") long matchid, HttpServletRequest request, HttpServletResponse response) {
    
-        System.out.println("message received for game " + game);
+        logger.info("message received for game {}", game);
         
         String message = HtmlUtils.htmlEscape(URLDecoder.decode(request.getParameter("message"), StandardCharsets.UTF_8));
-        System.out.println(message);
+        logger.info(message);
         
         String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
@@ -126,7 +132,7 @@ public class GameController implements ListenToDisconnects {
                 .replace("${matchid}", Long.toString(match.getId()))
                 .replace("${userid}", Integer.toString(uid));
         
-        System.out.println("sending chat to " + destination);
+		logger.info("sending chat to {}",destination);
         simpMessageTemplate.convertAndSend(destination, payload);
     }
 	
@@ -144,7 +150,7 @@ public class GameController implements ListenToDisconnects {
         GameMatch match = matchManager.getMatch(uid, matchid);
         if(match != null) {
 			boolean success = match.handleMove(uid, request);
-			System.out.println("move " + (success ? "succeeded" : "failed"));
+			logger.info("move {}", (success ? "succeeded" : "failed"));
 			if(success) {
 				
 				// send updates to each player
@@ -159,7 +165,7 @@ public class GameController implements ListenToDisconnects {
 						ptmService.savePlayerToMatch(pid, matchid);
 					}
 				} else {
-					System.out.println("match failed to save");
+					logger.info("match failed to save");
 				}
 				
 				return "success";
@@ -191,6 +197,78 @@ public class GameController implements ListenToDisconnects {
 		return "error: no match found";
 	}
 	
+	@GetMapping("/game/{game}/{matchid}/leavegame")
+    public String leaveGame(            
+			@PathVariable(name="game") String game, 
+            @PathVariable(name="matchid") long matchid, 
+            Model model,
+            HttpServletRequest request, 
+            HttpServletResponse response) {
+   
+        logger.info("leavegame request received for game " + game);
+		
+		String id = CookieUtils.getSessionCookie(request);
+        SessionState state = sessionManager.getSessionState(id);
+        int uid = state.getLoginState().getUid();
+		
+		User user = userService.findByUid(uid);
+		String reason = "Player " + user.getUsername() + " has left the game. (player left)<br><i>Game can be continued later.</i>";
+        
+        List<GameMatch> matches = matchManager.getMatchesByUid(uid);
+		for(GameMatch match: matches) {
+			for(int playerid: match.getPlayers()) {
+				if(uid != playerid) {
+					endGame(match, playerid, reason);
+				}
+			}
+		}
+        
+		try {
+			response.sendRedirect("/homepage");
+		} catch (Exception e) {
+			logger.error("leavegame failed to send redirect for uid={}, game={}, matchid={}", uid, game, matchid);
+		}
+        return "homepage";
+    }
+	
+	@GetMapping("/game/{game}/{matchid}/resign")
+    public String resign(            
+			@PathVariable(name="game") String game, 
+            @PathVariable(name="matchid") long matchid, 
+            Model model,
+            HttpServletRequest request, 
+            HttpServletResponse response) {
+   
+        logger.info("resign request received for game " + game);
+		
+		String id = CookieUtils.getSessionCookie(request);
+        SessionState state = sessionManager.getSessionState(id);
+        int uid = state.getLoginState().getUid();
+		
+		User user = userService.findByUid(uid);
+		String reason = "Player " + user.getUsername() + " has left the game. (player resigned)";
+		
+        List<GameMatch> matches = matchManager.getMatchesByUid(uid);
+		for(GameMatch m: matches) {
+			for(int playerid: m.getPlayers()) {
+				if(uid != playerid) {
+					endGame(m, playerid, reason);
+				}
+			}
+		}
+		
+		GameMatch match = matchManager.getMatch(uid, matchid);
+		match.resign(uid);
+		matchManager.removeMatch(matchid);
+        
+		try {
+			response.sendRedirect("/homepage");
+		} catch (Exception e) {
+			logger.error("leavegame failed to send redirect for uid={}, game={}, matchid={}", uid, game, matchid);
+		}
+        return "homepage";
+    }
+	
 	public void updateGameForUsers(GameMatch match, @DestinationVariable("uid") int uid) {
         GameState payload = match.getGameState(uid);
         
@@ -199,13 +277,40 @@ public class GameController implements ListenToDisconnects {
                 .replace("${matchid}", Long.toString(match.getId()))
                 .replace("${userid}", Integer.toString(uid));
         
-        System.out.println("sending game update to " + destination);
+        logger.info("sending game update to {}", destination);
         simpMessageTemplate.convertAndSend(destination, payload);
+    }
+	
+	public void endGame(GameMatch match, @DestinationVariable("uid") int uid, String reason) {
+        JSONObject payload = new JSONObject();
+		payload.put("type", "gameEnd");
+		payload.put("reason", reason);
+		logger.info("payload: {}", payload);
+        
+        String destination = "/websocket/game/${game}/${matchid}/${userid}"
+                .replace("${game}", match.getGame().getSimpleName().toLowerCase())
+                .replace("${matchid}", Long.toString(match.getId()))
+                .replace("${userid}", Integer.toString(uid));
+        
+        logger.info("sending game update to {}", destination);
+        simpMessageTemplate.convertAndSend(destination, payload.toString());
     }
     
     @Override
     public void handleDisconnects(int uid) {
-		System.out.println("handle disconnect for user " + Integer.toString(uid));
+		logger.info("handle disconnect for user {}",uid);
+		
+		User user = userService.findByUid(uid);
+		String reason = "Player " + user.getUsername() + " has left the game. (lost connection)<br><i>Game can be continued later.</i>";
+		
+		List<GameMatch> matches = matchManager.getMatchesByUid(uid);
+		for(GameMatch match: matches) {
+			for(int playerid: match.getPlayers()) {
+				if(uid != playerid) {
+					endGame(match, playerid, reason);
+				}
+			}
+		}
     }
     
 }

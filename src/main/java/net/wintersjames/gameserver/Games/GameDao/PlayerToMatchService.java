@@ -43,4 +43,8 @@ public class PlayerToMatchService {
 			return false;
 		}
 	}
+	
+	public void deleteMatch(long matchid) {
+		ptmRepository.deleteByMatchId(matchid);
+	}
 }

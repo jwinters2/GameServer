@@ -70,7 +70,18 @@ class Chess {
 		stompClient.connect({}, function (frame) {
 			console.log("connected to /websocket/game", frame);
 			stompClient.subscribe(socketPath, function(message) {
-				handleUpdate(JSON.parse(message.body), chessObj);
+				let updateData = JSON.parse(message.body);
+				if(updateData.type === "gameEnd") {
+					
+					console.log("game end", updateData);
+					let popupBody = document.getElementById("popup-body");
+					popupBody.innerHTML = updateData.reason;
+					let modal = new bootstrap.Modal(document.getElementById("popup"));
+					modal.show();
+					
+				} else {
+					handleUpdate(updateData, chessObj);
+				}
 			});
 
 			const request = new XMLHttpRequest();  

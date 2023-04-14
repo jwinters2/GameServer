@@ -24,12 +24,30 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
     </head>
     <body>
         <div class="nabvar navbar-dark bg-chess">
-            <h1 class="chess-text-light text-capitalize" style="margin: 0em 1em" th:text="${game}"></h1>    
+            <h1 class="chess-text-light text-capitalize" style="margin: 0em 1em; display: inline-block;" th:text="${game}"></h1>
+            <span style="margin: 0.25em 1em; float: right; display: inline-block;">
+                <a th:href="${#strings.concat('/game/', game, '/', matchid, '/leavegame')}" class="btn btn-dark">Leave Game</a>
+                <a th:href="${#strings.concat('/game/', game, '/', matchid, '/resign')}" class="btn btn-dark">Resign</a>
+            </span>
         </div>
         <div class="container-fluid">
             <div class="row">
                 <div class="col-lg-3 d-none d-lg-block d-xl-block" th:insert="~{chat.html}"></div>
                 <div class="col-lg-9 col-md-12" th:insert="~{'games/' + ${game} + '.html'}"></div>
+            </div>
+        </div>
+        
+        <!-- user has left popup box -->
+        <div id="popup" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">                  
+                    <div id="popup-body" class="modal-body">
+                        User has left
+                    </div>
+                    <div id="popup-footer" class="modal-footer" style="border-color: #000000;">
+                        <a href="/homepage" class="btn btn-primary">Okay</a>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -86,4 +86,7 @@ public class GameMatchPersistenceService {
 		return gme.getPlayers();
 	}
 	
+	public void deleteMatch(long matchid) {
+		matchRepository.deleteById(matchid);
+	}
 }

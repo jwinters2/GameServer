@@ -1,4 +1,4 @@
-body {
+body, .modal-content{
     background-color: #dfad68;
 }
 
@@ -58,11 +58,33 @@ body {
 .btn-primary {
     background-color: #dfad68;
     color: #432618;
+    border-color: #000000;
 }
 
-.btn-primary:hover {
+.btn-primary:hover,
+.btn-primary:active, .btn-primary.active,
+.btn-primary:focus, .btn-primary.focus,
+.btn-primary:active:focus, .btn-primary:active.focus, 
+.btn-primary.active:focus, .btn-primary.active.focus {
     background-color: #432618;
-    color: #dfad68;  
+    color: #dfad68;     
+    border-color: #000000;
+}
+
+.btn-dark {
+    background-color: #432618;
+    color: #dfad68;     
+    border-color: #dfad68;
+}
+
+.btn-dark:hover,
+.btn-dark:active, .btn-dark.active,
+.btn-dark:focus, .btn-dark.focus,
+.btn-dark:active:focus, .btn-dark:active.focus, 
+.btn-dark.active:focus, .btn-dark.active.focus {
+    background-color: #dfad68;
+    color: #432618;
+    border-color: #dfad68;
 }
 
 .user-list {

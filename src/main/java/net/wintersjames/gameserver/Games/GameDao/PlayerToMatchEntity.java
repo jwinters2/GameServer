@@ -16,7 +16,9 @@ import jakarta.persistence.Table;
 @IdClass(PlayerToMatchId.class)
 @Table(name = "player_to_matches")
 @NamedQueries ({
-	@NamedQuery(name = "PlayerToMatchEntity.findByPlayerId", query = "SELECT e from PlayerToMatchEntity e where e.playerId = :playerId")})
+	@NamedQuery(name = "PlayerToMatchEntity.findByPlayerId", query = "SELECT e from PlayerToMatchEntity e where e.playerId = :playerId"),
+	@NamedQuery(name = "PlayerToMatchEntity.deleteByMatchId", query = "DELETE from PlayerToMatchEntity e where e.matchId = :matchId")
+})
 public class PlayerToMatchEntity {
 	
 	@Id
