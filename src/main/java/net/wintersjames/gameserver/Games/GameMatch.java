@@ -5,6 +5,7 @@
 package net.wintersjames.gameserver.Games;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.Map;
  *
  * @author james
  */
-public abstract class GameMatch {
+public abstract class GameMatch implements Serializable {
     
     private List<Integer> players;
     private List<ChatMessage> messages;

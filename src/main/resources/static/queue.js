@@ -1,9 +1,15 @@
 var stompClient = null;
 var userid = null;
 
-function challenge(uid) {
+function challenge(uid, continueMatchid = null) {
     const request = new XMLHttpRequest();  
-    request.open('GET', `/queue/challenge/${uid}`);
+	
+	var continueArg = "";
+    if(continueMatchid !== null) {
+		continueArg = `?continue=${continueMatchid}`;
+	}
+	
+	request.open('GET', `/queue/challenge/${uid}${continueArg}`);
     request.onload = function() {
         console.log(request.response);
     };
@@ -39,6 +45,11 @@ function init(uid) {
         });
         heartbeat();
     });
+	
+	let userList = JSON.parse(document.querySelector("meta[name='userList']").content);
+	let body = new Object();
+	body.userList = userList;
+	updateQueue(body);
 }
 
 // heartbeat stuff
@@ -59,7 +70,7 @@ function handleUpdate(body) {
 }
 
 function updateQueue(body) {
-    console.log(body);
+    console.log("updateQueue body=", body);
     const users = body.userList;
     
     // clear table
@@ -111,16 +122,19 @@ function generateUserButton(userUid, listUid, invites) {
     let incomingInvite = false;
     let timestamp = -1;
     
-    Object.values(invites).forEach((invite) => {
-        if(invite.fromUid === userUid) {
-            outgoingInvite = true;
-            timestamp = invite.timestamp;
-        }
-        if(invite.toUid === userUid) {
-            incomingInvite = true;
-            timestamp = invite.timestamp;
-        }
-    });
+	if(typeof invites === "object") {
+		Object.values(invites).forEach((invite) => {
+			if(invite.fromUid === userUid) {
+				outgoingInvite = true;
+				timestamp = invite.timestamp;
+			}
+			if(invite.toUid === userUid) {
+				incomingInvite = true;
+				timestamp = invite.timestamp;
+			}
+		});
+	}
+
     
     let button = document.createElement("a");
     button.classList.add("btn");
@@ -129,15 +143,15 @@ function generateUserButton(userUid, listUid, invites) {
         
     if(outgoingInvite) {
        
-        button.onclick = function() {cancel(timestamp);};
-        button.innerHTML = "Cancel";   
-        
         let label = document.createElement("a");
         label.classList.add("btn");
         label.classList.add("btn-disabled");
         label.classList.add("border-0");
         label.style.fontStyle = "italic";
         label.innerHTML = "Invitation sent";
+		
+		button.onclick = function() {cancel(timestamp);};
+        button.innerHTML = "Cancel";
         
         let buttonGroup = document.createElement("div");
         buttonGroup.appendChild(label);
@@ -161,11 +175,51 @@ function generateUserButton(userUid, listUid, invites) {
         buttonGroup.appendChild(decline);
         
         return buttonGroup;
+		
     } else {
-        button.onclick = function() {challenge(listUid);};
-        button.innerHTML = "Send Invite";
-        return button;
+		
+		const pendingGame = findPendingGame(listUid);
+		if(pendingGame !== null) {
+			button.onclick = function() {challenge(listUid, pendingGame);};
+			button.innerHTML = "Invite to Continue";
+
+			let decline = document.createElement("a");
+			decline.classList.add("btn");
+			decline.classList.add("btn-primary");
+			decline.classList.add("border-0");
+			decline.onclick = function() {challenge(listUid);};
+			decline.innerHTML = "Invite to New Game";
+
+			let buttonGroup = document.createElement("div");
+			decline.classList.add("btn-group");
+			buttonGroup.appendChild(button);
+			buttonGroup.appendChild(decline);
+
+			return buttonGroup;
+		} else {
+			button.onclick = function() {challenge(listUid);};
+			button.innerHTML = "Send Invite";
+			return button;
+		}
     }
+}
+
+function findPendingGame(uid) {
+	let matches = JSON.parse(document.querySelector("meta[name='pendingMatches']").content);
+	
+	if(matches === null) {
+		return null;
+	}
+	
+	let keys = Object.keys(matches);
+	for(var i=0; i<keys.length; i++) {
+		let match = keys[i]
+		if(matches[match].includes(uid)) {
+			return match;
+		}
+	}
+	
+	return null;
 }
 
 function goToGame(body) {

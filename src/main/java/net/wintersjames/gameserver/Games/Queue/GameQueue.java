@@ -65,10 +65,17 @@ public class GameQueue {
     }
 
     public void challengeUser(int from_uid, int to_uid) {
+		challengeUser(from_uid, to_uid, null);
+	}
+	
+	public void challengeUser(int from_uid, int to_uid, Long continueMatchId) {
         User fromUser = findUser(from_uid);
         User toUser = findUser(to_uid);
         
         GameInvite invite = new GameInvite(from_uid, to_uid, this.game);
+		if(continueMatchId != null) {
+			invite.setTimestamp(continueMatchId);
+		}
         invites.put(invite.getTimestamp(), invite);
         
         System.out.println("user " + fromUser.getUsername() + " challenges " + toUser.getUsername());

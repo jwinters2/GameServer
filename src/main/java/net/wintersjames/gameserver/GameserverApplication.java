@@ -7,7 +7,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 
 
 @SpringBootApplication
-@EntityScan("net.wintersjames.gameserver.User")
+@EntityScan({"net.wintersjames.gameserver.User", "net.wintersjames.gameserver.Games.GameDao"})
 public class GameserverApplication extends SpringBootServletInitializer{
 
 	public static void main(String[] args) {

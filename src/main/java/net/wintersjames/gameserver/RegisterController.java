@@ -6,6 +6,8 @@ package net.wintersjames.gameserver;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import net.wintersjames.gameserver.Session.SessionState;
 import net.wintersjames.gameserver.Session.LoginState;
 import net.wintersjames.gameserver.Session.SessionStateManager;
@@ -34,39 +36,15 @@ public class RegisterController {
     
     @Autowired
     UserService userService;
-    
-	/*
-    @GetMapping("/getsalt")
-    @ResponseBody
-    public String getSalt(HttpServletRequest request, HttpServletResponse response) {
+	
+	private String newSalt () {
         String salt = "";
         for(int i=0; i<20; i++) {
             salt += charset.charAt((int) Math.floor(Math.random() * charset.length()));
         }
         
-        String id = CookieUtils.getSessionCookie(request, response);
-        SessionState state = sessionManager.getSessionState(id);
-        if(state.getLoginState().getSalt() != null) {
-            return state.getLoginState().getSalt();
-        }
-        
-        state.getLoginState().setSalt(salt);
-        
         return salt;
     }
-    
-    @GetMapping("/getsaltfromuser")
-    @ResponseBody
-    public String getSalt(@RequestParam(required = false) String username, HttpServletRequest request, HttpServletResponse response) {
-        User user = userService.findByUsername(username);    
-        if(user == null)
-        {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            return "User with name " + username + " already exists";
-        }
-        return user.getSalt();
-    }
-		*/
     
     @PostMapping("/register")
     @ResponseBody
@@ -75,9 +53,18 @@ public class RegisterController {
         
         String id = CookieUtils.getSessionCookie(request, response);
         
-        String username = request.getParameter("username");
-        String password_hash = request.getParameter("password_hash");
-        String salt = sessionManager.getSessionState(id).getLoginState().getSalt();
+		String username = request.getParameter("username");
+        String password = request.getParameter("password");
+		
+		if(username != null) {
+			username = URLDecoder.decode(username, StandardCharsets.UTF_8);
+		}
+		if(password != null) {
+			password = URLDecoder.decode(password, StandardCharsets.UTF_8);
+		}
+				
+        String salt = newSalt();
+        String password_hash = StringUtils.sha256sum(password, salt);
 
         boolean result = userService.registerUser(new User(username, password_hash, salt));
         
@@ -89,7 +76,7 @@ public class RegisterController {
             
         } else {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            return "User with name " + username + " already exists";
+            return "User with name \"" + username + "\" already exists";
         }
         
         

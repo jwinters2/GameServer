@@ -29,18 +29,22 @@ import jakarta.persistence.Transient;
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    @Id
+    
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "uid")
-    private Integer uid;
+    
+	private Integer uid;
     @Basic(optional = false)
     @Column(name = "username")
-    private String username;
+    
+	private String username;
     @Basic(optional = false)
     @Column(name = "password_hash")
     private String passwordHash;
-    @Basic(optional = false)
+    
+	@Basic(optional = false)
     @Column(name = "salt")
     private String salt;
 

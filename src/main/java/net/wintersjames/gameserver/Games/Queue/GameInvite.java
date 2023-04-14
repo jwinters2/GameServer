@@ -17,7 +17,7 @@ public class GameInvite implements Serializable {
         return Instant.now().toEpochMilli();
     }
     
-    final private long timestamp;
+    private long timestamp;
     private int from_uid;
     private int to_uid;
     private Class game;
@@ -64,13 +64,17 @@ public class GameInvite implements Serializable {
         return timestamp;
     }
 
+	public void setTimestamp(long timestamp) {
+		this.timestamp = timestamp;
+	}
+
     public String getMessageType() {
         return messageType;
     }
 
     @Override
     public String toString() {
-        return "GameInvite{" + "from_uid=" + from_uid + ", to_uid=" + to_uid + ", game=" + game + '}';
+        return "GameInvite{" + "from_uid=" + from_uid + ", to_uid=" + to_uid + ", game=" + game + "}";
     }
 
     public boolean includesUser(int uid) {

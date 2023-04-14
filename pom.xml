@@ -101,19 +101,24 @@
             </dependency>
             
             <dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-integration</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-webflux</artifactId>
-</dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-integration</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-webflux</artifactId>
+            </dependency>
+            
+            
+       <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
             
             
 	 <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-	  <version>4.10</version>
 	 </dependency>
 	 <dependency>
             <groupId>org.testng</groupId>
@@ -167,6 +172,12 @@
             <artifactId>org.eclipse.persistence.jpa.modelgen.processor</artifactId>
             <version>2.7.10</version>
             <scope>provided</scope>
+	 </dependency>
+	 <dependency>
+	  <groupId>org.json</groupId>
+	  <artifactId>json</artifactId>
+	  <version>20230227</version>
+	  <type>jar</type>
 	 </dependency>
 	</dependencies>
 

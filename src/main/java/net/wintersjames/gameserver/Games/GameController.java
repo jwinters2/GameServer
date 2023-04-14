@@ -6,6 +6,8 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import net.wintersjames.gameserver.CookieUtils;
+import net.wintersjames.gameserver.Games.GameDao.GameMatchPersistenceService;
+import net.wintersjames.gameserver.Games.GameDao.PlayerToMatchService;
 import net.wintersjames.gameserver.Session.ListenToDisconnects;
 import net.wintersjames.gameserver.Session.SessionState;
 import net.wintersjames.gameserver.Session.SessionStateManager;
@@ -37,6 +39,12 @@ public class GameController implements ListenToDisconnects {
     
     @Autowired
     private GameMatchManager matchManager;
+	
+	@Autowired
+	private GameMatchPersistenceService matchPersistenceService;
+	
+	@Autowired
+	private PlayerToMatchService ptmService;
     
     @Autowired
     private SimpMessagingTemplate simpMessageTemplate;
@@ -106,7 +114,7 @@ public class GameController implements ListenToDisconnects {
 			return "message sent";
         }
         
-		response.setStatus(400);
+		response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         return "(game) message failed to send";
     }
     
@@ -138,9 +146,22 @@ public class GameController implements ListenToDisconnects {
 			boolean success = match.handleMove(uid, request);
 			System.out.println("move " + (success ? "succeeded" : "failed"));
 			if(success) {
+				
+				// send updates to each player
 				for(int pid: match.getPlayers()) {
 					updateGameForUsers(match, pid);
 				}
+				
+				// persist to DB
+				boolean saved = matchPersistenceService.saveMatch(match);
+				if(saved) {
+					for(int pid: match.getPlayers()) {
+						ptmService.savePlayerToMatch(pid, matchid);
+					}
+				} else {
+					System.out.println("match failed to save");
+				}
+				
 				return "success";
 			}
 		}
@@ -166,7 +187,7 @@ public class GameController implements ListenToDisconnects {
 			return "update sent";
 		}
 		
-		response.setStatus(400);
+		response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		return "error: no match found";
 	}
 	
@@ -184,6 +205,7 @@ public class GameController implements ListenToDisconnects {
     
     @Override
     public void handleDisconnects(int uid) {
+		System.out.println("handle disconnect for user " + Integer.toString(uid));
     }
     
 }
