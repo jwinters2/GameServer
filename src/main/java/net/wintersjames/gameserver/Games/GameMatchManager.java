@@ -6,7 +6,6 @@ package net.wintersjames.gameserver.Games;
 
 import java.util.HashMap;
 import java.util.Map;
-import net.wintersjames.gameserver.Games.Chess.Chess;
 import net.wintersjames.gameserver.Games.Chess.ChessMatch;
 import net.wintersjames.gameserver.Games.GameDao.GameMatchPersistenceService;
 import net.wintersjames.gameserver.Games.Queue.GameInvite;

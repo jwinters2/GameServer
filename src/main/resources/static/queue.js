@@ -140,6 +140,8 @@ function generateUserButton(userUid, listUid, invites) {
     button.classList.add("btn");
     button.classList.add("btn-primary");
     button.classList.add("border-0");
+	
+	const pendingGame = findPendingGame(listUid);
         
     if(outgoingInvite) {
        
@@ -159,6 +161,7 @@ function generateUserButton(userUid, listUid, invites) {
         return buttonGroup;
         
     } else if (incomingInvite) {
+		
         button.onclick = function() {accept(timestamp);};
         button.innerHTML = "Accept";
         
@@ -166,11 +169,24 @@ function generateUserButton(userUid, listUid, invites) {
         decline.classList.add("btn");
         decline.classList.add("btn-primary");
         decline.classList.add("border-0");
-        decline.onclick = function() {cancel(timestamp);};
+		decline.onclick = function() {cancel(timestamp);};
         decline.innerHTML = "Decline";
-        
-        let buttonGroup = document.createElement("div");
-        decline.classList.add("btn-group");
+
+		let buttonGroup = document.createElement("div");
+		buttonGroup.classList.add("btn-group");
+
+		// if we need to, let the player know if this is resuming a game or starting a new one
+		if(pendingGame !== null) {
+			let label = document.createElement("a");
+			label.classList.add("btn");
+			label.classList.add("btn-disabled");
+			label.classList.add("border-0");
+			label.style.fontStyle = "italic";
+			label.innerHTML = (timestamp == pendingGame ? "Continue" : "Start New Game");
+			
+			buttonGroup.appendChild(label);
+		}
+    
         buttonGroup.appendChild(button);
         buttonGroup.appendChild(decline);
         
@@ -178,7 +194,6 @@ function generateUserButton(userUid, listUid, invites) {
 		
     } else {
 		
-		const pendingGame = findPendingGame(listUid);
 		if(pendingGame !== null) {
 			button.onclick = function() {challenge(listUid, pendingGame);};
 			button.innerHTML = "Invite to Continue";
@@ -191,7 +206,7 @@ function generateUserButton(userUid, listUid, invites) {
 			decline.innerHTML = "Invite to New Game";
 
 			let buttonGroup = document.createElement("div");
-			decline.classList.add("btn-group");
+			buttonGroup.classList.add("btn-group");
 			buttonGroup.appendChild(button);
 			buttonGroup.appendChild(decline);
 
@@ -213,7 +228,7 @@ function findPendingGame(uid) {
 	
 	let keys = Object.keys(matches);
 	for(var i=0; i<keys.length; i++) {
-		let match = keys[i]
+		let match = keys[i];
 		if(matches[match].includes(uid)) {
 			return match;
 		}
