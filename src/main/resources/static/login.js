@@ -1,9 +1,3 @@
-// if we're sent this file, redirect to login
-console.log(window.location.href);
-if(window.location.href.substring(window.location.href.length - 6) !== '/login') {
-    window.location.href = "/login";
-}
-
 function sendData(path, username, password) {
     const dict = [];
     dict.push(`username=${encodeURI(username)}`);

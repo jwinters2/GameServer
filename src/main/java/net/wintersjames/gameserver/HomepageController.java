@@ -15,6 +15,8 @@ import net.wintersjames.gameserver.Games.Chess.Chess;
 import net.wintersjames.gameserver.Games.Game;
 import net.wintersjames.gameserver.User.User;
 import net.wintersjames.gameserver.User.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,6 +31,8 @@ import org.springframework.web.servlet.view.RedirectView;
 @Controller
 public class HomepageController {
     
+	Logger logger = LoggerFactory.getLogger(HomepageController.class);
+	
     @Autowired
     private SessionStateManager sessionManager;
     
@@ -36,17 +40,24 @@ public class HomepageController {
     private UserService userService;
     
     @GetMapping("/")
-    public RedirectView redirectHome(RedirectAttributes attributes,  HttpServletRequest request, HttpServletResponse response) {
+    public String redirectHome(RedirectAttributes attributes,  HttpServletRequest request, HttpServletResponse response) {
         
         String id = CookieUtils.getSessionCookie(request, response);
         int uid = sessionManager.getSessionState(id).getLoginState().getUid();
-        if(uid == 0) {
-            // no user logged in, redirect to login
-            return new RedirectView("/login");
-        } else {
-            // no user logged in, redirect to login
-            return new RedirectView("/homepage");
-        }       
+        try {
+			if(uid == 0) {
+				// no user logged in, redirect to login
+				response.sendRedirect("/login");
+				return "login";
+			} else {
+				// user is logged in, redirect to homepage
+				response.sendRedirect("/homepage");
+				return "homepage";
+			}
+		} catch (Exception e) {
+			logger.error("\"/\" redirect failed");
+		}
+        return "homepage";
     }
     
     @GetMapping("/homepage")

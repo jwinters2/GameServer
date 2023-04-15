@@ -5,7 +5,10 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import net.wintersjames.gameserver.Games.Chess.ChessPieces.King;
+import net.wintersjames.gameserver.Games.Chess.ChessPieces.Piece;
 import net.wintersjames.gameserver.Games.GameMatch;
+import net.wintersjames.gameserver.Games.GameState;
 
 /**
  *
@@ -52,7 +55,7 @@ public class ChessMatch extends GameMatch {
 			fromPos = lastFromPos;
 			toPos = lastToPos;
 		}
-		
+			
 		System.out.println("moving " + fromPos + " -> " + toPos);
 		
 		// get the color of the moving player
@@ -83,10 +86,24 @@ public class ChessMatch extends GameMatch {
 			this.lastToPos = null;
 		}
 		
+		Piece pieceToCapture = state.getPieceAt(toPos);
+		
 		state.resetEnPassant();
 		
 		state.captureAt(toPos);
 		state.move(fromPos, toPos);
+		
+		// check if the king was captured
+		if(pieceToCapture != null && pieceToCapture instanceof King) {
+			
+			state.setStatus(GameState.Status.WINNER_DECIDED);
+			
+			if(pieceToCapture.getColor() == Piece.Color.WHITE) {
+				state.setWinner(this.blackPlayer);
+			} else {
+				state.setWinner(this.whitePlayer);
+			}
+		}
 		
 		state.nextMove();
 		

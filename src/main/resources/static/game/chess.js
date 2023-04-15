@@ -39,6 +39,8 @@ class Chess {
 	menuWidth = 0;
 	menuHeight = 0;
 	
+	//gameResult = null;
+	
 	// two characters each, white then black
 	pieceChars = {
 		"pawn": "\u2659\u265F",
@@ -61,6 +63,7 @@ class Chess {
 		var socket = new SockJS("/server");
 		var stompClient = Stomp.over(socket);
 		var handleUpdate = this.handleUpdate;
+		var showPopup = this.showPopup;
 		var socketPath = `/websocket/game/${this.game}/${this.matchid}/${this.userid}`;
 		var userid = this.userid;
 		var game = this.game;
@@ -72,13 +75,7 @@ class Chess {
 			stompClient.subscribe(socketPath, function(message) {
 				let updateData = JSON.parse(message.body);
 				if(updateData.type === "gameEnd") {
-					
-					console.log("game end", updateData);
-					let popupBody = document.getElementById("popup-body");
-					popupBody.innerHTML = updateData.reason;
-					let modal = new bootstrap.Modal(document.getElementById("popup"));
-					modal.show();
-					
+					showPopup(updateData.reason);
 				} else {
 					handleUpdate(updateData, chessObj);
 				}
@@ -283,7 +280,20 @@ class Chess {
 		chessObj.setPieces(update.pieces);
 		chessObj.setWhiteToMove(update.whiteToMove);
 		chessObj.showPromotionMenu = (update.pendingPromotionFrom === chessObj.userid);
+		
 		chessObj.draw();
+		
+		if(update.status !== "INCOMPLETE") {
+			let result = null;
+			if(update.status === "WINNER_DECIDED") {
+				result = (update.winner === chessObj.userid ? "You won" : "You lost");
+			} else {
+				result = "Game has ended: " + update.status.toLowerCase();
+			}
+			
+			chessObj.showPopup(result);
+		}
+		
 	}
 	
 	setPieces(pieces) {
@@ -471,6 +481,14 @@ class Chess {
 			}
 		}
 	}
+	
+	showPopup(reason) {
+		let popupBody = document.getElementById("popup-body");
+		popupBody.innerHTML = reason;
+		let modal = new bootstrap.Modal(document.getElementById("popup"));
+		modal.show();
+	}
+
 }
 
 const chess = new Chess();
