@@ -6,10 +6,10 @@
         <meta name="_csrf" th:content="${_csrf.token}" />
         <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 
-        <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="/style.css" type="text/css"/>
+        <link rel="stylesheet" th:href="${contextRoot}+'/webjars/bootstrap/css/bootstrap.min.css'" />
+        <link rel="stylesheet" th:href="${contextRoot}+'/style.css'" type="text/css"/>
         
-        <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+        <script th:src="${contextRoot}+'/webjars/bootstrap/js/bootstrap.min.js'"></script>
 
     </head>
     <body>
@@ -44,7 +44,10 @@
             </div>
         </form>
         
-        <script src="/login.js"></script>
+        <div class="alert alert-warning">Don't re-use your password.
+            I did my best getting the security stuff right but "my best" probably isn't very good.</div>
+        
+        <script th:src="${contextRoot}+'/login.js'"></script>
         
     </body>
 </html>

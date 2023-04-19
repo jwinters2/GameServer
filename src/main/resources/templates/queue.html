@@ -4,18 +4,19 @@
         <title>Queue</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="/style.css" type="text/css"/>
+        <link rel="stylesheet" th:href="${contextRoot}+'/webjars/bootstrap/css/bootstrap.min.css'" />
+        <link rel="stylesheet" th:href="${contextRoot}+'/style.css'" type="text/css"/>
         
-        <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
-        <script src="/webjars/jquery/jquery.min.js"></script>
-        <script src="/webjars/sockjs-client/sockjs.min.js"></script>
-        <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+        <script th:src="${contextRoot}+'/webjars/bootstrap/js/bootstrap.min.js'"></script>
+        <script th:src="${contextRoot}+'/webjars/jquery/jquery.min.js'"></script>
+        <script th:src="${contextRoot}+'/webjars/sockjs-client/sockjs.min.js'"></script>
+        <script th:src="${contextRoot}+'/webjars/stomp-websocket/stomp.min.js'"></script>
         
         <meta name="pendingMatches" th:content="${pendingMatches}" />
         <meta name="userList" th:content="${users}" />
+        <meta name="contextRoot" th:content="${contextRoot}" />
 
-        <script src="/queue.js"></script>
+        <script th:src="${contextRoot}+'/queue.js'"></script>
     </head>
     <body th:attr="onload=|init(${myuid})|">
         <div class="nabvar navbar-dark bg-chess">

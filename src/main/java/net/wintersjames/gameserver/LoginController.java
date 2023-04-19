@@ -16,6 +16,8 @@ import net.wintersjames.gameserver.Session.SessionStateManager;
 import net.wintersjames.gameserver.User.User;
 import net.wintersjames.gameserver.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,8 +33,12 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
  */
 
 @Controller
+@PropertySource(value = "classpath:webpath.properties")
 public class LoginController {
     
+	@Value("${context-root}")
+	private String contextRoot;
+	
     @Autowired
     private SessionStateManager sessionManager;
     
@@ -41,13 +47,15 @@ public class LoginController {
     
     @GetMapping("/login")
     public String homePage(Model model, HttpServletRequest request, HttpServletResponse response) {             
-        return "login";
+        model.addAttribute("contextRoot", contextRoot);
+		return "login";
     }
     
     @PostMapping("/login")
     @ResponseBody
     public String login(Model model, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
         
+		model.addAttribute("contextRoot", contextRoot);
         
         String id = CookieUtils.getSessionCookie(request, response);
         
@@ -75,7 +83,7 @@ public class LoginController {
         if(enteredHash.toLowerCase().equals(hash.toLowerCase())) {
             // success, add user info to session state
             sessionManager.getSessionState(id).login(user);
-            return "/homepage";
+            return "homepage";
         } else {
             // bad password
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);

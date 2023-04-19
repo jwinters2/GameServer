@@ -6,6 +6,10 @@ body, .modal-content{
     background-color: #432618;
 }
 
+.bg-light-chess {
+    background-color: #dfad68;
+}
+
 .chess-text-light {
     color: #dfad68;
 }
@@ -25,11 +29,14 @@ body, .modal-content{
 }
 
 .login-alert {
+    visibility: hidden;
+}
+
+.alert {
     width: 25em;
     margin: auto;
     margin-top: 1em;
     margin-bottom: 1em;
-    visibility: hidden;
 }
 
 .nav-link {

@@ -4,11 +4,13 @@
  */
 package net.wintersjames.gameserver.Games.Chat;
 
+import java.io.Serializable;
+
 /**
  *
  * @author james
  */
-public class ChatMessage {
+public class ChatMessage implements Serializable {
     
     private String message;
 

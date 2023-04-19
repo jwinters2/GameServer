@@ -7,33 +7,54 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
     <head>
         <title>Game</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
         <meta name="_csrf" th:content="${_csrf.token}" />
         <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+        <meta name="contextRoot" th:content="${contextRoot}" />
         
-        <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="/style.css" type="text/css"/>
+        <link rel="stylesheet" th:href="${contextRoot}+'/webjars/bootstrap/css/bootstrap.min.css'" />
+        <link rel="stylesheet" th:href="${contextRoot}+'/style.css'" type="text/css"/>
         
-        <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
-        <script src="/webjars/jquery/jquery.min.js"></script>
-        <script src="/webjars/sockjs-client/sockjs.min.js"></script>
-        <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+        <script th:src="${contextRoot}+'/webjars/bootstrap/js/bootstrap.min.js'"></script>
+        <script th:src="${contextRoot}+'/webjars/jquery/jquery.min.js'"></script>
+        <script th:src="${contextRoot}+'/webjars/sockjs-client/sockjs.min.js'"></script>
+        <script th:src="${contextRoot}+'/webjars/stomp-websocket/stomp.min.js'"></script>
         
-        <script th:src="'/game/' + ${game} + '.js'"></script>
-        <script src="/chat.js"></script>
+        <script>
+            const contextRoot = document.querySelector("meta[name='contextRoot']").content;
+        </script>
+        
+        <script th:src="${contextRoot}+'/game/' + ${game} + '.js'"></script>
+        <script th:src="${contextRoot}+'/chat.js'"></script>
     </head>
     <body>
         <div class="nabvar navbar-dark bg-chess">
             <h1 class="chess-text-light text-capitalize" style="margin: 0em 1em; display: inline-block;" th:text="${game}"></h1>
             <span style="margin: 0.25em 1em; float: right; display: inline-block;">
-                <a th:href="${#strings.concat('/game/', game, '/', matchid, '/leavegame')}" class="btn btn-dark">Leave Game</a>
-                <a th:href="${#strings.concat('/game/', game, '/', matchid, '/resign')}" class="btn btn-dark">Resign</a>
+                <a th:href="${#strings.concat(contextRoot +'/game/', game, '/', matchid, '/leavegame')}" class="btn btn-dark">Leave Game</a>
+                <a th:href="${#strings.concat(contextRoot +'/game/', game, '/', matchid, '/resign')}" class="btn btn-dark">Resign</a>
             </span>
         </div>
+        
+        <div class="offcanvas offcanvas-start bg-light-chess" tabindex="-1" id="collapsibleChat" aria-labelledby="collapsibleChat">
+            <button type="button" class="btn-close text-reset p-2" style="margin-left: auto;" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <div th:insert="~{chat.html}"></div>
+        </div>
+        
         <div class="container-fluid">
-            <div class="row">
+            <div class="row w-100">
+                <!-- full-width chat -->
                 <div class="col-lg-3 d-none d-lg-block d-xl-block" th:insert="~{chat.html}"></div>
-                <div class="col-lg-9 col-md-12" th:insert="~{'games/' + ${game} + '.html'}"></div>
+                <!-- collapsible chat -->
+                <div class="col-lg-1 d-block d-lg-none d-xl-none">
+                    <a class="btn btn-dark" data-bs-toggle="offcanvas" href="#collapsibleChat" role="button" aria-controls="collapsibleChat">
+                        <!-- hamburger icon -->
+                        Chat
+                    </a>
+                </div>
+
+                <!-- actual game -->
+                <div class="col-lg-9 col-md-11" th:insert="~{'games/' + ${game} + '.html'}"></div>
             </div>
         </div>
         
@@ -45,7 +66,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                         User has left
                     </div>
                     <div id="popup-footer" class="modal-footer" style="border-color: #000000;">
-                        <a href="/homepage" class="btn btn-primary">Okay</a>
+                        <a th:href="${contextRoot}+'/homepage'" class="btn btn-primary">Okay</a>
                     </div>
                 </div>
             </div>

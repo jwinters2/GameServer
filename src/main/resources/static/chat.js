@@ -12,11 +12,11 @@ class Chat {
 
 		console.log(`connecting to chat uid=${this.userid} for ${this.game} match ${this.matchid}`);
 
-		var socket = new SockJS("/server");
+		var socket = new SockJS(`${contextRoot}/server`);
 		var stompClient = Stomp.over(socket);
 		var heartbeat = this.heartbeat;
 		var handleUpdate = this.handleUpdate;
-		var socketPath = `/websocket/chat/${this.game}/${this.matchid}/${this.userid}`;
+		var socketPath = `${contextRoot}/websocket/chat/${this.game}/${this.matchid}/${this.userid}`;
 		var userid = this.userid;
 
 		stompClient.connect({}, function (frame) {
@@ -34,7 +34,7 @@ class Chat {
 
 	heartbeat(stompClient, userid) {
 		if(stompClient !== null) {
-			stompClient.send(`/to-server/heart/${userid}`, {}, "beat");
+			stompClient.send(`${contextRoot}/to-server/heart/${userid}`, {}, "beat");
 		}
 	}
 
@@ -44,7 +44,7 @@ class Chat {
 		document.getElementById("messageText").value = "";
 
 		const request = new XMLHttpRequest();  
-		request.open('POST', `/game/${this.game}/${this.matchid}/chat`);
+		request.open('POST', `${contextRoot}/game/${this.game}/${this.matchid}/chat`);
 		request.onload = function() {
 			console.log(request.response);
 		};
@@ -57,42 +57,46 @@ class Chat {
 
 	handleUpdate(messages, userid) {
 
-		let chatLog = document.getElementById("chatLog");
-		chatLog.innerHTML = "";
+		let chatLogs = document.querySelectorAll("#chatLog");
+		chatLogs.forEach(chatLog => {
+			
+			chatLog.innerHTML = "";
 
-		messages.sort((a, b) => {
-			return a.timestamp - b.timestamp;
+			messages.sort((a, b) => {
+				return a.timestamp - b.timestamp;
+			});
+
+			messages.forEach(message => {
+
+				let row = document.createElement("div");
+				row.classList.add("row", "gy-1");
+				chatLog.appendChild(row);
+
+				let flex = document.createElement("div");
+				flex.classList.add("d-flex");
+				row.appendChild(flex);
+
+				let span = document.createElement("span");
+				span.classList.add("my-1", "p-2", "border", "border-dark", "text-wrap", "text-break");
+				span.innerHTML = message.message;
+				flex.appendChild(span);
+
+				if(message.uid === userid) {
+					row.classList.add("justify-content-end");
+					flex.classList.add("flex-row-reverse");
+					span.classList.add("text-end", "chat-me");
+				}
+				else
+				{
+					row.classList.add("justify-content-start");
+					flex.classList.add("flex-row");
+					span.classList.add("text-start", "chat-other");
+				}
+			});
+
+			chatLog.scrollTop = chatLog.scrollHeight;
 		});
 
-		messages.forEach(message => {
-
-			let row = document.createElement("div");
-			row.classList.add("row", "gy-1");
-			chatLog.appendChild(row);
-
-			let flex = document.createElement("div");
-			flex.classList.add("d-flex");
-			row.appendChild(flex);
-
-			let span = document.createElement("span");
-			span.classList.add("my-1", "p-2", "border", "border-dark", "text-wrap", "text-break");
-			span.innerHTML = message.message;
-			flex.appendChild(span);
-
-			if(message.uid === userid) {
-				row.classList.add("justify-content-end");
-				flex.classList.add("flex-row-reverse");
-				span.classList.add("text-end", "chat-me");
-			}
-			else
-			{
-				row.classList.add("justify-content-start");
-				flex.classList.add("flex-row");
-				span.classList.add("text-start", "chat-other");
-			}
-		});
-
-		chatLog.scrollTop = chatLog.scrollHeight;
 	}
 }
 

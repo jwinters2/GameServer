@@ -60,18 +60,18 @@ class Chess {
 		console.log(`connecting to game uid=${this.userid} for ${this.game} match ${this.matchid}`);
 
 
-		var socket = new SockJS("/server");
+		var socket = new SockJS(`${contextRoot}/server`);
 		var stompClient = Stomp.over(socket);
 		var handleUpdate = this.handleUpdate;
 		var showPopup = this.showPopup;
-		var socketPath = `/websocket/game/${this.game}/${this.matchid}/${this.userid}`;
+		var socketPath = `${contextRoot}/websocket/game/${this.game}/${this.matchid}/${this.userid}`;
 		var userid = this.userid;
 		var game = this.game;
 		var matchid = this.matchid;
 		var chessObj = this;
 
 		stompClient.connect({}, function (frame) {
-			console.log("connected to /websocket/game", frame);
+			console.log(`connected to ${contextRoot}/websocket/game`, frame);
 			stompClient.subscribe(socketPath, function(message) {
 				let updateData = JSON.parse(message.body);
 				if(updateData.type === "gameEnd") {
@@ -82,7 +82,7 @@ class Chess {
 			});
 
 			const request = new XMLHttpRequest();  
-			request.open('GET', `/game/${game}/${matchid}/state`);
+			request.open('GET', `${contextRoot}/game/${game}/${matchid}/state`);
 			request.onload = function() {
 				console.log(request.response);
 			};
@@ -121,6 +121,11 @@ class Chess {
 		
 		// handle mouse events
 		var onClick = function(event) {
+			
+			if ((event instanceof MouseEvent)) {
+				event.preventDefault();
+			}
+			
 			var chessObj = event.currentTarget.chessObj;
 			
 			var x = (event instanceof MouseEvent) ? event.clientX : 
@@ -172,6 +177,11 @@ class Chess {
 		};
 		
 		var onClickMove = function(event) {
+			
+			if ((event instanceof MouseEvent)) {
+				event.preventDefault();
+			}
+			
 			var chessObj = event.currentTarget.chessObj;
 			if(chessObj.pieceInHand !== null) {
 				
@@ -190,6 +200,11 @@ class Chess {
 		};
 		
 		var onClickRelease = function(event) {
+			
+			if ((event instanceof MouseEvent)) {
+				event.preventDefault();
+			}
+			
 			var chessObj = event.currentTarget.chessObj;
 			
 			if(chessObj.pieceInHand === null && !chessObj.showPromotionMenu) {
@@ -209,7 +224,7 @@ class Chess {
 			y = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;
 			
 			if(chessObj.showPromotionMenu) {
-				console.log("show promotion menu")
+				console.log("show promotion menu");
 				x = (x - chessObj.boardWidth/2 + chessObj.menuWidth/2)/chessObj.boardStyle.width;
 				y = (y - chessObj.boardHeight/2 + chessObj.menuHeight/2 - chessObj.boardStyle.y)/chessObj.boardStyle.height;
 				
@@ -242,7 +257,7 @@ class Chess {
 		this.canvas.addEventListener('mousedown', onClick);
 		this.canvas.addEventListener('touchstart', onClick);
 		this.canvas.addEventListener('mousemove', onClickMove);
-		this.canvas.addEventListener('touchmode', onClickMove);
+		this.canvas.addEventListener('touchmove', onClickMove);
 		this.canvas.addEventListener('mouseup', onClickRelease);
 		this.canvas.addEventListener('touchend', onClickRelease);
 	}
@@ -262,7 +277,7 @@ class Chess {
 		const data = dict.join('&');
 
 		const request = new XMLHttpRequest();  
-		request.open('POST', `/game/${this.game}/${this.matchid}/move`);
+		request.open('POST', `${contextRoot}/game/${this.game}/${this.matchid}/move`);
 		request.chessObj = this;
 		request.onload = function (response) {
 			console.log(response);

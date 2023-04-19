@@ -3,10 +3,10 @@
     <head>
         <title>Games</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="/style.css" type="text/css"/>
+        <link rel="stylesheet" th:href="${contextRoot}+'/webjars/bootstrap/css/bootstrap.min.css'" />
+        <link rel="stylesheet" th:href="${contextRoot}+'/style.css'" type="text/css"/>
         
-        <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+        <script th:src="${contextRoot}+'/webjars/bootstrap/js/bootstrap.min.js'"></script>
     </head>
     <body>
         <!-- navbar -->
@@ -23,7 +23,7 @@
                   <a class="nav-link" href="#">Contact</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="/logout">Logout</a>
+                  <a class="nav-link" th:href="${contextRoot}+'/logout'">Logout</a>
                 </li>
               </ul>
             </div>
@@ -34,13 +34,13 @@
             <div th:each="game: ${games}">
                 <div class="col mb-4">
                     <div class="card game-card">
-                        <img class="card-img-top" th:src="${game.image}">
+                        <img class="card-img-top" th:src="${contextRoot}+${game.image}">
                         <div class="card-body">
                             <h5 class="card-title" th:text="${game.title}"></h5>
                             <p th:text="${game.description}"></p>
                             
                             <a th:if="${game.isSinglePlayer}" href="#" class="btn btn-primary border-0">Play</a>
-                            <a th:if="${game.isMultiPlayer}" th:href="'/queue/' + ${game.title.toLowerCase()}" class="btn btn-primary border-0">Find Opponent</a>
+                            <a th:if="${game.isMultiPlayer}" th:href="${contextRoot} + '/queue/' + ${game.title.toLowerCase()}" class="btn btn-primary border-0">Find Opponent</a>
                             <a th:if="${game.isMultiPlayer}" href="#" class="btn btn-primary border-0">Send Invite</a>
 
                         </div>

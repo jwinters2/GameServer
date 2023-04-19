@@ -28,6 +28,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -42,9 +44,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author james
  */
 @Controller
+@PropertySource(value = "classpath:webpath.properties")
 public class QueueController implements ListenToDisconnects {
 	
 	Logger logger = LoggerFactory.getLogger(QueueController.class);
+	
+	@Value("${context-root}")
+	private String contextRoot;
     
     @Autowired
     private GameQueueManager queueManager;
@@ -81,6 +87,8 @@ public class QueueController implements ListenToDisconnects {
             Model model, 
             HttpServletRequest request, 
             HttpServletResponse response) {     
+		
+		model.addAttribute("contextRoot", contextRoot);
 
         String id = CookieUtils.getSessionCookie(request, response);
         int uid = sessionManager.getSessionState(id).getLoginState().getUid();      
@@ -182,9 +190,11 @@ public class QueueController implements ListenToDisconnects {
         System.out.println("updating " + Integer.toString(recipient_uid));
         GameQueueUpdate payload = new GameQueueUpdate(queue);
         payload.cleanForUser(recipient_uid);
+		
+		System.out.println("sending update to " + Integer.toString(recipient_uid));
         
         simpMessageTemplate.convertAndSend(
-            "/websocket/queue/" + Integer.toString(recipient_uid),
+            contextRoot + "/websocket/queue/" + Integer.toString(recipient_uid),
              payload);
     }
     
@@ -212,7 +222,7 @@ public class QueueController implements ListenToDisconnects {
         System.out.println("sending to game " + Integer.toString(recipient_uid));
         
         simpMessageTemplate.convertAndSend(
-            "/websocket/queue/" + Integer.toString(recipient_uid),
+            contextRoot + "/websocket/queue/" + Integer.toString(recipient_uid),
              invite);
     }
 	

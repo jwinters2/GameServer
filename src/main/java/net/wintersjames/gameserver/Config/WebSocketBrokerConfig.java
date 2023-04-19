@@ -4,14 +4,12 @@
  */
 package net.wintersjames.gameserver.Config;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 /**
@@ -20,11 +18,15 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  */
 @Configuration
 @EnableWebSocketMessageBroker
+@PropertySource(value = "classpath:webpath.properties")
 public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
     
+	@Value("${context-root}")
+	private String contextRoot;
+	
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/websocket");
+        registry.enableSimpleBroker(contextRoot + "/websocket");
         registry.setApplicationDestinationPrefixes("/to-server");
     }
     

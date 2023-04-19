@@ -18,6 +18,8 @@ import net.wintersjames.gameserver.User.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,9 +31,13 @@ import org.springframework.web.servlet.view.RedirectView;
  * @author james
  */
 @Controller
+@PropertySource(value = "classpath:webpath.properties")
 public class HomepageController {
     
 	Logger logger = LoggerFactory.getLogger(HomepageController.class);
+	
+	@Value("${context-root}")
+	private String contextRoot;
 	
     @Autowired
     private SessionStateManager sessionManager;
@@ -40,18 +46,24 @@ public class HomepageController {
     private UserService userService;
     
     @GetMapping("/")
-    public String redirectHome(RedirectAttributes attributes,  HttpServletRequest request, HttpServletResponse response) {
+    public String redirectHome(
+			Model model, 
+			RedirectAttributes attributes,  
+			HttpServletRequest request, 
+			HttpServletResponse response) {
         
+		model.addAttribute("contextRoot", contextRoot);
+		
         String id = CookieUtils.getSessionCookie(request, response);
         int uid = sessionManager.getSessionState(id).getLoginState().getUid();
         try {
 			if(uid == 0) {
 				// no user logged in, redirect to login
-				response.sendRedirect("/login");
+				response.sendRedirect("/gameserver/login");
 				return "login";
 			} else {
 				// user is logged in, redirect to homepage
-				response.sendRedirect("/homepage");
+				response.sendRedirect("/gameserver/homepage");
 				return "homepage";
 			}
 		} catch (Exception e) {
@@ -62,6 +74,8 @@ public class HomepageController {
     
     @GetMapping("/homepage")
     public String homepage(Model model, HttpServletRequest request, HttpServletResponse response) {
+		
+		model.addAttribute("contextRoot", contextRoot);
         
         String id = CookieUtils.getSessionCookie(request, response);
         SessionState state = sessionManager.getSessionState(id);
@@ -92,8 +106,13 @@ public class HomepageController {
     }
     
     @GetMapping("/logout")
-    public RedirectView logout(HttpServletRequest request, HttpServletResponse response) {
+    public String logout(
+			Model model, 
+			HttpServletRequest request, 
+			HttpServletResponse response) {
         
+		model.addAttribute("contextRoot", contextRoot);
+		
         String id = CookieUtils.getSessionCookie(request, response);
         SessionState state = sessionManager.getSessionState(id);
         LoginState loginState = state.getLoginState();
@@ -104,6 +123,11 @@ public class HomepageController {
         loginState.setUsername(null);
         state.setGameQueue(null);
         
-        return new RedirectView("/login");
+		try {
+			response.sendRedirect("login");
+		} catch (Exception e) {
+			logger.error("logout redirect failed");
+		}
+        return "login";
     }
 }

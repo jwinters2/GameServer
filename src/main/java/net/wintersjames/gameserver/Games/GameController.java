@@ -18,6 +18,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -33,7 +35,11 @@ import org.springframework.web.util.HtmlUtils;
  * @author james
  */
 @Controller
+@PropertySource(value = "classpath:webpath.properties")
 public class GameController implements ListenToDisconnects {
+	
+	@Value("${context-root}")
+	private String contextRoot;
 	
 	Logger logger = LoggerFactory.getLogger(GameController.class);
     
@@ -70,6 +76,8 @@ public class GameController implements ListenToDisconnects {
             Model model,
             HttpServletRequest request, 
             HttpServletResponse response) {
+		
+		model.addAttribute("contextRoot", contextRoot);
    
         logger.info("message received for game " + game);
         
@@ -127,7 +135,7 @@ public class GameController implements ListenToDisconnects {
     public void updateChatForUsers(GameMatch match, @DestinationVariable("uid") int uid) {
         List<ChatMessage> payload = match.getChatLog();
         
-        String destination = "/websocket/chat/${game}/${matchid}/${userid}"
+        String destination = contextRoot + "/websocket/chat/${game}/${matchid}/${userid}"
                 .replace("${game}", match.getGame().getSimpleName().toLowerCase())
                 .replace("${matchid}", Long.toString(match.getId()))
                 .replace("${userid}", Integer.toString(uid));
@@ -224,7 +232,7 @@ public class GameController implements ListenToDisconnects {
 		}
         
 		try {
-			response.sendRedirect("/homepage");
+			response.sendRedirect(contextRoot + "/homepage");
 		} catch (Exception e) {
 			logger.error("leavegame failed to send redirect for uid={}, game={}, matchid={}", uid, game, matchid);
 		}
@@ -262,7 +270,7 @@ public class GameController implements ListenToDisconnects {
 		matchManager.removeMatch(matchid);
         
 		try {
-			response.sendRedirect("/homepage");
+			response.sendRedirect(contextRoot + "/homepage");
 		} catch (Exception e) {
 			logger.error("leavegame failed to send redirect for uid={}, game={}, matchid={}", uid, game, matchid);
 		}
@@ -272,7 +280,7 @@ public class GameController implements ListenToDisconnects {
 	public void updateGameForUsers(GameMatch match, @DestinationVariable("uid") int uid) {
         GameState payload = match.getGameState(uid);
         
-        String destination = "/websocket/game/${game}/${matchid}/${userid}"
+        String destination = contextRoot + "/websocket/game/${game}/${matchid}/${userid}"
                 .replace("${game}", match.getGame().getSimpleName().toLowerCase())
                 .replace("${matchid}", Long.toString(match.getId()))
                 .replace("${userid}", Integer.toString(uid));
@@ -287,7 +295,7 @@ public class GameController implements ListenToDisconnects {
 		payload.put("reason", reason);
 		logger.info("payload: {}", payload);
         
-        String destination = "/websocket/game/${game}/${matchid}/${userid}"
+        String destination = contextRoot + "/websocket/game/${game}/${matchid}/${userid}"
                 .replace("${game}", match.getGame().getSimpleName().toLowerCase())
                 .replace("${matchid}", Long.toString(match.getId()))
                 .replace("${userid}", Integer.toString(uid));

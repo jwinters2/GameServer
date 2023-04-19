@@ -14,6 +14,8 @@ import net.wintersjames.gameserver.Session.SessionStateManager;
 import net.wintersjames.gameserver.User.User;
 import net.wintersjames.gameserver.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
  * @author james
  */
 @Controller
+@PropertySource(value = "classpath:webpath.properties")
 public class RegisterController {
+	
+	@Value("${context-root}")
+	private String contextRoot;
     
     final String charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     
@@ -50,6 +56,7 @@ public class RegisterController {
     @ResponseBody
     public String register(Model model, HttpServletRequest request, HttpServletResponse response) {
         
+		model.addAttribute("contextRoot", contextRoot);
         
         String id = CookieUtils.getSessionCookie(request, response);
         
@@ -80,7 +87,7 @@ public class RegisterController {
         }
         
         
-        return "/homepage";
+        return "homepage";
     }
     
 }

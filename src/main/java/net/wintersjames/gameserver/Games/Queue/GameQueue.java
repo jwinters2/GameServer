@@ -95,6 +95,12 @@ public class GameQueue {
         if(!invites.containsKey(invite.getTimestamp())
            || findUser(invite.getFromUid()) == null
            || findUser(invite.getToUid()) == null) {
+			
+			System.out.println("failed to start game");
+			System.out.println(invites.containsKey(invite.getTimestamp()) ? "" : "invites do not contain invite");
+			System.out.println(findUser(invite.getFromUid()) == null ? "from uid cannot be found" : "");
+			System.out.println(findUser(invite.getToUid()) == null ? "from uid cannot be found" : "");
+
             return false;
         }
         

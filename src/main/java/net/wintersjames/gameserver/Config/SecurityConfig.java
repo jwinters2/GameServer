@@ -21,7 +21,8 @@ public class SecurityConfig {
    	
 		http.csrf().csrfTokenRepository(
 	CookieCsrfTokenRepository.withHttpOnlyFalse());
-		   
+		
+		// redirect HTTP to HTTPS
 		return http
 		.requiresChannel(channel -> channel.anyRequest().requiresSecure())
 			.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())

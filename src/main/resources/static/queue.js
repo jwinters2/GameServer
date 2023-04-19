@@ -1,3 +1,5 @@
+const contextRoot = document.querySelector("meta[name='contextRoot']").content;
+
 var stompClient = null;
 var userid = null;
 
@@ -9,7 +11,7 @@ function challenge(uid, continueMatchid = null) {
 		continueArg = `?continue=${continueMatchid}`;
 	}
 	
-	request.open('GET', `/queue/challenge/${uid}${continueArg}`);
+	request.open('GET', `${contextRoot}/queue/challenge/${uid}${continueArg}`);
     request.onload = function() {
         console.log(request.response);
     };
@@ -18,7 +20,7 @@ function challenge(uid, continueMatchid = null) {
 
 function handleInvite(command, inviteId) {
     const request = new XMLHttpRequest();  
-    request.open('GET', `/queue/${command}/${inviteId}`);
+    request.open('GET', `${contextRoot}/queue/${command}/${inviteId}`);
     request.onload = function() {
         console.log(request.response);
     };
@@ -36,11 +38,11 @@ function cancel(inviteId) {
 function init(uid) {
     userid = uid;
     console.log(`connecting to ${uid}`);
-    var socket = new SockJS("/server");
+    var socket = new SockJS(`${contextRoot}/server`);
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function (frame) {
         console.log("connected", frame);
-        stompClient.subscribe(`/websocket/queue/${uid}`, function(message) {
+        stompClient.subscribe(`${contextRoot}/websocket/queue/${uid}`, function(message) {
             handleUpdate(JSON.parse(message.body));
         });
         heartbeat();
@@ -55,7 +57,7 @@ function init(uid) {
 // heartbeat stuff
 function heartbeat() {
     if(stompClient !== null) {
-        stompClient.send(`/to-server/heart/${userid}`, {}, "beat");
+        stompClient.send(`${contextRoot}/to-server/heart/${userid}`, {}, "beat");
     }
 }
 
@@ -238,5 +240,5 @@ function findPendingGame(uid) {
 }
 
 function goToGame(body) {
-    window.location.href = (`${window.location.origin}/game/${body.gameStr}/${body.timestamp}`);
+    window.location.href = (`${contextRoot}/game/${body.gameStr}/${body.timestamp}`);
 }
