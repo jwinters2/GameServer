@@ -40,4 +40,9 @@ public class Queen extends Piece {
 		this.y = y;
 		this.hasMoved = true;
 	}
+	
+	@Override
+	public Queen deepCopy() {
+		return new Queen(this.x, this.y, this.color);
+	}
 }

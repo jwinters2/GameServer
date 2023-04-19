@@ -6,6 +6,7 @@ package net.wintersjames.gameserver;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.wintersjames.gameserver.Session.LoginState;
@@ -59,14 +60,14 @@ public class HomepageController {
         try {
 			if(uid == 0) {
 				// no user logged in, redirect to login
-				response.sendRedirect("/gameserver/login");
+				response.sendRedirect(contextRoot + "/login");
 				return "login";
 			} else {
 				// user is logged in, redirect to homepage
-				response.sendRedirect("/gameserver/homepage");
+				response.sendRedirect(contextRoot + "/homepage");
 				return "homepage";
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			logger.error("\"/\" redirect failed");
 		}
         return "homepage";
@@ -79,15 +80,23 @@ public class HomepageController {
         
         String id = CookieUtils.getSessionCookie(request, response);
         SessionState state = sessionManager.getSessionState(id);
+		if(HTTPUtils.redirectIfNotLoggedIn(state.getLoginState().getUid(), response, contextRoot + "/login")) {
+			return "login";
+		}
         String username = state.getLoginState().getUsername();
         
         // users at the homepage aren't in any queues or games
         state.setGameQueue(null);
         
-        System.out.println("username: " + username);
+        logger.info("username: {}", username);
 
         if(username == null) {
             // user is not logged in, so give them the login page
+			try {
+				response.sendRedirect(contextRoot + "/login");
+			} catch (IOException e) {
+				logger.error("\"/homepage\" redirect failed");
+			}
             return "login";
         }
         
@@ -124,8 +133,8 @@ public class HomepageController {
         state.setGameQueue(null);
         
 		try {
-			response.sendRedirect("login");
-		} catch (Exception e) {
+			response.sendRedirect(contextRoot + "/login");
+		} catch (IOException e) {
 			logger.error("logout redirect failed");
 		}
         return "login";

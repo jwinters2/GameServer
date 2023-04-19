@@ -39,6 +39,8 @@ class Chess {
 	menuWidth = 0;
 	menuHeight = 0;
 	
+	lastMoved = null;
+	
 	//gameResult = null;
 	
 	// two characters each, white then black
@@ -295,6 +297,7 @@ class Chess {
 		chessObj.setPieces(update.pieces);
 		chessObj.setWhiteToMove(update.whiteToMove);
 		chessObj.showPromotionMenu = (update.pendingPromotionFrom === chessObj.userid);
+		chessObj.lastMoved = update.lastMovedLastPosition;
 		
 		chessObj.draw();
 		
@@ -456,6 +459,16 @@ class Chess {
 			console.log(e);
 		}
 		
+		// draw last moved piece's previous position
+		if(this.lastMoved !== null) {
+			this.context.fillStyle = this.darkBg + "40";
+			this.context.fillText(
+				this.pieceChars[this.lastMoved.type].charAt(this.lastMoved.color === "WHITE" ? 0 : 1),
+				this.boardStyle.x + (this.boardStyle.width  * (this.pieceToCanvasXCoord(this.lastMoved.x) + 0.5)),
+				this.boardStyle.y + (this.boardStyle.height * (this.pieceToCanvasYCoord(this.lastMoved.y) + 0.5)) + this.boardStyle.pieceYOffset
+			);
+		}
+		
 		// draw promotion menu
 		if(this.showPromotionMenu) {
 			
@@ -507,3 +520,5 @@ class Chess {
 }
 
 const chess = new Chess();
+
+document.title = "Chess";

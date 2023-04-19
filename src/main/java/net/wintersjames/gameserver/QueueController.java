@@ -1,11 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package net.wintersjames.gameserver;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,7 +79,7 @@ public class QueueController implements ListenToDisconnects {
     }
     
     @GetMapping("/queue/{game}")
-    public String homePage(
+    public String queuePage(
             @PathVariable("game") String game, 
             Model model, 
             HttpServletRequest request, 
@@ -91,7 +88,10 @@ public class QueueController implements ListenToDisconnects {
 		model.addAttribute("contextRoot", contextRoot);
 
         String id = CookieUtils.getSessionCookie(request, response);
-        int uid = sessionManager.getSessionState(id).getLoginState().getUid();      
+        int uid = sessionManager.getSessionState(id).getLoginState().getUid();
+		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
+			return "login";
+		}
         User user = userService.findByUid(uid);
         
         GameQueue queue = queueManager.enqueueUser(user, GameUtils.getClassFromName(game));
@@ -115,7 +115,9 @@ public class QueueController implements ListenToDisconnects {
         
         // update the list of everyone else in the queue
         for(User u: users) {
-            updateQueues(u.getUid(), queue);
+			if(u != null) {
+				updateQueues(u.getUid(), queue);
+			}
         }
         
         return "queue";
@@ -125,11 +127,15 @@ public class QueueController implements ListenToDisconnects {
     @ResponseBody
     public String challengeUser(@PathVariable(name="uid") int to_uid, 
 			@RequestParam(name="continue", required = false) Long continueMatchId, 
-			HttpServletRequest request) {
+			HttpServletRequest request,
+			HttpServletResponse response) {
         
         String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
         int from_uid = state.getLoginState().getUid();
+		if(HTTPUtils.redirectIfNotLoggedIn(from_uid, response, contextRoot + "/login")) {
+			return "login";
+		}
         GameQueue queue = state.getGameQueue();
         
         queue.challengeUser(from_uid, to_uid, continueMatchId);
@@ -142,19 +148,25 @@ public class QueueController implements ListenToDisconnects {
     
     @GetMapping("/queue/accept/{inviteid}")
     @ResponseBody
-    public String acceptInvite(@PathVariable(name="inviteid") long timestamp, HttpServletRequest request) {
+    public String acceptInvite(
+			@PathVariable(name="inviteid") long timestamp, 
+			HttpServletRequest request, 
+			HttpServletResponse response) {
         
-        System.out.println("accept invite");
+        logger.info("accept invite");
         
         String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
+		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
+			return "login";
+		}
         GameQueue queue = state.getGameQueue();
         
-        System.out.println(uid);
+        logger.info("uid: {}", uid);
         
         GameInvite invite = queue.getInvite(timestamp);
-        System.out.println(invite);
+        logger.info("invite: {}", invite);
         if(invite != null && invite.getToUid() == uid) {
             // setup a new game
             boolean inviteSuccess = queue.startGame(invite, matchManager);
@@ -170,11 +182,17 @@ public class QueueController implements ListenToDisconnects {
     
     @GetMapping("/queue/cancel/{inviteid}")
     @ResponseBody
-    public String cancelInvite(@PathVariable(name="inviteid") long timestamp, HttpServletRequest request) {
+    public String cancelInvite(
+			@PathVariable(name="inviteid") long timestamp, 
+			HttpServletRequest request,
+			HttpServletResponse response) {
         
         String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
+		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
+			return "login";
+		}
         GameQueue queue = state.getGameQueue();
         
         GameInvite invite = queue.getInvite(timestamp);
@@ -187,11 +205,11 @@ public class QueueController implements ListenToDisconnects {
     }
     
     public void updateQueues(@DestinationVariable("uid") int recipient_uid, GameQueue queue) {
-        System.out.println("updating " + Integer.toString(recipient_uid));
+        logger.info("updating {}",recipient_uid);
         GameQueueUpdate payload = new GameQueueUpdate(queue);
         payload.cleanForUser(recipient_uid);
 		
-		System.out.println("sending update to " + Integer.toString(recipient_uid));
+		logger.info("sending update to {}",recipient_uid);
         
         simpMessageTemplate.convertAndSend(
             contextRoot + "/websocket/queue/" + Integer.toString(recipient_uid),
@@ -219,7 +237,7 @@ public class QueueController implements ListenToDisconnects {
     }
     
     public void sendToGame(@DestinationVariable("uid") int recipient_uid, GameInvite invite) {
-        System.out.println("sending to game " + Integer.toString(recipient_uid));
+        logger.info("sending to game {}", recipient_uid);
         
         simpMessageTemplate.convertAndSend(
             contextRoot + "/websocket/queue/" + Integer.toString(recipient_uid),
@@ -229,7 +247,9 @@ public class QueueController implements ListenToDisconnects {
 	private List<User> clientSafe(List<User> users) {
 		List<User> retval = new ArrayList<>();
 		for(User user: users) {
-			retval.add(user.clientSafe());
+			if(user != null) {
+				retval.add(user.clientSafe());
+			}
 		}
 		return retval;
 	}

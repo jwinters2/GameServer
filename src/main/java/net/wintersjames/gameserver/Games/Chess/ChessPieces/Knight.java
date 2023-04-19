@@ -33,4 +33,9 @@ public class Knight extends Piece {
 		this.y = y;
 		this.hasMoved = true;
 	}
+	
+	@Override
+	public Knight deepCopy() {
+		return new Knight(this.x, this.y, this.color);
+	}
 }

@@ -8,6 +8,8 @@ import java.io.ObjectOutputStream;
 import java.util.Base64;
 import java.util.List;
 import net.wintersjames.gameserver.Games.GameMatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class GameMatchPersistenceService {
+	
+	Logger logger = LoggerFactory.getLogger(GameMatchPersistenceService.class);
 	
 	@Autowired
 	private final GameMatchRepository matchRepository;
@@ -44,7 +48,7 @@ public class GameMatchPersistenceService {
 			return true;
 			
 		} catch (IOException e) {
-			System.out.println("match (matchid=" + match.getId() + ") failed to serialize");
+			logger.info("match (matchid={}) failed to serialize", match.getId());
 			e.printStackTrace();
 			return false;
 		}
@@ -68,10 +72,10 @@ public class GameMatchPersistenceService {
 			return match;
 			
 		} catch (IOException e) {
-			System.out.println("match (matchid=" + matchid + ") failed to deserialize: IOException");
+			logger.info("match (matchid={}) failed to deserialize: IOException", matchid);
 			return null;
 		} catch (ClassNotFoundException e) {
-			System.out.println("match (matchid=" + matchid + ") failed to deserialize: ClassNotFoundException");
+			logger.info("match (matchid={}) failed to deserialize: ClassNotFoundException", matchid);
 			return null;
 		}
 	}

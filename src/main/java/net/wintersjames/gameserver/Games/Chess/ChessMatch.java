@@ -9,6 +9,8 @@ import net.wintersjames.gameserver.Games.Chess.ChessPieces.King;
 import net.wintersjames.gameserver.Games.Chess.ChessPieces.Piece;
 import net.wintersjames.gameserver.Games.GameMatch;
 import net.wintersjames.gameserver.Games.GameState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -16,6 +18,8 @@ import net.wintersjames.gameserver.Games.GameState;
  */
 public class ChessMatch extends GameMatch {
     
+	Logger logger = LoggerFactory.getLogger(ChessMatch.class);
+	
 	final private int whitePlayer;
 	final private int blackPlayer;
 	
@@ -56,7 +60,7 @@ public class ChessMatch extends GameMatch {
 			toPos = lastToPos;
 		}
 			
-		System.out.println("moving " + fromPos + " -> " + toPos);
+		logger.info("moving {} -> {}", fromPos, toPos);
 		
 		// get the color of the moving player
 		boolean isWhite = (uid == whitePlayer);

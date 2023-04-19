@@ -22,7 +22,10 @@ public class GameQueueUpdate implements Serializable {
         userList = new ArrayList<>();
         invites = new HashMap<>(gameQueue.getInvites());
         for(User user: gameQueue.getList()) {
-            userList.add(user.clientSafe());
+			if(user != null) {
+				userList.add(user.clientSafe());
+
+			}
         }
     }
     

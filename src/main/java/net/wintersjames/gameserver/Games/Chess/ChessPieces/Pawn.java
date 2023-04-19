@@ -61,5 +61,10 @@ public class Pawn extends Piece {
 		this.y = y;
 		this.hasMoved = true;
 	}
+	
+	@Override
+	public Pawn deepCopy() {
+		return new Pawn(this.x, this.y, this.color);
+	}
 		
 }

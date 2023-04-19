@@ -57,7 +57,7 @@ public class GameMatchManager {
             newMatch.addPlayer(invite.getToUid());
         }
         
-        System.out.println(matches);
+        logger.info("matches: {}", matches);
 
         return null;
     }

@@ -35,4 +35,9 @@ public class Bishop extends Piece {
 		this.y = y;
 		this.hasMoved = true;
 	}
+	
+	@Override
+	public Bishop deepCopy() {
+		return new Bishop(this.x, this.y, this.color);
+	}
 }

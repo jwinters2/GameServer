@@ -15,6 +15,8 @@ import net.wintersjames.gameserver.Session.SessionStateManager;
 
 import net.wintersjames.gameserver.User.User;
 import net.wintersjames.gameserver.User.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -35,6 +37,8 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @Controller
 @PropertySource(value = "classpath:webpath.properties")
 public class LoginController {
+	
+	Logger logger = LoggerFactory.getLogger(LoginController.class);
     
 	@Value("${context-root}")
 	private String contextRoot;
@@ -58,6 +62,7 @@ public class LoginController {
 		model.addAttribute("contextRoot", contextRoot);
         
         String id = CookieUtils.getSessionCookie(request, response);
+		logger.info("session id={}", id);
         
         String username = request.getParameter("username");
         String password = request.getParameter("password");

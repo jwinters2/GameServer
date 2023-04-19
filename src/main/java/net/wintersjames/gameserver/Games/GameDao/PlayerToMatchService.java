@@ -2,6 +2,8 @@ package net.wintersjames.gameserver.Games.GameDao;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +13,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class PlayerToMatchService {
+	
+	Logger logger = LoggerFactory.getLogger(PlayerToMatchService.class);
 	
 	@Autowired
 	private final PlayerToMatchRepository ptmRepository;
@@ -37,8 +41,7 @@ public class PlayerToMatchService {
 			ptmRepository.save(ptm);
 			return true;
 		} catch (Exception e) {
-			System.out.println("player to match entity failed to save (playerid=" + 
-					Integer.toString(playerid) + ", matchid" + Long.toString(matchid) + ")");
+			logger.info("player to match entity failed to save (playerid={}, matchid={})", playerid, matchid);
 			e.printStackTrace();
 			return false;
 		}

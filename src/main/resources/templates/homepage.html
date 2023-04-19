@@ -34,7 +34,7 @@
             <div th:each="game: ${games}">
                 <div class="col mb-4">
                     <div class="card game-card">
-                        <img class="card-img-top" th:src="${contextRoot}+${game.image}">
+                        <img class="card-img-top" th:src="${game.image}">
                         <div class="card-body">
                             <h5 class="card-title" th:text="${game.title}"></h5>
                             <p th:text="${game.description}"></p>

@@ -2,12 +2,14 @@ package net.wintersjames.gameserver.Games;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import net.wintersjames.gameserver.CookieUtils;
 import net.wintersjames.gameserver.Games.GameDao.GameMatchPersistenceService;
 import net.wintersjames.gameserver.Games.GameDao.PlayerToMatchService;
+import net.wintersjames.gameserver.HTTPUtils;
 import net.wintersjames.gameserver.Session.ListenToDisconnects;
 import net.wintersjames.gameserver.Session.SessionState;
 import net.wintersjames.gameserver.Session.SessionStateManager;
@@ -118,6 +120,9 @@ public class GameController implements ListenToDisconnects {
         String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
+		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
+			return "login";
+		}
         
         GameMatch match = matchManager.getMatch(uid, matchid);
         if(match != null && message.length() > 0) {
@@ -154,6 +159,9 @@ public class GameController implements ListenToDisconnects {
 		String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
+		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
+			return "login";
+		}
         
         GameMatch match = matchManager.getMatch(uid, matchid);
         if(match != null) {
@@ -166,15 +174,24 @@ public class GameController implements ListenToDisconnects {
 					updateGameForUsers(match, pid);
 				}
 				
-				// persist to DB
-				boolean saved = matchPersistenceService.saveMatch(match);
-				if(saved) {
-					for(int pid: match.getPlayers()) {
-						ptmService.savePlayerToMatch(pid, matchid);
+				if(match.getGameState(uid).getStatus() == GameState.Status.INCOMPLETE) {
+
+					// persist to DB if unfinished
+					boolean saved = matchPersistenceService.saveMatch(match);
+					if(saved) {
+						for(int pid: match.getPlayers()) {
+							ptmService.savePlayerToMatch(pid, matchid);
+						}
+					} else {
+						logger.info("match failed to save");
 					}
+					
 				} else {
-					logger.info("match failed to save");
+					// delete from DB when finished
+					// TODO?: archive instead
+					matchPersistenceService.deleteMatch(matchid);
 				}
+
 				
 				return "success";
 			}
@@ -194,6 +211,9 @@ public class GameController implements ListenToDisconnects {
 		String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
+		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
+			return "login";
+		}
         
         GameMatch match = matchManager.getMatch(uid, matchid);
         if(match != null) {
@@ -218,6 +238,9 @@ public class GameController implements ListenToDisconnects {
 		String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
+		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
+			return "login";
+		}
 		
 		User user = userService.findByUid(uid);
 		String reason = "Player " + user.getUsername() + " has left the game. (player left)<br><i>Game can be continued later.</i>";
@@ -233,7 +256,7 @@ public class GameController implements ListenToDisconnects {
         
 		try {
 			response.sendRedirect(contextRoot + "/homepage");
-		} catch (Exception e) {
+		} catch (IOException e) {
 			logger.error("leavegame failed to send redirect for uid={}, game={}, matchid={}", uid, game, matchid);
 		}
         return "homepage";
@@ -252,6 +275,9 @@ public class GameController implements ListenToDisconnects {
 		String id = CookieUtils.getSessionCookie(request);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
+		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
+			return "login";
+		}
 		
 		User user = userService.findByUid(uid);
 		String reason = "Player " + user.getUsername() + " has left the game. (player resigned)";
@@ -271,7 +297,7 @@ public class GameController implements ListenToDisconnects {
         
 		try {
 			response.sendRedirect(contextRoot + "/homepage");
-		} catch (Exception e) {
+		} catch (IOException e) {
 			logger.error("leavegame failed to send redirect for uid={}, game={}, matchid={}", uid, game, matchid);
 		}
         return "homepage";

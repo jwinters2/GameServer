@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package net.wintersjames.gameserver.Games.Queue;
 
 import java.util.ArrayList;
@@ -10,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import net.wintersjames.gameserver.Games.GameMatchManager;
 import net.wintersjames.gameserver.User.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -19,6 +17,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  */
 public class GameQueue {
 
+	Logger logger = LoggerFactory.getLogger(GameQueue.class);
     final private ArrayList<User> enqueuedUsers;
     final private HashMap<Long, GameInvite> invites;
     final private Class game;
@@ -78,7 +77,7 @@ public class GameQueue {
 		}
         invites.put(invite.getTimestamp(), invite);
         
-        System.out.println("user " + fromUser.getUsername() + " challenges " + toUser.getUsername());
+        logger.info("user {} challenges {}", fromUser.getUsername(), toUser.getUsername());
     }
 
     public Class getGame() {
@@ -96,10 +95,10 @@ public class GameQueue {
            || findUser(invite.getFromUid()) == null
            || findUser(invite.getToUid()) == null) {
 			
-			System.out.println("failed to start game");
-			System.out.println(invites.containsKey(invite.getTimestamp()) ? "" : "invites do not contain invite");
-			System.out.println(findUser(invite.getFromUid()) == null ? "from uid cannot be found" : "");
-			System.out.println(findUser(invite.getToUid()) == null ? "from uid cannot be found" : "");
+			logger.info("failed to start game");
+			logger.info(invites.containsKey(invite.getTimestamp()) ? "" : "invites do not contain invite");
+			logger.info(findUser(invite.getFromUid()) == null ? "from uid cannot be found" : "");
+			logger.info(findUser(invite.getToUid()) == null ? "from uid cannot be found" : "");
 
             return false;
         }
@@ -112,9 +111,9 @@ public class GameQueue {
         }
         invites.remove(invite.getTimestamp());
         
-        System.out.println("starting game");
-        System.out.println(enqueuedUsers);
-        System.out.println(invites);
+        logger.info("starting game");
+        logger.info("enqueuedUsers: {}",enqueuedUsers);
+        logger.info("invites: {}", invites);
         
         matchManager.newMatch(invite);
         

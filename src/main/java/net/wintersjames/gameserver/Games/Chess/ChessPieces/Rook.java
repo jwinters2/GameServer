@@ -35,4 +35,9 @@ public class Rook extends Piece {
 		this.y = y;
 		this.hasMoved = true;
 	}
+	
+	@Override
+	public Rook deepCopy() {
+		return new Rook(this.x, this.y, this.color);
+	}
 }

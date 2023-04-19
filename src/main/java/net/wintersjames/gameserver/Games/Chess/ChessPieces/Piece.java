@@ -1,18 +1,18 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package net.wintersjames.gameserver.Games.Chess.ChessPieces;
 
 import java.io.Serializable;
 import net.wintersjames.gameserver.Games.Chess.ChessState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author james
  */
 public abstract class Piece implements Serializable {
-		
+	
+	Logger logger = LoggerFactory.getLogger(Piece.class);
+	
 	public enum Color {
 		BLACK,
 		WHITE
@@ -35,6 +35,7 @@ public abstract class Piece implements Serializable {
 	public abstract char toChar();
 	public abstract boolean canMove(int x, int y, ChessState state);
 	public abstract void move(int x, int y);
+	public abstract Piece deepCopy();
 
 	public int getX() {
 		return x;
@@ -83,22 +84,14 @@ public abstract class Piece implements Serializable {
 			return false;
 		}
 		
-		System.out.println("checking for blocking pieces (x,y,dx,dy)=("
-				+ Integer.toString(x) + ","
-				+ Integer.toString(y) + ","
-				+ Integer.toString(dx) + ","
-				+ Integer.toString(dy) + ")"
-		);
+		logger.info("checking for blocking pieces (x,y,dx,dy)=({},{},{},{})", x, y, dx, dy);
 		
 		int moveDist = Math.max(Math.abs(xoffset), Math.abs(yoffset));
 		for(int i=1; i<moveDist; i++) {
 			int stepX = this.x + (i * (int)Math.signum(dx));
 			int stepY = this.y + (i * (int)Math.signum(dy));
 			
-			System.out.println("checking ("
-				+ Integer.toString(stepX) + ","
-				+ Integer.toString(stepY) + ") for blocking pieces"
-			);
+			logger.info("checking ({},{}) for blocking pieces", stepX, stepY);
 			
 			Piece blockingPiece = state.getPieceAt(stepX, stepY);
 			if(blockingPiece != null) {

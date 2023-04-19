@@ -90,4 +90,9 @@ public class King extends Piece {
 		this.y = y;
 		this.hasMoved = true;
 	}
+	
+	@Override
+	public King deepCopy() {
+		return new King(this.x, this.y, this.color);
+	}
 }

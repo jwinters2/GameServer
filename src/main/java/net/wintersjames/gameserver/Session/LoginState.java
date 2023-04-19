@@ -12,6 +12,12 @@ public class LoginState {
     private String salt;
     private int uid;
     private String username;
+	
+	public LoginState() {
+		this.salt = null;
+		this.uid = 0;
+		this.username = null;
+	}
     
     public String getSalt() {
         return salt;

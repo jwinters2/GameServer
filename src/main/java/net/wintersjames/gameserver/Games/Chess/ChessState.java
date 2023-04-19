@@ -11,12 +11,16 @@ import net.wintersjames.gameserver.Games.Chess.ChessPieces.Piece;
 import net.wintersjames.gameserver.Games.Chess.ChessPieces.Queen;
 import net.wintersjames.gameserver.Games.Chess.ChessPieces.Rook;
 import net.wintersjames.gameserver.Games.GameState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author james
  */
 public class ChessState extends GameState implements Serializable {
+	
+	Logger logger = LoggerFactory.getLogger(ChessState.class);
 	
 	private List<Piece> pieces;
 	private boolean whiteToMove;
@@ -25,6 +29,8 @@ public class ChessState extends GameState implements Serializable {
 	private Integer enPassantTargetX;
 	private Integer enPassantTargetY;
 	private Piece.Color enPassantTargetColor;
+	
+	private Piece lastMovedLastPosition;
 	
 	private ChessState(String type) {
 		super(type);
@@ -40,6 +46,8 @@ public class ChessState extends GameState implements Serializable {
 		this.enPassantTargetX = null;
 		this.enPassantTargetY = null;
 		this.enPassantTargetColor = null;
+		
+		this.lastMovedLastPosition = null;
 
 		// setup initial board
 		for(int i=0; i<8; i++) {
@@ -76,6 +84,8 @@ public class ChessState extends GameState implements Serializable {
 		this.enPassantTargetX = other.enPassantTargetX;
 		this.enPassantTargetY = other.enPassantTargetX;
 		this.enPassantTargetColor = other.enPassantTargetColor;
+		
+		this.lastMovedLastPosition = other.lastMovedLastPosition;
 	}
 
 	public List<Piece> getPieces() {
@@ -176,7 +186,7 @@ public class ChessState extends GameState implements Serializable {
 		
 		Piece toRemove = getPieceAt(x, y);
 		if(toRemove != null) {
-			System.out.println("removing " + toRemove);
+			logger.info("removing {}", toRemove);
 			pieces.remove(toRemove);
 		}
 	}
@@ -196,9 +206,12 @@ public class ChessState extends GameState implements Serializable {
 		Piece toCapture = getPieceAt(toX, toY);
 		Piece toMove = getPieceAt(fromX, fromY);
 		
+		// record that this is the piece that last moved
+		this.lastMovedLastPosition = toMove.deepCopy();
+		
 		if(toMove != null) {
-			System.out.println("moving " + toMove);
-			toMove.move(toX, toY);			
+			logger.info("moving {}",toMove);
+			toMove.move(toX, toY);
 		}
 		
 		// check for castling
@@ -225,16 +238,16 @@ public class ChessState extends GameState implements Serializable {
 			this.enPassantTargetY = (fromY + toY)/2;
 			this.enPassantTargetColor = toMove.getColor();
 			
-			System.out.println("en passant possible next turn (" + 
-					Integer.toString(this.enPassantTargetX) + "," + 
-					Integer.toString(this.enPassantTargetY) + "," + 
-					this.enPassantTargetColor.name() + ")");
+			logger.info("en passant possible next turn ({}, {}, {})",
+					this.enPassantTargetX,
+					this.enPassantTargetY,
+					this.enPassantTargetColor.name());
 		}
 		
 		// check for capturing en passant
 		if(toMove instanceof Pawn && fromX != toX && toCapture == null) {
 			captureAt(toX, fromY);
-		}
+		}		
 	}
 	
 	public boolean canMove(String fromPos, String toPos, boolean isWhite) {
@@ -353,4 +366,9 @@ public class ChessState extends GameState implements Serializable {
 	public Piece.Color getEnPassantTargetColor() {
 		return enPassantTargetColor;
 	}
+
+	public Piece getLastMovedLastPosition() {
+		return lastMovedLastPosition;
+	}
+	
 }
