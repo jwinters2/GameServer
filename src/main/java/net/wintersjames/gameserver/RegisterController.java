@@ -58,7 +58,7 @@ public class RegisterController {
         
 		model.addAttribute("contextRoot", contextRoot);
         
-        String id = CookieUtils.getSessionCookie(request, response);
+        String id = CookieUtils.getSessionCookie(request, response, sessionManager);
         
 		String username = request.getParameter("username");
         String password = request.getParameter("password");

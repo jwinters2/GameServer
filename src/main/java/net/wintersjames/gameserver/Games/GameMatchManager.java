@@ -11,7 +11,7 @@ import java.util.Map;
 import net.wintersjames.gameserver.Games.Chess.ChessMatch;
 import net.wintersjames.gameserver.Games.GameDao.GameMatchPersistenceService;
 import net.wintersjames.gameserver.Games.GameDao.PlayerToMatchService;
-import net.wintersjames.gameserver.Games.Queue.GameInvite;
+import net.wintersjames.gameserver.Queue.GameInvite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package net.wintersjames.gameserver.Games.Queue;
+package net.wintersjames.gameserver.Queue;
 
 import java.util.ArrayList;
 import java.util.HashMap;

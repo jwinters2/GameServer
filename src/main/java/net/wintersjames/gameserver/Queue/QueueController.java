@@ -1,4 +1,4 @@
-package net.wintersjames.gameserver;
+package net.wintersjames.gameserver.Queue;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -6,14 +6,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import net.wintersjames.gameserver.CookieUtils;
 import net.wintersjames.gameserver.Games.GameDao.GameMatchPersistenceService;
 import net.wintersjames.gameserver.Games.GameDao.PlayerToMatchService;
 import net.wintersjames.gameserver.Games.GameMatchManager;
 import net.wintersjames.gameserver.Games.GameUtils;
-import net.wintersjames.gameserver.Games.Queue.GameInvite;
-import net.wintersjames.gameserver.Games.Queue.GameQueue;
-import net.wintersjames.gameserver.Games.Queue.GameQueueManager;
-import net.wintersjames.gameserver.Games.Queue.GameQueueUpdate;
+import net.wintersjames.gameserver.Queue.GameInvite;
+import net.wintersjames.gameserver.Queue.GameQueue;
+import net.wintersjames.gameserver.Queue.GameQueueManager;
+import net.wintersjames.gameserver.Queue.GameQueueUpdate;
+import net.wintersjames.gameserver.HTTPUtils;
 import net.wintersjames.gameserver.Session.ListenToDisconnects;
 import net.wintersjames.gameserver.Session.SessionState;
 import net.wintersjames.gameserver.Session.SessionStateManager;
@@ -87,7 +89,7 @@ public class QueueController implements ListenToDisconnects {
 		
 		model.addAttribute("contextRoot", contextRoot);
 
-        String id = CookieUtils.getSessionCookie(request, response);
+        String id = CookieUtils.getSessionCookie(request, response, sessionManager);
         int uid = sessionManager.getSessionState(id).getLoginState().getUid();
 		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
 			return "login";
@@ -130,7 +132,7 @@ public class QueueController implements ListenToDisconnects {
 			HttpServletRequest request,
 			HttpServletResponse response) {
         
-        String id = CookieUtils.getSessionCookie(request);
+        String id = CookieUtils.getSessionCookie(request, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
         int from_uid = state.getLoginState().getUid();
 		if(HTTPUtils.redirectIfNotLoggedIn(from_uid, response, contextRoot + "/login")) {
@@ -155,7 +157,7 @@ public class QueueController implements ListenToDisconnects {
         
         logger.info("accept invite");
         
-        String id = CookieUtils.getSessionCookie(request);
+        String id = CookieUtils.getSessionCookie(request, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
 		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
@@ -187,7 +189,7 @@ public class QueueController implements ListenToDisconnects {
 			HttpServletRequest request,
 			HttpServletResponse response) {
         
-        String id = CookieUtils.getSessionCookie(request);
+        String id = CookieUtils.getSessionCookie(request, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
 		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {

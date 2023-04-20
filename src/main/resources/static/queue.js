@@ -175,7 +175,6 @@ function generateUserButton(userUid, listUid, invites) {
         decline.innerHTML = "Decline";
 
 		let buttonGroup = document.createElement("div");
-		buttonGroup.classList.add("btn-group");
 
 		// if we need to, let the player know if this is resuming a game or starting a new one
 		if(pendingGame !== null) {

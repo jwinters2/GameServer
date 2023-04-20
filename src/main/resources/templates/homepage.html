@@ -17,10 +17,10 @@
                   <span class="nav-link">Welcome <span th:text="${username}"></span></span>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">About</a>
+                  <a class="nav-link" href="#" style="display: none;">About</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">Contact</a>
+                  <a class="nav-link" href="#" style="display: none;">Contact</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" th:href="${contextRoot}+'/logout'">Logout</a>
@@ -41,7 +41,7 @@
                             
                             <a th:if="${game.isSinglePlayer}" href="#" class="btn btn-primary border-0">Play</a>
                             <a th:if="${game.isMultiPlayer}" th:href="${contextRoot} + '/queue/' + ${game.title.toLowerCase()}" class="btn btn-primary border-0">Find Opponent</a>
-                            <a th:if="${game.isMultiPlayer}" href="#" class="btn btn-primary border-0">Send Invite</a>
+                            <a th:if="${game.isMultiPlayer}" href="#" class="btn btn-primary border-0" style="display: none;">Send Invite</a>
 
                         </div>
                     </div>

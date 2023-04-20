@@ -5,7 +5,7 @@
 package net.wintersjames.gameserver.Session;
 
 import net.wintersjames.gameserver.Games.GameMatch;
-import net.wintersjames.gameserver.Games.Queue.GameQueue;
+import net.wintersjames.gameserver.Queue.GameQueue;
 import net.wintersjames.gameserver.User.User;
 
 /**

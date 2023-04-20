@@ -6,7 +6,10 @@ package net.wintersjames.gameserver;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import net.wintersjames.gameserver.Session.LoginState;
@@ -23,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
@@ -55,7 +59,7 @@ public class HomepageController {
         
 		model.addAttribute("contextRoot", contextRoot);
 		
-        String id = CookieUtils.getSessionCookie(request, response);
+        String id = CookieUtils.getSessionCookie(request, response, sessionManager);
         int uid = sessionManager.getSessionState(id).getLoginState().getUid();
         try {
 			if(uid == 0) {
@@ -78,7 +82,7 @@ public class HomepageController {
 		
 		model.addAttribute("contextRoot", contextRoot);
         
-        String id = CookieUtils.getSessionCookie(request, response);
+        String id = CookieUtils.getSessionCookie(request, response, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
 		if(HTTPUtils.redirectIfNotLoggedIn(state.getLoginState().getUid(), response, contextRoot + "/login")) {
 			return "login";
@@ -122,7 +126,7 @@ public class HomepageController {
         
 		model.addAttribute("contextRoot", contextRoot);
 		
-        String id = CookieUtils.getSessionCookie(request, response);
+        String id = CookieUtils.getSessionCookie(request, response, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
         LoginState loginState = state.getLoginState();
         
@@ -139,4 +143,19 @@ public class HomepageController {
 		}
         return "login";
     }
+	
+	@ExceptionHandler
+	public String error(Model model, HttpServletResponse response, Exception exception) {
+		model.addAttribute("contextRoot", contextRoot);
+		
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		PrintStream printStream = new PrintStream(outputStream, true, StandardCharsets.UTF_8);
+		exception.printStackTrace(printStream);
+		String stackTrace = outputStream.toString(StandardCharsets.UTF_8);
+		
+		model.addAttribute("error", exception.getMessage());
+		model.addAttribute("errorDetails", stackTrace);
+		response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		return "error";
+	}
 }

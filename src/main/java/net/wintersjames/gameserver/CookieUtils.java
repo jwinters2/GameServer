@@ -9,12 +9,16 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import net.wintersjames.gameserver.Session.SessionStateManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author james
  */
+@Service
 public class CookieUtils {
     
     final static String cookieName = "gamecookie";
@@ -22,13 +26,13 @@ public class CookieUtils {
     private CookieUtils() {}
     
     public static String getSessionCookie(
-            HttpServletRequest request, HttpServletResponse response) {
+            HttpServletRequest request, HttpServletResponse response, SessionStateManager ssm) {
 
         // get the gameserver cookie
         Cookie[] cookies = request.getCookies();
         if(cookies != null) {
             for (Cookie cookie : cookies) {
-                if(cookie.getName().equals(cookieName)) {
+                if(cookie.getName().equals(cookieName) && ssm.hasCookie(cookie.getValue())) {
                     return cookie.getValue();
                 }
             }
@@ -47,8 +51,8 @@ public class CookieUtils {
         return cookieStr;
     }
     
-    public static String getSessionCookie(HttpServletRequest request) {
-        return getSessionCookie(request, null);
+    public static String getSessionCookie(HttpServletRequest request, SessionStateManager ssm) {
+        return getSessionCookie(request, null, ssm);
     }
     
     public static String getSessionCookie(ServerHttpRequest request) {

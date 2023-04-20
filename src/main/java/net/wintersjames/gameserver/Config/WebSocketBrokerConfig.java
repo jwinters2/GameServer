@@ -27,7 +27,7 @@ public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker(contextRoot + "/websocket");
-        registry.setApplicationDestinationPrefixes("/to-server");
+        registry.setApplicationDestinationPrefixes(contextRoot + "/to-server");
     }
     
     @Override

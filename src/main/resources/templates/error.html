@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Games</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="_csrf" th:content="${_csrf.token}" />
+        <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+        <link rel="stylesheet" th:href="${contextRoot}+'/webjars/bootstrap/css/bootstrap.min.css'" />
+        <link rel="stylesheet" th:href="${contextRoot}+'/style.css'" type="text/css"/>
+        
+        <script th:src="${contextRoot}+'/webjars/bootstrap/js/bootstrap.min.js'"></script>
+
+    </head>
+    <body>
+        <div class="nabvar navbar-dark bg-chess">
+            <h1 class="chess-text-light" style="margin: 0em 1em">Error</h1>    
+        </div>
+        
+        <div class="p-2">
+            <h1>Error</h1>
+            <h3 th:text="${error}"></h3>
+
+            <a class="btn btn-dark" data-bs-toggle="collapse" href="#stackTrace" role="button" aria-expanded="false" aria-controls="#stackTrace">Stack Trace</a>
+            <div class="collapse" id="stackTrace">
+                <code style="color: #000000;" th:text="${errorDetails}"></code>
+            </div>
+        </div>
+    </body>
+</html>

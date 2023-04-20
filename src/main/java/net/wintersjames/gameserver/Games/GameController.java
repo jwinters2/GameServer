@@ -83,12 +83,15 @@ public class GameController implements ListenToDisconnects {
    
         logger.info("message received for game " + game);
         
-        String id = CookieUtils.getSessionCookie(request);
+        String id = CookieUtils.getSessionCookie(request, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
         
         GameMatch match = matchManager.getMatch(uid, matchid);
 		logger.info("\n{}", match.getGameState(uid));
+		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
+			return "login";
+		}
 		
         model.addAttribute("matchid", matchid);
         model.addAttribute("game", game);
@@ -117,11 +120,11 @@ public class GameController implements ListenToDisconnects {
         String message = HtmlUtils.htmlEscape(URLDecoder.decode(request.getParameter("message"), StandardCharsets.UTF_8));
         logger.info(message);
         
-        String id = CookieUtils.getSessionCookie(request);
+        String id = CookieUtils.getSessionCookie(request, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
 		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
-			return "login";
+			return "failed to send message: user is not logged in";
 		}
         
         GameMatch match = matchManager.getMatch(uid, matchid);
@@ -156,7 +159,7 @@ public class GameController implements ListenToDisconnects {
 			@PathVariable(name="matchid") long matchid, 
 			HttpServletRequest request, 
 			HttpServletResponse response) {
-		String id = CookieUtils.getSessionCookie(request);
+		String id = CookieUtils.getSessionCookie(request, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
 		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
@@ -208,7 +211,7 @@ public class GameController implements ListenToDisconnects {
 			@PathVariable(name="matchid") long matchid, 
 			HttpServletRequest request, 
 			HttpServletResponse response) {
-		String id = CookieUtils.getSessionCookie(request);
+		String id = CookieUtils.getSessionCookie(request, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
 		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
@@ -235,7 +238,7 @@ public class GameController implements ListenToDisconnects {
    
         logger.info("leavegame request received for game " + game);
 		
-		String id = CookieUtils.getSessionCookie(request);
+		String id = CookieUtils.getSessionCookie(request, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
 		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {
@@ -272,7 +275,7 @@ public class GameController implements ListenToDisconnects {
    
         logger.info("resign request received for game " + game);
 		
-		String id = CookieUtils.getSessionCookie(request);
+		String id = CookieUtils.getSessionCookie(request, sessionManager);
         SessionState state = sessionManager.getSessionState(id);
         int uid = state.getLoginState().getUid();
 		if(HTTPUtils.redirectIfNotLoggedIn(uid, response, contextRoot + "/login")) {

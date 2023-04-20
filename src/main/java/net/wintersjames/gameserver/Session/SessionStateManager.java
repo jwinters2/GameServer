@@ -61,4 +61,8 @@ public class SessionStateManager {
         }
         return null;
     }
+	
+	public boolean hasCookie(String id) {
+		return cookies.containsKey(id);
+	}
 }

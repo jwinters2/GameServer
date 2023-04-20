@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.scheduling.annotation.Async;
@@ -28,8 +30,10 @@ import org.springframework.stereotype.Controller;
 @EnableAsync
 public class WebSocketSessionManager {
     
+	Logger logger = LoggerFactory.getLogger(WebSocketSessionManager.class);
+	
     HashMap<Integer, Long> users;
-    private long timeout = 30000; // 30 seconds
+    final private long timeout = 30000; // 30 seconds
     
     Set<ListenToDisconnects> listeners;
     
@@ -58,6 +62,7 @@ public class WebSocketSessionManager {
             Set<Integer> keys = new HashSet(users.keySet());
             for(int uid: keys) {
                 if(timestamp - users.get(uid) > timeout) {
+					logger.info("user {} timed out", uid);
                     users.remove(uid);
                     updateListeners(uid);
                 }
@@ -66,7 +71,8 @@ public class WebSocketSessionManager {
     }
     
     @MessageMapping("/heart/{uid}")
-    public void handleWebsocketMessage(@DestinationVariable("uid") int uid) {                
+    public void handleWebsocketMessage(@DestinationVariable("uid") int uid) {
+		logger.info("heartbeat received for user {}", uid);
         users.put(uid, currentTimestamp());
     }
     

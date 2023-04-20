@@ -61,7 +61,7 @@ public class LoginController {
         
 		model.addAttribute("contextRoot", contextRoot);
         
-        String id = CookieUtils.getSessionCookie(request, response);
+        String id = CookieUtils.getSessionCookie(request, response, sessionManager);
 		logger.info("session id={}", id);
         
         String username = request.getParameter("username");
