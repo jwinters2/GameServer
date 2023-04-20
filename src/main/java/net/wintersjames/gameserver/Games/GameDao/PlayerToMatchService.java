@@ -32,7 +32,6 @@ public class PlayerToMatchService {
 			retval.add(ptm.getMatchId());
 		}
 		return retval;
-		
 	}
 	
 	public boolean savePlayerToMatch(int playerid, long matchid) {
@@ -42,7 +41,6 @@ public class PlayerToMatchService {
 			return true;
 		} catch (Exception e) {
 			logger.info("player to match entity failed to save (playerid={}, matchid={})", playerid, matchid);
-			e.printStackTrace();
 			return false;
 		}
 	}

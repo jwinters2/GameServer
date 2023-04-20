@@ -5,6 +5,7 @@
 package net.wintersjames.gameserver.Games;
 
 import net.wintersjames.gameserver.Games.Chess.Chess;
+import net.wintersjames.gameserver.Games.Shogi.Shogi;
 
 /**
  *
@@ -17,6 +18,7 @@ public class GameUtils {
     public static Class getClassFromName(String name) {
         return switch (name) {
             case "Chess", "chess" -> Chess.class;
+			case "Shogi", "shogi" -> Shogi.class;
             default -> null;
         };
     }

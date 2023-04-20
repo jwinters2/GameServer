@@ -17,6 +17,7 @@ import net.wintersjames.gameserver.Session.SessionState;
 import net.wintersjames.gameserver.Session.SessionStateManager;
 import net.wintersjames.gameserver.Games.Chess.Chess;
 import net.wintersjames.gameserver.Games.Game;
+import net.wintersjames.gameserver.Games.Shogi.Shogi;
 import net.wintersjames.gameserver.User.User;
 import net.wintersjames.gameserver.User.UserService;
 import org.slf4j.Logger;
@@ -106,11 +107,7 @@ public class HomepageController {
         
         List<Game> games = new ArrayList<>();
         games.add(new Chess());       
-        for(int i=0; i<8; i++) {
-            games.add(new Game("Title " + Integer.toString(i), 
-                    "https://placehold.co/" + Integer.toString(400 + (i * 10)), 
-                    "placeholder description.  read me please i am words" ));
-        }
+        games.add(new Shogi());
         
         model.addAttribute("username", username);
         model.addAttribute("uid", state.getLoginState().getUid());

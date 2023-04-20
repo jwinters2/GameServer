@@ -11,6 +11,7 @@ import java.util.Map;
 import net.wintersjames.gameserver.Games.Chess.ChessMatch;
 import net.wintersjames.gameserver.Games.GameDao.GameMatchPersistenceService;
 import net.wintersjames.gameserver.Games.GameDao.PlayerToMatchService;
+import net.wintersjames.gameserver.Games.Shogi.ShogiMatch;
 import net.wintersjames.gameserver.Queue.GameInvite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,9 +47,11 @@ public class GameMatchManager {
 		// otherwise start a new one
         if(newMatch == null)
 		{
-			if(invite.getGameStr().toLowerCase().equals("chess")) {
+			if (invite.getGameStr().toLowerCase().equals("chess")) {
 				newMatch = new ChessMatch(invite.getTimestamp(), invite.getToUid(), invite.getFromUid());
-			}
+			} else if (invite.getGameStr().toLowerCase().equals("shogi")) {
+				newMatch = new ShogiMatch(invite.getTimestamp(), invite.getToUid(), invite.getFromUid());
+			} 
         }
         
         if(newMatch != null) {

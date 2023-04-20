@@ -2,19 +2,15 @@ package net.wintersjames.gameserver.Queue;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import net.wintersjames.gameserver.CookieUtils;
 import net.wintersjames.gameserver.Games.GameDao.GameMatchPersistenceService;
 import net.wintersjames.gameserver.Games.GameDao.PlayerToMatchService;
+import net.wintersjames.gameserver.Games.GameMatch;
 import net.wintersjames.gameserver.Games.GameMatchManager;
 import net.wintersjames.gameserver.Games.GameUtils;
-import net.wintersjames.gameserver.Queue.GameInvite;
-import net.wintersjames.gameserver.Queue.GameQueue;
-import net.wintersjames.gameserver.Queue.GameQueueManager;
-import net.wintersjames.gameserver.Queue.GameQueueUpdate;
 import net.wintersjames.gameserver.HTTPUtils;
 import net.wintersjames.gameserver.Session.ListenToDisconnects;
 import net.wintersjames.gameserver.Session.SessionState;
@@ -102,11 +98,18 @@ public class QueueController implements ListenToDisconnects {
         List<User> users = queueManager.getQueue(GameUtils.getClassFromName(game));
         users.remove(user);
 		
+		// get the list of pending matches for this specific game
 		List<Long> pendingMatchIds = ptmService.getMatches(uid);
 		HashMap<Long, List<Integer>> pendingMatches = new HashMap<>();
 		for(long matchid: pendingMatchIds) {
-			List<Integer> players = matchPersistenceService.getPlayersFromMatchId(matchid);
-			pendingMatches.put(matchid, players);
+			GameMatch match = matchPersistenceService.getMatch(matchid);
+			if(match != null) {
+				String matchStr = match.getGame().getSimpleName().toLowerCase();
+				if(matchStr.equals(game.toLowerCase())) {
+					List<Integer> players = matchPersistenceService.getPlayersFromMatchId(matchid);
+					pendingMatches.put(matchid, players);
+				}
+			}
 		}
 	        
         String gameTitle = game.substring(0, 1).toUpperCase() + game.substring(1).toLowerCase();

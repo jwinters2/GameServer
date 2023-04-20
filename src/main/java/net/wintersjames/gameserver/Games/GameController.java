@@ -197,6 +197,8 @@ public class GameController implements ListenToDisconnects {
 
 				
 				return "success";
+			} else {
+				return "invalid move";
 			}
 		}
 		
