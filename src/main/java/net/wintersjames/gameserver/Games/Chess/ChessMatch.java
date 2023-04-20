@@ -97,7 +97,24 @@ public class ChessMatch extends GameMatch {
 		state.captureAt(toPos);
 		state.move(fromPos, toPos);
 		
+		state.nextMove();
+		
+		// check if the next player has a legal move
+		if(!state.hasLegalMove()) {
+			logger.info("{} player has no legal move", state.isWhiteToMove() ? "white" : "black");
+			if(state.isInCheck(state.isWhiteToMove() ? Piece.Color.WHITE : Piece.Color.BLACK)) {
+				// checkmate
+				state.setStatus(GameState.Status.WINNER_DECIDED);
+				state.setWinner(state.isWhiteToMove() ? this.blackPlayer : this.whitePlayer);
+			} else  {
+				// stalemate
+				state.setStatus(GameState.Status.DRAW);
+			}
+		}
+		
+		
 		// check if the king was captured
+		/*
 		if(pieceToCapture != null && pieceToCapture instanceof King) {
 			
 			state.setStatus(GameState.Status.WINNER_DECIDED);
@@ -108,8 +125,8 @@ public class ChessMatch extends GameMatch {
 				state.setWinner(this.whitePlayer);
 			}
 		}
+		*/
 		
-		state.nextMove();
 		
 		return true;
 	}

@@ -26,6 +26,24 @@ public class Knight extends Piece {
 		
 		return retval;
 	}
+	
+	@Override public boolean hasLegalMove(ChessState state) {
+		boolean retval = false;
+		
+		retval |= state.canMove(x, y, x+2, y+1, color == Piece.Color.WHITE);
+		retval |= state.canMove(x, y, x+1, y+2, color == Piece.Color.WHITE);
+		
+		retval |= state.canMove(x, y, x-2, y+1, color == Piece.Color.WHITE);
+		retval |= state.canMove(x, y, x-1, y+2, color == Piece.Color.WHITE);
+		
+		retval |= state.canMove(x, y, x+2, y-1, color == Piece.Color.WHITE);
+		retval |= state.canMove(x, y, x+1, y-2, color == Piece.Color.WHITE);
+		
+		retval |= state.canMove(x, y, x-2, y-1, color == Piece.Color.WHITE);
+		retval |= state.canMove(x, y, x-1, y-2, color == Piece.Color.WHITE);
+
+		return retval;
+	}
 
 	@Override
 	public void move(int x, int y) {

@@ -28,6 +28,17 @@ public class Bishop extends Piece {
 
 		return retval;
 	}
+	
+	@Override public boolean hasLegalMove(ChessState state) {
+		boolean retval = false;
+		
+		retval |= hasLegalMoveInDirection( 1,  1, state);
+		retval |= hasLegalMoveInDirection(-1,  1, state);
+		retval |= hasLegalMoveInDirection( 1, -1, state);
+		retval |= hasLegalMoveInDirection(-1, -1, state);
+		
+		return retval;
+	}
 
 	@Override
 	public void move(int x, int y) {

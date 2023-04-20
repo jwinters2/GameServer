@@ -83,6 +83,20 @@ public class King extends Piece {
 		
 		return (Math.abs(this.x - x) <= 1 && Math.abs(this.y - y) <= 1);
 	}
+	
+	@Override public boolean hasLegalMove(ChessState state) {
+		boolean retval = false;
+		
+		for(int dx = -1; dx <= 1; dx++) {
+			for(int dy = -1; dy <= 1; dy++) {
+				if(dx != 0 || dy != 0) {
+					retval |= state.canMove(x, y, x+dx, y+dy, color == Piece.Color.WHITE);
+				}
+			}
+		}
+		
+		return retval;
+	}
 
 	@Override
 	public void move(int x, int y) {

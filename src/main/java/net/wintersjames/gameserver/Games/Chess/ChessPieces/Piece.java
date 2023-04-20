@@ -34,6 +34,7 @@ public abstract class Piece implements Serializable {
 		
 	public abstract char toChar();
 	public abstract boolean canMove(int x, int y, ChessState state);
+	public abstract boolean hasLegalMove(ChessState state);
 	public abstract void move(int x, int y);
 	public abstract Piece deepCopy();
 
@@ -84,14 +85,14 @@ public abstract class Piece implements Serializable {
 			return false;
 		}
 		
-		logger.info("checking for blocking pieces (x,y,dx,dy)=({},{},{},{})", x, y, dx, dy);
+		//logger.info("checking for blocking pieces (x,y,dx,dy)=({},{},{},{})", x, y, dx, dy);
 		
 		int moveDist = Math.max(Math.abs(xoffset), Math.abs(yoffset));
 		for(int i=1; i<moveDist; i++) {
 			int stepX = this.x + (i * (int)Math.signum(dx));
 			int stepY = this.y + (i * (int)Math.signum(dy));
 			
-			logger.info("checking ({},{}) for blocking pieces", stepX, stepY);
+			//logger.info("checking ({},{}) for blocking pieces", stepX, stepY);
 			
 			Piece blockingPiece = state.getPieceAt(stepX, stepY);
 			if(blockingPiece != null) {
@@ -100,5 +101,26 @@ public abstract class Piece implements Serializable {
 		}
 		
 		return true;
+	}
+	
+	final protected boolean hasLegalMoveInDirection(int dx, int dy, ChessState state) {
+		
+		if(dx == 0 && dy == 0) {
+			return false;
+		}
+		
+		int toX = this.x + dx;
+		int toY = this.y + dy;
+		while(toX >= 0 && toX < 8 && toY >= 0 && toY < 8) {
+			
+			if(state.canMove(this.x, this.y, toX, toY, this.color == Piece.Color.WHITE)) {
+				return true;
+			}
+			
+			toX += dx;
+			toY += dy;
+		}
+		
+		return false;
 	}
 }

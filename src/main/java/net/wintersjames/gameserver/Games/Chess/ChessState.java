@@ -77,7 +77,7 @@ public class ChessState extends GameState implements Serializable {
 	public ChessState(ChessState other) {
 		super("chessState");
 
-		this.pieces = new ArrayList<>(other.getPieces());
+		this.pieces = other.getPiecesDeepCopy();
 		this.whiteToMove = other.isWhiteToMove();
 		this.pendingPromotionFrom = other.pendingPromotionFrom;
 		
@@ -85,11 +85,21 @@ public class ChessState extends GameState implements Serializable {
 		this.enPassantTargetY = other.enPassantTargetX;
 		this.enPassantTargetColor = other.enPassantTargetColor;
 		
-		this.lastMovedLastPosition = other.lastMovedLastPosition;
+		this.lastMovedLastPosition = other.lastMovedLastPosition == null ? null : other.lastMovedLastPosition.deepCopy();
 	}
 
 	public List<Piece> getPieces() {
 		return pieces;
+	}
+	
+	public List<Piece> getPiecesDeepCopy() {
+		ArrayList<Piece> retval = new ArrayList<>();
+		for(Piece p: pieces) {
+			if(p != null) {
+				retval.add(p.deepCopy());
+			}
+		}
+		return retval;
 	}
 
 	public boolean isWhiteToMove() {
@@ -206,11 +216,11 @@ public class ChessState extends GameState implements Serializable {
 		Piece toCapture = getPieceAt(toX, toY);
 		Piece toMove = getPieceAt(fromX, fromY);
 		
-		// record that this is the piece that last moved
-		this.lastMovedLastPosition = toMove.deepCopy();
 		
 		if(toMove != null) {
-			logger.info("moving {}",toMove);
+			// record that this is the piece that last moved
+			this.lastMovedLastPosition = toMove.deepCopy();
+			//logger.info("moving {}",toMove);
 			toMove.move(toX, toY);
 		}
 		
@@ -255,6 +265,14 @@ public class ChessState extends GameState implements Serializable {
 		int fromX = fromPos.charAt(0) - 'a';
 		int fromY = fromPos.charAt(1) - '1';
 		
+		int toX = toPos.charAt(0) - 'a';
+		int toY = toPos.charAt(1) - '1';
+		
+		return canMove(fromX, fromY, toX, toY, isWhite);
+	}
+		
+	public boolean canMove(int fromX, int fromY, int toX, int toY, boolean isWhite) {
+		
 		// check if the position is in bounds
 		if(fromX < 0 || fromX >= 8 || fromY < 0 || fromY >= 8) {
 			return false;
@@ -270,9 +288,6 @@ public class ChessState extends GameState implements Serializable {
 			&& pieceToMove.getColor() == color
 			&& (color == Piece.Color.WHITE) == this.whiteToMove) {
 			
-			int toX = toPos.charAt(0) - 'a';
-			int toY = toPos.charAt(1) - '1';
-			
 			// check if the destination is in bounds
 			if(toX < 0 || toX >= 8 || toY < 0 || toY >= 8) {
 				return false;
@@ -282,6 +297,13 @@ public class ChessState extends GameState implements Serializable {
 			// if there's a piece in the square we're moving to, and it's the same
 			// color as the moving piece, it's an invalid move
 			if(pieceToCapture != null && pieceToCapture.getColor() == color) {
+				return false;
+			}
+			
+			// we're not allowed to move into check
+			ChessState nextState = new ChessState(this);
+			nextState.move(fromX, fromY, toX, toY);
+			if(nextState.isInCheck(color)) {
 				return false;
 			}
 			
@@ -295,7 +317,19 @@ public class ChessState extends GameState implements Serializable {
 		
 		for(Piece piece: this.pieces) {
 			if(piece.getColor() == attackingColor && piece.canMove(x, y, this)) {
+				//logger.info("attacking piece {}", piece);
 				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isInCheck(Piece.Color colorInCheck) {
+		Piece.Color attackingColor = (colorInCheck == Piece.Color.WHITE ? Piece.Color.BLACK : Piece.Color.WHITE);
+		for(Piece piece: pieces) {
+			if(piece instanceof King && piece.getColor() == colorInCheck) {
+				//logger.info("king piece: {}", piece);
+				return isSquareUnderAttack(piece.getX(), piece.getY(), attackingColor);
 			}
 		}
 		return false;
@@ -343,6 +377,21 @@ public class ChessState extends GameState implements Serializable {
 		}
 		
 		return false;
+	}
+	
+	public boolean hasLegalMove() {
+		
+		boolean retval = false;
+		Piece.Color colorToMove = this.whiteToMove ? Piece.Color.WHITE : Piece.Color.BLACK;
+		
+		for(Piece piece: this.pieces) {
+			if(piece.getColor() == colorToMove && piece.hasLegalMove(this)) {
+				logger.info("piece {} has legal move", piece);
+				retval = true;
+			}
+		}
+		
+		return retval;
 	}
 	
 	public void nextMove() {

@@ -54,6 +54,18 @@ public class Pawn extends Piece {
 
 		return retval;
 	}
+	
+	@Override public boolean hasLegalMove(ChessState state) {
+		boolean retval = false;
+		
+		int direction = (color == Piece.Color.WHITE) ? 1 : -1;
+		retval |= state.canMove(x, y, x, y+direction, color == Piece.Color.WHITE);
+		retval |= state.canMove(x, y, x, y+(2*direction), color == Piece.Color.WHITE);
+		retval |= state.canMove(x, y, x-1, y+direction, color == Piece.Color.WHITE);
+		retval |= state.canMove(x, y, x+1, y+direction, color == Piece.Color.WHITE);
+		
+		return retval;
+	}
 
 	@Override
 	public void move(int x, int y) {

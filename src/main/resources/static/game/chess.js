@@ -305,6 +305,8 @@ class Chess {
 			let result = null;
 			if(update.status === "WINNER_DECIDED") {
 				result = (update.winner === chessObj.userid ? "You won" : "You lost");
+			} else if (update.status === "DRAW") {
+				result = "Game is a draw";
 			} else {
 				result = "Game has ended: " + update.status.toLowerCase();
 			}
