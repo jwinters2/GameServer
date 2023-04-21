@@ -1,6 +1,7 @@
 class Shogi extends Game {
 	
 	pieces = null;
+	piecesInHand = null;
 	whiteToMove = null;
 	
 	playerIsWhite = true; //null;
@@ -13,23 +14,25 @@ class Shogi extends Game {
 	
 	boardStyle = {
 		x: 50, 
-		y: 50, 
+		y: 200, 
 		width: 90, 
 		height: 100,
 		lineWidth: 4,
-		textFont: "24px sans-serif",
+		textFont: "24px times new roman",
+		fileRankOffset: 25,
 		fontSize: 24,
 		pieceFont: "times new roman",
 		pieceFontSize: 50,
 		pieceYOffset: 0,
-		pieceTextYOffset: 5
+		pieceTextYOffset: 5,
+		handOffset: 50
 	};
 	
 	boardWidth = 0;
 	boardHeight = 0;
 	boardAspectRatio = 1;
 	
-	pieceInHand = null;
+	holdingPiece = null;
 	
 	lastMoved = null;
 	
@@ -42,7 +45,7 @@ class Shogi extends Game {
 		"king":		{chars: [["王", "将"], ["玉", "将"]],	abbr: ["王", "玉"],	symbols: ["♔", "♚"],	size: 32/32},
 		"rook":		{chars: [["飛", "車"], ["龍", "王"]],	abbr: ["飛", "龍"],	symbols: ["♜", "♜"],	size: 31/32},
 		"bishop":	{chars: [["角", "行"], ["龍", "馬"]],	abbr: ["角", "馬"],	symbols: ["♝", "♝"],	size: 31/32},
-		"gold":		{chars: [["金", "将"]],				abbr: ["金"],		symbols: ["☉"],		size: 30/32},
+		"gold":		{chars: [["金", "将"]],				abbr: ["金"],		symbols: ["☉"],			size: 30/32},
 		"silver":	{chars: [["銀", "将"], ["成", "銀"]],	abbr: ["銀", "全"],	symbols: ["☽", "☽"],	size: 30/32},
 		"knight":	{chars: [["桂", "馬"], ["成", "桂"]],	abbr: ["桂", "圭"],	symbols: ["♞", "♞"],	size: 29/32},
 		"lance":	{chars: [["香", "車"], ["成", "香"]],	abbr: ["香", "杏"],	symbols: ["↟", "↟"],	size: 28/32}
@@ -50,12 +53,14 @@ class Shogi extends Game {
 	pieceOutline = [[0, -1], [0.75, -0.783], [1, 1], [-1, 1], [-0.75, -0.783]];
 	pieceOutlineScale = 0.4;
 	
+	japaneseNumerals = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+	
 	init(_uid, _game, _matchid) {
 
 		super.init(_uid, _game, _matchid);
 		
 		// determine if we're white or not
-		this.playerIsWhite = document.querySelector("meta[name='playerColor']").content === "white";
+		//this.playerIsWhite = document.querySelector("meta[name='playerColor']").content === "white";
 		console.log(this.playerIsWhite ? "we're white" : "we're black");
 		
 		this.calculateBoardDimensions();
@@ -79,7 +84,21 @@ class Shogi extends Game {
 			}
 
 		}, 500, this);
+		
+		// example data
+		this.handleUpdate(exampleUpdate, this);
+		
+		// click events
+		this.canvas.chessObj = this;
+		this.canvas.addEventListener('mousedown', this.onClick);
+		this.canvas.addEventListener('touchstart', this.onClick);
+		this.canvas.addEventListener('mousemove', this.onClickMove);
+		this.canvas.addEventListener('touchmove', this.onClickMove);
+		this.canvas.addEventListener('mouseup', this.onClickRelease);
+		this.canvas.addEventListener('touchend', this.onClickRelease);
 	}
+	
+	
 	
 	resetTransform() {
 		this.context.setTransform(this.canvas.width/this.boardWidth, 0, 0, this.canvas.height/this.boardHeight, 0, 0);
@@ -113,12 +132,15 @@ class Shogi extends Game {
 		
 		this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
 		
+		const x = this.playerIsWhite ? piece.x : (8 - piece.x);
+		const y = this.playerIsWhite ? piece.y : (8 - piece.y);
+		
 		this.resetTransform();
 		this.context.translate(
-			this.boardStyle.x + (this.boardStyle.width  * (piece.x + 0.5)),
-			this.boardStyle.y + (this.boardStyle.height * (piece.y + 0.5)) + this.boardStyle.pieceYOffset
+			this.boardStyle.x + (this.boardStyle.width  * (x + 0.5)),
+			this.boardStyle.y + (this.boardStyle.height * (y + 0.5)) + this.boardStyle.pieceYOffset
 		);
-		if((piece.side === "white") === this.playerIsWhite) {
+		if((piece.side === "white") !== this.playerIsWhite) {
 			this.context.rotate(Math.PI);
 		}
 
@@ -159,8 +181,126 @@ class Shogi extends Game {
 			this.context.fillText(this.pieceChars[piece.type].abbr[charIndex], 0, this.boardStyle.pieceTextYOffset);
 		}
 		
+		this.resetTransform();
+	}
+	
+	drawHand(side, piecesInHand) {
+		// draw box
+		this.resetTransform();
 		
+		this.context.fillStyle = this.darkBg;
+		this.context.lineWidth = this.boardStyle.lineWidth;
+		this.context.lineCap = "round";
+		
+		const ourHand = ((side === "white") === !!this.playerIsWhite);
 
+		if(ourHand) {
+			// our hand
+			this.context.beginPath();
+			this.context.moveTo(
+				this.boardStyle.x + (this.boardStyle.width), 
+				this.boardStyle.y + (this.boardStyle.height * 11) - this.boardStyle.handOffset
+			);
+			this.context.lineTo(
+				this.boardStyle.x + (this.boardStyle.width * 8), 
+				this.boardStyle.y + (this.boardStyle.height * 11) - this.boardStyle.handOffset
+			);
+			this.context.lineTo(
+				this.boardStyle.x + (this.boardStyle.width * 8), 
+				this.boardStyle.y + (this.boardStyle.height * 10) - this.boardStyle.handOffset
+			);
+			this.context.lineTo(
+				this.boardStyle.x + (this.boardStyle.width), 
+				this.boardStyle.y + (this.boardStyle.height * 10) - this.boardStyle.handOffset
+			);
+			this.context.lineTo(
+				this.boardStyle.x + (this.boardStyle.width), 
+				this.boardStyle.y + (this.boardStyle.height * 11) - this.boardStyle.handOffset
+			);
+			this.context.stroke();
+		} else {
+			// opponent's hand
+			this.context.beginPath();
+			this.context.moveTo(
+				this.boardStyle.x + (this.boardStyle.width), 
+				this.boardStyle.y + (this.boardStyle.height * -2) + this.boardStyle.handOffset
+			);
+			this.context.lineTo(
+				this.boardStyle.x + (this.boardStyle.width * 8), 
+				this.boardStyle.y + (this.boardStyle.height * -2) + this.boardStyle.handOffset
+			);
+			this.context.lineTo(
+				this.boardStyle.x + (this.boardStyle.width * 8), 
+				this.boardStyle.y + (this.boardStyle.height * -1) + this.boardStyle.handOffset
+			);
+			this.context.lineTo(
+				this.boardStyle.x + (this.boardStyle.width), 
+				this.boardStyle.y + (this.boardStyle.height * -1) + this.boardStyle.handOffset
+			);
+			this.context.lineTo(
+				this.boardStyle.x + (this.boardStyle.width), 
+				this.boardStyle.y + (this.boardStyle.height * -2) + this.boardStyle.handOffset
+			);
+			this.context.stroke();
+		}
+		
+		if(piecesInHand) {
+			
+			for(var i=0; i<piecesInHand.length; i++) {
+				var handPieceX = side === "white" ? i+1 : 7-i;
+				var handPieceY = side === "white"
+					? 10 - this.boardStyle.handOffset/this.boardStyle.height
+					: -2 + this.boardStyle.handOffset/this.boardStyle.height;
+				this.drawPiece({type: piecesInHand[i][0], x: handPieceX, y: handPieceY, side: side});
+
+				var quantity = piecesInHand[i][1];
+				if(quantity > 1) {
+
+					// the pieces adjust for whose side it is on their own, so for the numbers
+					// use their unadjusted values
+					handPieceX = i+1;
+					handPieceY = 10 - this.boardStyle.handOffset/this.boardStyle.height;
+
+					var quantityX = this.boardStyle.x + (this.boardStyle.width * (handPieceX + 0.8)); 
+					var quantityY = this.boardStyle.y + (this.boardStyle.height * (handPieceY + 0.8));
+
+					if(!ourHand) {
+						quantityX = this.boardStyle.x + (this.boardStyle.width * ((8-handPieceX) + 0.8)); 
+						quantityY = this.boardStyle.y + (this.boardStyle.height * ((8-handPieceY) + 0.2));
+					}
+
+					// draw the circle around the number
+					this.context.fillStyle = this.pieceColor;
+					this.context.beginPath();
+					this.context.arc(
+						quantityX,
+						quantityY,
+						this.boardStyle.fontSize * 0.75,
+						0, 2 * Math.PI
+					);
+					this.context.fill();
+
+					this.context.fillStyle = this.darkBg;
+					this.context.beginPath();
+					this.context.arc(
+						quantityX,
+						quantityY,
+						this.boardStyle.fontSize * 0.75,
+						0, 2 * Math.PI
+					);
+					this.context.stroke();
+
+					// prepare for writing text
+					this.context.textBaseline = "middle";
+					this.context.textAlign = "center";
+					this.context.font = this.boardStyle.textFont;
+
+					//quantityY += ourHand ? -this.boardStyle.handOffset : this.boardStyle.handOffset;
+
+					this.context.fillText(quantity, quantityX, quantityY);
+				}
+			}
+		}
 	}
 	
 	draw() {
@@ -173,24 +313,58 @@ class Shogi extends Game {
 		const offset = this.boardStyle.lineWidth/2;
 		
 		this.context.fillStyle = this.darkBg;
-		// draw verical lines
+		this.context.lineWidth = this.boardStyle.lineWidth;
+		this.context.lineCap = "round";
+		
+		// draw vertical lines
 		for(var x=0; x<=9; x++) {
-			this.context.fillRect(
-				this.boardStyle.x + (x * this.boardStyle.width) - offset, 
-				this.boardStyle.y - offset, 
-				this.boardStyle.lineWidth,
-				this.boardStyle.lineWidth + (9 * this.boardStyle.height)
-			);
+			this.context.beginPath();
+			this.context.moveTo(this.boardStyle.x + (x * this.boardStyle.width), this.boardStyle.y);
+			this.context.lineTo(this.boardStyle.x + (x * this.boardStyle.width), this.boardStyle.y + (9 * this.boardStyle.height));
+			this.context.stroke();
 		}
+		
 		// draw horizontal lines
 		for(var y=0; y<=9; y++) {
-			this.context.fillRect(
-				this.boardStyle.x - offset,
-				this.boardStyle.y + (y * this.boardStyle.height) - offset, 
-				this.boardStyle.lineWidth + (9 * this.boardStyle.width),
-				this.boardStyle.lineWidth
+			this.context.beginPath();
+			this.context.moveTo(this.boardStyle.x, this.boardStyle.y + (y * this.boardStyle.height));
+			this.context.lineTo(this.boardStyle.x + (9 * this.boardStyle.width), this.boardStyle.y + (y * this.boardStyle.height));
+			this.context.stroke();
+		}
+		
+		// prepare for writing text
+		this.context.textBaseline = "middle";
+		this.context.textAlign = "center";
+		this.context.font = this.boardStyle.textFont;
+		
+		// draw the file labels
+		for(var i=0; i<9; i++) {
+			this.context.fillText(
+				this.playerIsWhite ? (8-i)+1 : i+1, 
+				this.boardStyle.x + ((i+0.5) * this.boardStyle.width), 
+				this.boardStyle.y - this.boardStyle.fileRankOffset
+			);
+			this.context.fillText(
+				this.playerIsWhite ? (8-i)+1 : i+1, 
+				this.boardStyle.x + ((i+0.5) * this.boardStyle.width), 
+				this.boardStyle.y + (this.boardStyle.height * 9) + this.boardStyle.fileRankOffset
 			);
 		}
+		
+		// draw the rank labels
+		for(var i=0; i<9; i++) {
+			this.context.fillText(
+				this.japaneseNumerals[this.playerIsWhite ? i+1 : (8-i)+1], 
+				this.boardStyle.x - this.boardStyle.fileRankOffset,
+				this.boardStyle.y + ((i+0.5) * this.boardStyle.height)
+			);
+			this.context.fillText(
+				this.japaneseNumerals[this.playerIsWhite ? i+1 : (8-i)+1], 
+				this.boardStyle.x + (this.boardStyle.width * 9) + this.boardStyle.fileRankOffset,
+				this.boardStyle.y + ((i+0.5) * this.boardStyle.height)
+			);
+		}
+		
 		// draw the dots
 		for(var x = 0; x <= 1; x++) {
 			for(var y = 0; y <= 1; y++) {
@@ -206,41 +380,276 @@ class Shogi extends Game {
 		}
 		
 		// draw pieces
-		this.drawPiece({type: "lance", x: 0, y: 0, side: "black", isPromoted: true});
-		this.drawPiece({type: "knight", x: 1, y: 0, side: "black", isPromoted: true});
-		this.drawPiece({type: "silver", x: 2, y: 0, side: "black", isPromoted: true});
-		this.drawPiece({type: "gold", x: 3, y: 0, side: "black", isPromoted: false});
-		this.drawPiece({type: "king", x: 4, y: 0, side: "black", isPromoted: false});
-		this.drawPiece({type: "gold", x: 5, y: 0, side: "black", isPromoted: false});
-		this.drawPiece({type: "silver", x: 6, y: 0, side: "black", isPromoted: true});
-		this.drawPiece({type: "knight", x: 7, y: 0, side: "black", isPromoted: true});
-		this.drawPiece({type: "lance", x: 8, y: 0, side: "black", isPromoted: true});
-		
-		this.drawPiece({type: "rook", x: 1, y: 1, side: "black", isPromoted: true});
-		this.drawPiece({type: "bishop", x: 7, y: 1, side: "black", isPromoted: true});
-		
-		for(var i=0; i<9; i++) {
-			this.drawPiece({type: "pawn", x: i, y: 2, side: "black", isPromoted: true});
-			this.drawPiece({type: "pawn", x: i, y: 6, side: "white"});
+		if(Array.isArray(this.pieces)) {
+			for(var i = 0; i < this.pieces.length; i++) {
+				this.drawPiece(this.pieces[i]);
+			}	
 		}
-		
-		this.drawPiece({type: "lance", x: 0, y: 8, side: "white"});
-		this.drawPiece({type: "knight", x: 1, y: 8, side: "white"});
-		this.drawPiece({type: "silver", x: 2, y: 8, side: "white"});
-		this.drawPiece({type: "gold", x: 3, y: 8, side: "white"});
-		this.drawPiece({type: "king", x: 4, y: 8, side: "white"});
-		this.drawPiece({type: "gold", x: 5, y: 8, side: "white"});
-		this.drawPiece({type: "silver", x: 6, y: 8, side: "white"});
-		this.drawPiece({type: "knight", x: 7, y: 8, side: "white"});
-		this.drawPiece({type: "lance", x: 8, y: 8, side: "white"});
-		
-		this.drawPiece({type: "bishop", x: 1, y: 7, side: "white"});
-		this.drawPiece({type: "rook", x: 7, y: 7, side: "white"});
 
+		if(this.piecesInHand) {
+			this.drawHand("white", this.piecesInHand.white);
+			this.drawHand("black", this.piecesInHand.black);		
+		} else {
+			this.drawHand("white");
+			this.drawHand("black");
+		}
 
 	}
+	
+	handleUpdate(update, chessObj) {
+		chessObj.pieces = update.pieces;
+		chessObj.piecesInHand = {white: [], black: []};
+		
+		// sort hands
+		var whiteKeys = Object.keys(update.hands.white);
+		for(var i=0; i<whiteKeys.length; i++) {
+			chessObj.piecesInHand.white.push(
+				[whiteKeys[i], update.hands.white[whiteKeys[i]]
+			]);
+		}
+		
+		var blackKeys = Object.keys(update.hands.black);
+		for(var i=0; i<blackKeys.length; i++) {
+			chessObj.piecesInHand.black.push(
+				[blackKeys[i], update.hands.black[blackKeys[i]]
+			]);
+		}
+		
+		const sortFunction = function (a, b) {
+			const order = ["king", "rook", "bishop", "gold", "silver", "knight", "lance", "pawn"];
+			return order.indexOf(a[0]) - order.indexOf(b[0]);
+		};
+		chessObj.piecesInHand.white.sort(sortFunction);
+		chessObj.piecesInHand.black.sort(sortFunction);
+	}
+	
+	pieceToCanvasXCoord(x) {
+		return this.playerIsWhite ? x : (8 - x);
+	}
+	
+	pieceToCanvasYCoord(y) {
+		return this.playerIsWhite ? (8 - y) : y;
+	}
+	
+	xToFile(x) {
+		return this.playerIsWhite ? (9-x) : (x+1);
+	}
+	
+	yToRank(y) {
+		return this.playerIsWhite ? this.japaneseNumerals[y+1] : this.japaneseNumerals[9-y];
+	}
+	
+	onClick(event) {
+		if ((event instanceof MouseEvent)) {
+			event.preventDefault();
+		}
+
+		var chessObj = event.currentTarget.chessObj;
+
+		var x = (event instanceof MouseEvent) ? event.clientX : 
+				(event instanceof TouchEvent) ? event.changedTouches[0].clientX : 
+				-1;
+		var y = (event instanceof MouseEvent) ? event.clientY : 
+				(event instanceof TouchEvent) ? event.changedTouches[0].clientY : 
+				-1;
+
+		var rect = chessObj.canvas.getBoundingClientRect();
+
+		var mouseX = (x - rect.left) * chessObj.boardWidth/chessObj.canvas.width;;
+		var mouseY = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;
+
+		x = (x - rect.left) * chessObj.boardWidth/chessObj.canvas.width;
+		x = (x - chessObj.boardStyle.x)/chessObj.boardStyle.width;
+		y = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;
+		y = (y - chessObj.boardStyle.y)/chessObj.boardStyle.height;
+		
+		// offset for player's hand
+		var clickOnHand = false;
+		if(y > 9 + chessObj.boardStyle.handOffset/chessObj.boardStyle.height) {
+			clickOnHand = true;
+		}
+
+		var xOffset = x - Math.floor(x);
+		var yOffset = y - Math.floor(y);
+
+		x = Math.floor(x);
+		y = Math.floor(y);
+
+		var type = null;
+		chessObj.pieces.forEach(piece => {
+			if(x === chessObj.pieceToCanvasXCoord(piece.x) && 
+			   y === chessObj.pieceToCanvasYCoord(piece.y)) {
+				type = piece.type;
+			}
+		});
+		
+		var fromHand = false;
+		var hand = chessObj.playerIsWhite ? chessObj.piecesInHand.white : chessObj.piecesInHand.black;
+		// bounding boxes for player's hand
+		if(clickOnHand && x > 0 && x < hand.length + 1) {
+			type = hand[x-1][0];
+			fromHand = true;
+		}
+
+		if(chessObj.holdingPiece === null) {
+			chessObj.holdingPiece = {
+				x: x,
+				y: y,
+				xOffset: xOffset,
+				yOffset: yOffset,
+				mouseX: mouseX,
+				mouseY: mouseY,
+				destX: 0,
+				destY: 0,
+				type: type,
+				fromHand: fromHand
+			};
+		}
+		
+		console.log("click on piece: ", chessObj.holdingPiece);
+
+		chessObj.draw();
+	}
+	
+	onClickMove (event) {
+			
+		if ((event instanceof MouseEvent)) {
+			event.preventDefault();
+		}
+
+		var chessObj = event.currentTarget.chessObj;
+		if(chessObj.holdingPiece !== null) {
+
+			var x = (event instanceof MouseEvent) ? event.clientX : 
+				(event instanceof TouchEvent) ? event.changedTouches[0].clientX : 
+				-1;
+			var y = (event instanceof MouseEvent) ? event.clientY : 
+				(event instanceof TouchEvent) ? event.changedTouches[0].clientY : 
+				-1;
+
+			var rect = chessObj.canvas.getBoundingClientRect();
+			chessObj.holdingPiece.mouseX = (x - rect.left) * chessObj.boardWidth/chessObj.canvas.width;;
+			chessObj.holdingPiece.mouseY = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;
+			chessObj.draw();
+		}
+	};
+		
+	onClickRelease (event) {
+			
+		if ((event instanceof MouseEvent)) {
+			event.preventDefault();
+		}
+
+		var chessObj = event.currentTarget.chessObj;
+
+		if(chessObj.holdingPiece === null && !chessObj.showPromotionMenu) {
+			return;
+		}
+
+		var x = (event instanceof MouseEvent) ? event.clientX : 
+				(event instanceof TouchEvent) ? event.changedTouches[0].clientX : 
+				-1;
+		var y = (event instanceof MouseEvent) ? event.clientY : 
+				(event instanceof TouchEvent) ? event.changedTouches[0].clientY : 
+				-1;
+
+		var rect = chessObj.canvas.getBoundingClientRect();
+
+		x = (x - rect.left) * chessObj.boardWidth/chessObj.canvas.width;
+		y = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;
+
+		if(chessObj.showPromotionMenu) {
+			console.log("show promotion menu");
+			x = (x - chessObj.boardWidth/2 + chessObj.menuWidth/2)/chessObj.boardStyle.width;
+			y = (y - chessObj.boardHeight/2 + chessObj.menuHeight/2 - chessObj.boardStyle.y)/chessObj.boardStyle.height;
+
+			x = Math.floor(x);
+			y = Math.floor(y);
+
+			console.log(`click release (x,y) = (${x},${y})`);
+
+			if(y === 0 && x >= 0 && x <= chessObj.promotionPieces.length) {
+				//chessObj.sendMove(null, null, null, null, chessObj.promotionPieces[x]);
+			}
+		} else {					
+			x = (x - chessObj.boardStyle.x)/chessObj.boardStyle.width;
+			y = (y - chessObj.boardStyle.y)/chessObj.boardStyle.height;
+
+			x = Math.floor(x);
+			y = Math.floor(y);
+
+			chessObj.holdingPiece.destX = x;
+			chessObj.holdingPiece.destY = y;
+
+			//chessObj.sendMove(chessObj.holdingPiece.x, chessObj.holdingPiece.y, 
+			//				  chessObj.holdingPiece.destX, chessObj.holdingPiece.destY);
+			if(chessObj.holdingPiece.fromHand) {
+				console.log(`drop ${chessObj.holdingPiece.type} to ${chessObj.xToFile(chessObj.holdingPiece.destX)}${chessObj.yToRank(chessObj.holdingPiece.destY)}`);	
+			} else {
+				console.log(`move ${chessObj.holdingPiece.type} ${chessObj.xToFile(chessObj.holdingPiece.x)}${chessObj.yToRank(chessObj.holdingPiece.y)} to ${chessObj.xToFile(chessObj.holdingPiece.destX)}${chessObj.yToRank(chessObj.holdingPiece.destY)}`);	
+			}
+			
+			chessObj.holdingPiece = null;
+		}
+		chessObj.draw();
+	};
 }
 
 const shogi = new Shogi();
 
 document.title = "Shogi";
+
+const exampleUpdate = {
+	pieces: [
+		{type: "lance", x: 0, y: 0, side: "black", isPromoted: true},
+		{type: "knight", x: 1, y: 0, side: "black", isPromoted: true},
+		{type: "silver", x: 2, y: 0, side: "black", isPromoted: true},
+		{type: "gold", x: 3, y: 0, side: "black", isPromoted: false},
+		{type: "king", x: 4, y: 0, side: "black", isPromoted: false},
+		{type: "gold", x: 5, y: 0, side: "black", isPromoted: false},
+		{type: "silver", x: 6, y: 0, side: "black", isPromoted: true},
+		{type: "knight", x: 7, y: 0, side: "black", isPromoted: true},
+		{type: "lance", x: 8, y: 0, side: "black", isPromoted: true},
+
+		{type: "rook", x: 1, y: 1, side: "black", isPromoted: true},
+		{type: "bishop", x: 7, y: 1, side: "black", isPromoted: true},
+
+
+		{type: "pawn", x: 0, y: 2, side: "black", isPromoted: true},
+		{type: "pawn", x: 1, y: 2, side: "black", isPromoted: true},
+		{type: "pawn", x: 2, y: 2, side: "black", isPromoted: true},
+		{type: "pawn", x: 3, y: 2, side: "black", isPromoted: true},
+		{type: "pawn", x: 4, y: 2, side: "black", isPromoted: true},
+		{type: "pawn", x: 5, y: 2, side: "black", isPromoted: true},
+		{type: "pawn", x: 6, y: 2, side: "black", isPromoted: true},
+		{type: "pawn", x: 7, y: 2, side: "black", isPromoted: true},
+		{type: "pawn", x: 8, y: 2, side: "black", isPromoted: true},
+
+		{type: "pawn", x: 0, y: 6, side: "white"},
+		{type: "pawn", x: 1, y: 6, side: "white"},
+		{type: "pawn", x: 2, y: 6, side: "white"},
+		{type: "pawn", x: 3, y: 6, side: "white"},
+		{type: "pawn", x: 4, y: 6, side: "white"},
+		{type: "pawn", x: 5, y: 6, side: "white"},
+		{type: "pawn", x: 6, y: 6, side: "white"},
+		{type: "pawn", x: 7, y: 6, side: "white"},
+		{type: "pawn", x: 8, y: 6, side: "white"},
+
+		{type: "lance", x: 0, y: 8, side: "white"},
+		{type: "knight", x: 1, y: 8, side: "white"},
+		{type: "silver", x: 2, y: 8, side: "white"},
+		{type: "gold", x: 3, y: 8, side: "white"},
+		{type: "king", x: 4, y: 8, side: "white"},
+		{type: "gold", x: 5, y: 8, side: "white"},
+		{type: "silver", x: 6, y: 8, side: "white"},
+		{type: "knight", x: 7, y: 8, side: "white"},
+		{type: "lance", x: 8, y: 8, side: "white"},
+
+		{type: "bishop", x: 1, y: 7, side: "white"},
+		{type: "rook", x: 7, y: 7, side: "white"}
+	],
+	hands: {
+		white: {rook: 2, pawn: 4, knight: 1}, 
+		black: {bishop: 1, pawn: 18}
+	}
+};
