@@ -61,7 +61,23 @@ public class ShogiMatch extends GameMatch {
 
 		ShogiState state = (ShogiState)this.gameState;
 		
-		if(!isDrop) {
+		if(isDrop) {
+			// dropping a piece
+			String pieceType = request.getParameter("type");
+			if(pieceType != null) {
+				pieceType = URLDecoder.decode(pieceType, StandardCharsets.UTF_8);
+			} else {
+				return false;
+			}
+			
+			if(!state.canDrop(toX, toY, pieceType, isWhite)) {
+				return false;
+			}
+			
+			state.drop(toX, toY, pieceType, isWhite);
+			state.setSquaresToHighlight( toX, toY);
+			
+		} else {
 			// moving a piece
 			// if we're not dropping a piece, we need the from coords as well
 			String fromPos = request.getParameter("from");
@@ -81,10 +97,19 @@ public class ShogiMatch extends GameMatch {
 				return false;
 			}
 			
+			// check for promotion
+			if(state.isPromotionOptional(fromX, fromY, toX, toY)) {
+				
+				state.setPendingPromotion(fromX, fromY);
+				
+				return true;
+			}
+			
 			state.move(fromX, fromY, toX, toY);
-			state.nextMove();
+			state.setSquaresToHighlight(fromX, fromY, toX, toY);
 		}
-		
+					
+		state.nextMove();
 		return true;
 	}
 	

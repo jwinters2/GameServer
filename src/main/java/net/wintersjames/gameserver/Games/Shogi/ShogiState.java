@@ -28,6 +28,11 @@ public class ShogiState extends GameState implements Serializable {
 	private Map<String, Integer> blackHand;
 	private boolean whiteToMove;
 	
+	private List<Integer> squaresToHighlight;
+	
+	// the piece we're waiting on whether or not to promote, if there is one
+	private Piece pendingPromotion;
+	
 	public ShogiState() {
 		super("shogiState");
 		this.pieces = new ArrayList<>();
@@ -35,6 +40,8 @@ public class ShogiState extends GameState implements Serializable {
 		this.blackHand = new HashMap<>();
 	
 		this.whiteToMove = true;
+		this.pendingPromotion = null;
+		this.squaresToHighlight = new ArrayList<>();
 		
 		for(int i=0; i<9; i++) {
 			this.pieces.add(new Pawn(i, 2, Piece.Color.WHITE));
@@ -80,6 +87,8 @@ public class ShogiState extends GameState implements Serializable {
 		this.blackHand = new HashMap<>(other.blackHand);
 	
 		this.whiteToMove = other.whiteToMove;
+		this.pendingPromotion = other.pendingPromotion;
+		this.squaresToHighlight = other.squaresToHighlight;
 	}
 
 	public List<Piece> getPieces() {
@@ -120,20 +129,14 @@ public class ShogiState extends GameState implements Serializable {
 			// add to hand
 			toRemove.setInHand(true);
 			toRemove.toggleColor();
-			if(toRemove.getColor() == Piece.Color.WHITE) {
-				if(this.whiteHand.containsKey(toRemove.getType())) {
-					int count = this.whiteHand.get(toRemove.getType());
-					this.whiteHand.put(toRemove.getType(), count + 1);
-				} else {
-					this.whiteHand.put(toRemove.getType(), 1);
-				}
+			
+			Map<String, Integer> hand = toRemove.getColor() == Piece.Color.WHITE ? this.whiteHand : this.blackHand;
+
+			if(hand.containsKey(toRemove.getType())) {
+				int count = hand.get(toRemove.getType());
+				hand.put(toRemove.getType(), count + 1);
 			} else {
-				if(this.blackHand.containsKey(toRemove.getType())) {
-					int count = this.blackHand.get(toRemove.getType());
-					this.blackHand.put(toRemove.getType(), count + 1);
-				} else {
-					this.blackHand.put(toRemove.getType(), 1);
-				}
+				hand.put(toRemove.getType(), 1);
 			}
 		}
 	}
@@ -156,38 +159,79 @@ public class ShogiState extends GameState implements Serializable {
 		
 		Piece.Color color = isWhite ? Piece.Color.WHITE : Piece.Color.BLACK;
 		
-		// a piece must exist here, it must be the person to move's color,
-		// and it has to be their turn
-		if(pieceToMove != null 
-			&& pieceToMove.getColor() == color
-			&& (color == Piece.Color.WHITE) == this.whiteToMove) {
-			
-			// check if the destination is in bounds
-			if(toX < 0 || toX >= 9 || toY < 0 || toY >= 9) {
-				logger.info("piece destination out of bounds");
-				return false;
-			}
-			
-			Piece pieceToCapture = getPieceAt(toX, toY);
-			// if there's a piece in the square we're moving to, and it's the same
-			// color as the moving piece, it's an invalid move
-			if(pieceToCapture != null && pieceToCapture.getColor() == color) {
-				logger.info("cannot capture our own pieces");
-				return false;
-			}
-			
-			// we're not allowed to move into check
-			ShogiState nextState = new ShogiState(this);
-			nextState.move(fromX, fromY, toX, toY);
-			if(nextState.isInCheck(color)) {
-				logger.info("king is in check");
-				return false;
-			}
-			
-			return pieceToMove.canMove(toX, toY, this);
+		// a piece can't exist here, can't be the other person's color,
+		// and it can't be the opponent's turn
+		if(pieceToMove == null 
+			|| pieceToMove.getColor() != color
+			|| (color == Piece.Color.WHITE) != this.whiteToMove) {
+			return false;
 		}
 		
-		return false;
+		// check if the destination is in bounds
+		if(toX < 0 || toX >= 9 || toY < 0 || toY >= 9) {
+			logger.info("piece destination out of bounds");
+			return false;
+		}
+
+		Piece pieceToCapture = getPieceAt(toX, toY);
+		// if there's a piece in the square we're moving to, and it's the same
+		// color as the moving piece, it's an invalid move
+		if(pieceToCapture != null && pieceToCapture.getColor() == color) {
+			logger.info("cannot capture our own pieces");
+			return false;
+		}
+
+		// we're not allowed to move into check
+		ShogiState nextState = new ShogiState(this);
+		nextState.move(fromX, fromY, toX, toY);
+		if(nextState.isInCheck(color)) {
+			logger.info("king is in check");
+			return false;
+		}
+
+		return pieceToMove.canMove(toX, toY, this);
+	}
+	
+	public boolean canDrop(int toX, int toY, String pieceType, boolean isWhite) {
+		
+		// we can't drop on another piece
+		if(getPieceAt(toX, toY) != null) {
+			return false;
+		}
+		
+		Piece.Color color = isWhite ? Piece.Color.WHITE : Piece.Color.BLACK;
+		
+		// it can't be the opponent's turn
+		if((color == Piece.Color.WHITE) != this.whiteToMove) {
+			return false;
+		}
+		
+		int lastRank = (color == Piece.Color.WHITE ? 8 : 0);
+		int penultimateRank = (color == Piece.Color.WHITE ? 7 : 1);
+		
+		// pawns, knights and lances can't drop on the last rank
+		if(toY == lastRank && (pieceType.equals("pawn") || pieceType.equals("knight") || pieceType.equals("lance"))) {
+			return false;
+		}
+		
+		// knights also can't drop on the second to last rank
+		if(toY == penultimateRank && pieceType.equals("knight")) {
+			return false;
+		}
+		
+		// pawns can't drop on a file that already has a pawn
+		if(pieceType.equals("pawn")) {
+			for(int y = 0; y < 9; y++) {
+				Piece p = getPieceAt(toX, y);
+				if(p instanceof Pawn && !p.getIsPromoted() && p.getColor() == color) {
+					return false;
+				}
+			}
+		}
+		
+		// pawns can't checkmate
+		
+		return true;
 	}
 	
 	public boolean isSquareUnderAttack(int x, int y, Piece.Color attackingColor) {
@@ -217,6 +261,108 @@ public class ShogiState extends GameState implements Serializable {
 		this.captureAt(toX, toY);
 		Piece toMove = getPieceAt(fromX, fromY);
 		toMove.move(toX, toY);
+		
+		if(isPromotionMandatory(toX, toY, toMove.getType(), toMove.getColor())) {
+			toMove.promote();
+		}
+	}
+	
+	public void drop(int toX, int toY, String pieceType, boolean isWhite) {
+		
+		Piece.Color color = isWhite ? Piece.Color.WHITE : Piece.Color.BLACK;
+		
+		Piece droppedPiece = switch (pieceType) {
+			case "pawn" -> new Pawn(toX, toY, color);
+			//case "rook" -> new Rook(toX, toY, color);
+			//case "bishop" -> new Bishop(toX, toY, color);
+			//case "lance" -> new Lance(toX, toY, color);
+			case "knight" -> new Knight(toX, toY, color);
+			case "silver" -> new Silver(toX, toY, color);
+			case "gold" -> new Gold(toX, toY, color);
+			default -> null;
+		};
+		
+		this.pieces.add(droppedPiece);
+		Map<String, Integer> hand = color == Piece.Color.WHITE ? this.whiteHand : this.blackHand;
+		
+		int count = hand.get(pieceType) - 1;
+		if(count == 0) {
+			hand.remove(pieceType);
+		} else {
+			hand.put(pieceType, count);
+		}
+	}
+	
+	public boolean isPromotionOptional(int fromX, int fromY, int toX, int toY) {
+		
+		Piece toPromote = getPieceAt(fromX, fromY);
+		
+		// null pieces, already-promoted pieces, gold generals and kings can't promote
+		if(toPromote == null 
+			|| toPromote.getIsPromoted() 
+			|| toPromote.getType().equals("king")
+			|| toPromote.getType().equals("gold")) {
+			return false;
+		}
+		
+		// piece must either start or end in their promotion zone
+		if(toPromote.getColor() == Piece.Color.WHITE) {
+			if(fromY < 6 && toY < 6) {
+				return false;
+			}
+		} else {
+			if(fromY > 2 && toY > 2) {
+				return false;
+			}
+		}
+		
+		if(isPromotionMandatory(toX, toY, toPromote.getType(), toPromote.getColor())) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean isPromotionMandatory(int toX, int toY, String pieceType, Piece.Color color) {
+		
+		int lastRank = (color == Piece.Color.WHITE ? 8 : 0);
+		
+		// pawns, knights and lances can't drop on the last rank
+		if(toY == lastRank && (pieceType.equals("pawn") || pieceType.equals("knight") || pieceType.equals("lance"))) {
+			return true;
+		}
+		
+		int penultimateRank = (color == Piece.Color.WHITE ? 7 : 1);
+		
+		// knights also can't drop on the second to last rank
+		if(toY == penultimateRank && pieceType.equals("knight")) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public void setPendingPromotion(int x, int y) {
+		this.pendingPromotion = getPieceAt(x, y);
+	}
+	
+	public void resetPendingPromotion() {
+		this.pendingPromotion = null;
+	}
+	
+	public void setSquaresToHighlight(int...coords) {
+		this.squaresToHighlight.clear();
+		for(int coord: coords) {
+			this.squaresToHighlight.add(coord);
+		}
+	}
+
+	public List<Integer> getSquaresToHighlight() {
+		return squaresToHighlight;
+	}
+
+	public Piece getPendingPromotion() {
+		return pendingPromotion;
 	}
 	
 	public void nextMove() {

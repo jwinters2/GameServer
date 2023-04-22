@@ -3,6 +3,7 @@ class Shogi extends Game {
 	pieces = null;
 	piecesInHand = null;
 	whiteToMove = null;
+	highlightedSquares = [];
 	
 	playerIsWhite = null;
 	
@@ -11,6 +12,7 @@ class Shogi extends Game {
 	
 	pieceColor = "#ffeaa3";
 	promotedColor = "#cc0000";
+	highlightColor = "#f5d3a3";
 	
 	boardStyle = {
 		x: 50, 
@@ -85,9 +87,6 @@ class Shogi extends Game {
 
 		}, 500, this);
 		
-		// example data
-		this.handleUpdate(exampleUpdate, this);
-		
 		// click events
 		this.canvas.chessObj = this;
 		this.canvas.addEventListener('mousedown', this.onClick);
@@ -97,8 +96,6 @@ class Shogi extends Game {
 		this.canvas.addEventListener('mouseup', this.onClickRelease);
 		this.canvas.addEventListener('touchend', this.onClickRelease);
 	}
-	
-	
 	
 	resetTransform() {
 		this.context.setTransform(this.canvas.width/this.boardWidth, 0, 0, this.canvas.height/this.boardHeight, 0, 0);
@@ -133,7 +130,6 @@ class Shogi extends Game {
 		this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
 		
 		const x = this.playerIsWhite ? piece.x : (8 - piece.x);
-		//const y = this.playerIsWhite ? piece.y : (8 - piece.y);
 		const y = this.playerIsWhite ? (8 - piece.y) : piece.y;
 		
 		this.resetTransform();
@@ -144,7 +140,16 @@ class Shogi extends Game {
 		if((piece.color.toLowerCase() === "white") !== this.playerIsWhite) {
 			this.context.rotate(Math.PI);
 		}
-
+		
+		var isHoldingPiece = (this.holdingPiece !== null && this.holdingPiece.x === x && this.holdingPiece.y === y);
+		if(this.holdingPiece !== null && this.holdingPiece.fromHand) {
+			isHoldingPiece = (piece.inHand && this.holdingPiece.x === x);
+		}
+		
+		if(isHoldingPiece) {
+			this.context.globalAlpha = 0.5;
+		}
+		
 		// fill color
 		this.context.fillStyle = this.pieceColor;
 		this.context.beginPath();
@@ -182,6 +187,72 @@ class Shogi extends Game {
 			this.context.fillText(this.pieceChars[piece.type].abbr[charIndex], 0, this.boardStyle.pieceTextYOffset);
 		}
 		
+		this.resetTransform();
+		this.context.globalAlpha = 1;
+	}
+	
+	drawHoldingPiece(piece) {
+		
+		const x = this.playerIsWhite ? piece.x : (8 - piece.x);
+		const y = this.playerIsWhite ? (8 - piece.y) : piece.y;
+		
+		var isHoldingPiece = (this.holdingPiece !== null && this.holdingPiece.x === x && this.holdingPiece.y === y);
+		if(this.holdingPiece !== null && this.holdingPiece.fromHand) {
+			isHoldingPiece = (piece.inHand && this.holdingPiece.x === x);
+		}
+		if(!isHoldingPiece) {
+			return;
+		}
+		
+		this.context.textBaseline = "middle";
+		this.context.textAlign = "center";
+		this.context.lineWidth = this.boardStyle.lineWidth/2;
+		
+		const fontSize = this.boardStyle.pieceFontSize * this.pieceChars[piece.type].size;
+		// piece on mouse coordinates
+		
+		this.context.translate(this.holdingPiece.mouseX, this.holdingPiece.mouseY);
+		if((piece.color.toLowerCase() === "white") !== this.playerIsWhite) {
+			this.context.rotate(Math.PI);
+		}
+
+		// fill color
+		this.context.fillStyle = this.pieceColor;
+		this.context.beginPath();
+		this.tracePieceOutline(piece);
+		this.context.fill();
+
+		// draw outline
+		this.context.beginPath();
+		this.tracePieceOutline(piece);
+		this.context.stroke();
+
+		// which character(s) to draw
+		var charIndex = 0;
+		if(piece.type === "king") {
+			charIndex = (piece.color.toLowerCase() === "white" ? 0 : 1);
+		} else if (piece.type !== "gold") {
+			charIndex = (piece.isPromoted ? 1 : 0);
+		}
+
+		// draw text
+		this.context.fillStyle = piece.isPromoted ? this.promotedColor : this.darkBg;
+		if ( this.displayStyle === "traditional" ) {
+			this.context.font = `${Math.floor(fontSize * 0.7)}px ${this.boardStyle.pieceFont}`;
+			this.context.textBaseline = "bottom";
+			this.context.fillText(this.pieceChars[piece.type].chars[charIndex][0], 0, this.boardStyle.pieceTextYOffset);
+			this.context.textBaseline = "top";
+			this.context.fillText(this.pieceChars[piece.type].chars[charIndex][1], 0, this.boardStyle.pieceTextYOffset);
+		} else if (this.displayStyle === "symbols" ) {
+			this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
+			this.context.textBaseline = "middle";
+			this.context.fillText(this.pieceChars[piece.type].symbols[charIndex], 0, this.boardStyle.pieceTextYOffset);
+		} else {
+			this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
+			this.context.textBaseline = "middle";
+			this.context.fillText(this.pieceChars[piece.type].abbr[charIndex], 0, this.boardStyle.pieceTextYOffset);
+		}
+
 		this.resetTransform();
 	}
 	
@@ -252,7 +323,7 @@ class Shogi extends Game {
 				var handPieceY = side === "white"
 					? -2 + this.boardStyle.handOffset/this.boardStyle.height
 					: 10 - this.boardStyle.handOffset/this.boardStyle.height;
-				this.drawPiece({type: piecesInHand[i][0], x: handPieceX, y: handPieceY, color: side});
+				this.drawPiece({type: piecesInHand[i][0], x: handPieceX, y: handPieceY, color: side, inHand: true});
 
 				var quantity = piecesInHand[i][1];
 				if(quantity > 1) {
@@ -313,9 +384,25 @@ class Shogi extends Game {
 		
 		const offset = this.boardStyle.lineWidth/2;
 		
-		this.context.fillStyle = this.darkBg;
 		this.context.lineWidth = this.boardStyle.lineWidth;
 		this.context.lineCap = "round";
+		
+		// draw highlighted squares
+		this.context.fillStyle = this.highlightColor;
+		for(var i=0; i<this.highlightedSquares.length-1; i+=2) {
+			
+			var highlightX = this.playerIsWhite ? this.highlightedSquares[i] : 8-this.highlightedSquares[i];
+			var highlightY = this.playerIsWhite ? 8-this.highlightedSquares[i+1] : this.highlightedSquares[i+1];
+			
+			this.context.fillRect(
+				this.boardStyle.x + (highlightX * this.boardStyle.width), 
+				this.boardStyle.y + (highlightY * this.boardStyle.height),
+				this.boardStyle.width,
+				this.boardStyle.height
+			);
+		}
+		
+		this.context.fillStyle = this.darkBg;
 		
 		// draw vertical lines
 		for(var x=0; x<=9; x++) {
@@ -394,6 +481,34 @@ class Shogi extends Game {
 			this.drawHand("white");
 			this.drawHand("black");
 		}
+		
+		// draw piece being held
+		if(Array.isArray(this.pieces)) {
+			for(var i = 0; i < this.pieces.length; i++) {
+				this.drawHoldingPiece(this.pieces[i]);
+			}	
+		}
+		// draw hand piece being held
+		if(this.piecesInHand) {
+			if(this.playerIsWhite && Array.isArray(this.piecesInHand.white)) {
+				for(var i=0; i<this.piecesInHand.white.length; i++) {
+					var type = this.piecesInHand.white[i][0];
+					var handPieceX = i+1;
+					var handPieceY = -2 + this.boardStyle.handOffset/this.boardStyle.height;
+					this.drawHoldingPiece({type: type, x: handPieceX, y: handPieceY, color: "white", inHand: true});
+				}
+			}
+
+			if(!this.playerIsWhite && Array.isArray(this.piecesInHand.black)) {
+				for(var i=0; i<this.piecesInHand.black.length; i++) {
+					var type = this.piecesInHand.black[i][0];
+					var handPieceX = 7-i;
+					var handPieceY = 10 - this.boardStyle.handOffset/this.boardStyle.height;
+					this.drawHoldingPiece({type: type, x: handPieceX, y: handPieceY, color: "black", inHand: true});
+				}
+			}
+		}
+		
 
 	}
 	
@@ -405,6 +520,7 @@ class Shogi extends Game {
 		if(update.type === "shogiState") {
 			chessObj.pieces = update.pieces;
 			chessObj.piecesInHand = {white: [], black: []};
+			chessObj.highlightedSquares = update.squaresToHighlight;
 
 			// sort hands
 			var whiteKeys = Object.keys(update.whiteHand);
@@ -601,7 +717,9 @@ class Shogi extends Game {
 					chessObj.holdingPiece.destX, 
 					chessObj.holdingPiece.destY,
 					true,
-					{}
+					{
+						type: chessObj.holdingPiece.type
+					}
 				);
 			} else {
 				console.log(`move ${chessObj.holdingPiece.type} ${chessObj.xToFile(chessObj.holdingPiece.x)}${chessObj.yToRank(chessObj.holdingPiece.y)} to ${chessObj.xToFile(chessObj.holdingPiece.destX)}${chessObj.yToRank(chessObj.holdingPiece.destY)}`);	
@@ -633,7 +751,10 @@ class Shogi extends Game {
 		
 		// whether or not we're dropping it (from hand) or moving it
 		dict.push(`drop=${!!fromHand}`);
-		if(!fromHand) {
+		if(fromHand) {
+			// if we're dropping it, we need to include what piece it is
+			dict.push(`type=${extra.type}`);
+		} else {
 			// if we're not dropping it, we need the from coordinates
 			dict.push(`from=${9 - this.xToFile(extra.fromX)},${9 - this.yToRankWestern(extra.fromY)}`);
 		}
@@ -651,58 +772,3 @@ class Shogi extends Game {
 const shogi = new Shogi();
 
 document.title = "Shogi";
-
-const exampleUpdate = {
-	pieces: [
-		{type: "lance", x: 0, y: 0, side: "black", isPromoted: true},
-		{type: "knight", x: 1, y: 0, side: "black", isPromoted: true},
-		{type: "silver", x: 2, y: 0, side: "black", isPromoted: true},
-		{type: "gold", x: 3, y: 0, side: "black", isPromoted: false},
-		{type: "king", x: 4, y: 0, side: "black", isPromoted: false},
-		{type: "gold", x: 5, y: 0, side: "black", isPromoted: false},
-		{type: "silver", x: 6, y: 0, side: "black", isPromoted: true},
-		{type: "knight", x: 7, y: 0, side: "black", isPromoted: true},
-		{type: "lance", x: 8, y: 0, side: "black", isPromoted: true},
-
-		{type: "rook", x: 1, y: 1, side: "black", isPromoted: true},
-		{type: "bishop", x: 7, y: 1, side: "black", isPromoted: true},
-
-
-		{type: "pawn", x: 0, y: 2, side: "black", isPromoted: true},
-		{type: "pawn", x: 1, y: 2, side: "black", isPromoted: true},
-		{type: "pawn", x: 2, y: 2, side: "black", isPromoted: true},
-		{type: "pawn", x: 3, y: 2, side: "black", isPromoted: true},
-		{type: "pawn", x: 4, y: 2, side: "black", isPromoted: true},
-		{type: "pawn", x: 5, y: 2, side: "black", isPromoted: true},
-		{type: "pawn", x: 6, y: 2, side: "black", isPromoted: true},
-		{type: "pawn", x: 7, y: 2, side: "black", isPromoted: true},
-		{type: "pawn", x: 8, y: 2, side: "black", isPromoted: true},
-
-		{type: "pawn", x: 0, y: 6, side: "white"},
-		{type: "pawn", x: 1, y: 6, side: "white"},
-		{type: "pawn", x: 2, y: 6, side: "white"},
-		{type: "pawn", x: 3, y: 6, side: "white"},
-		{type: "pawn", x: 4, y: 6, side: "white"},
-		{type: "pawn", x: 5, y: 6, side: "white"},
-		{type: "pawn", x: 6, y: 6, side: "white"},
-		{type: "pawn", x: 7, y: 6, side: "white"},
-		{type: "pawn", x: 8, y: 6, side: "white"},
-
-		{type: "lance", x: 0, y: 8, side: "white"},
-		{type: "knight", x: 1, y: 8, side: "white"},
-		{type: "silver", x: 2, y: 8, side: "white"},
-		{type: "gold", x: 3, y: 8, side: "white"},
-		{type: "king", x: 4, y: 8, side: "white"},
-		{type: "gold", x: 5, y: 8, side: "white"},
-		{type: "silver", x: 6, y: 8, side: "white"},
-		{type: "knight", x: 7, y: 8, side: "white"},
-		{type: "lance", x: 8, y: 8, side: "white"},
-
-		{type: "bishop", x: 1, y: 7, side: "white"},
-		{type: "rook", x: 7, y: 7, side: "white"}
-	],
-	hands: {
-		white: {rook: 2, pawn: 4, knight: 1}, 
-		black: {bishop: 1, pawn: 18}
-	}
-};
