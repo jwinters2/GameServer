@@ -28,7 +28,9 @@ class Shogi extends Game {
 		pieceFontSize: 50,
 		pieceYOffset: 0,
 		pieceTextYOffset: 5,
-		handOffset: 50
+		handOffset: 50,
+		guideWidth: 30,
+		guideColor: "#aa000040"
 	};
 	
 	boardWidth = 0;
@@ -36,6 +38,8 @@ class Shogi extends Game {
 	boardAspectRatio = 1;
 	
 	holdingPiece = null;
+	hoverOverX = null;
+	hoverOverY = null;
 	
 	lastMoved = null;
 	
@@ -158,6 +162,7 @@ class Shogi extends Game {
 		this.context.fill();
 		
 		// draw outline
+		this.context.strokeStyle = this.darkBg;
 		this.context.beginPath();
 		this.tracePieceOutline(piece);
 		this.context.stroke();
@@ -362,7 +367,7 @@ class Shogi extends Game {
 			this.boardStyle.height
 		);
 
-		this.context.fillStyle = this.darkBg;
+		this.context.strokeStyle = this.darkBg;
 		this.context.strokeRect(
 			this.boardStyle.x + ((x - 0.5) * this.boardStyle.width),
 			this.boardStyle.y + (y * this.boardStyle.height),
@@ -374,6 +379,138 @@ class Shogi extends Game {
 		piece.isPromoted = true;
 		this.drawPiece(piece, 0.5);
 		piece.isPromoted = false;
+	}
+	
+	drawGuideCircle(x, y) {
+		if(x >= 0 && x < 9 && y >= 0 && y < 9) {
+			this.context.fillStyle = this.boardStyle.guideColor;
+			this.context.beginPath();
+			this.context.arc(
+				this.boardStyle.x + ((x+0.5) * this.boardStyle.width), 
+				this.boardStyle.y + ((y+0.5) * this.boardStyle.height),
+				this.boardStyle.guideWidth/2, 0, 2 * Math.PI);
+			this.context.fill();
+		}
+	}
+	
+	drawGuideLine(x, y, toX, toY) {
+		if(x >= 0 && x <= 8 && y >= 0 && y <= 8 
+		&& toX >= 0 && toX <= 8  && toY >= 0 && toY <= 8 ) {
+			this.context.strokeStyle = this.boardStyle.guideColor;
+			this.context.lineWidth = this.boardStyle.guideWidth;
+			this.context.beginPath();
+			this.context.moveTo(
+				this.boardStyle.x + ((x+0.5) * this.boardStyle.width), 
+				this.boardStyle.y + ((y+0.5) * this.boardStyle.height));
+			this.context.lineTo(
+				this.boardStyle.x + ((toX+0.5) * this.boardStyle.width), 
+				this.boardStyle.y + ((toY+0.5) * this.boardStyle.height));
+			this.context.stroke();
+			this.context.strokeStyle = this.darkBg;
+		}
+	}
+	
+	drawPieceGuide(x, y, type, color, isPromoted) {
+		this.resetTransform();
+		var direction = ((color === "WHITE") === this.playerIsWhite) ? -1 : 1;
+		
+		if(isPromoted) {
+			switch (type) {
+				case "silver":
+				case "knight":
+				case "pawn":
+				case "lance":
+					this.drawGuideCircle(x - 1, y + direction);
+					this.drawGuideCircle(x    , y + direction);
+					this.drawGuideCircle(x + 1, y + direction);
+					
+					this.drawGuideCircle(x - 1, y);
+					this.drawGuideCircle(x + 1, y);
+					
+					this.drawGuideCircle(x    , y - direction);
+					break;
+				case "rook":
+					this.drawGuideLine(x - 0.5, y, 0, y);
+					this.drawGuideLine(x + 0.5, y, 8, y);
+					this.drawGuideLine(x, y - 0.5, x, 0);
+					this.drawGuideLine(x, y + 0.5, x, 8);
+					
+					this.drawGuideCircle(x - 1, y + direction);
+					this.drawGuideCircle(x + 1, y + direction);
+					this.drawGuideCircle(x - 1, y - direction);
+					this.drawGuideCircle(x + 1, y - direction);
+					break;
+				case "bishop":
+					this.drawGuideLine(x - 0.5, y - 0.5, x - Math.min(x, y), y - Math.min(x, y));
+					this.drawGuideLine(x + 0.5, y - 0.5, x + Math.min(8-x, y), y - Math.min(8-x, y));
+					this.drawGuideLine(x - 0.5, y + 0.5, x - Math.min(x, 8-y), y + Math.min(x, 8-y));
+					this.drawGuideLine(x + 0.5, y + 0.5, x + Math.min(8-x, 8-y), y + Math.min(8-x, 8-y));
+					
+					this.drawGuideCircle(x    , y + direction);
+					this.drawGuideCircle(x - 1, y);
+					this.drawGuideCircle(x + 1, y);
+					this.drawGuideCircle(x    , y - direction);
+					break;
+			}
+		} else {
+			switch (type) {
+				case "king":
+					this.drawGuideCircle(x - 1, y + direction);
+					this.drawGuideCircle(x    , y + direction);
+					this.drawGuideCircle(x + 1, y + direction);
+					
+					this.drawGuideCircle(x - 1, y);
+					this.drawGuideCircle(x + 1, y);
+					
+					this.drawGuideCircle(x - 1, y - direction);
+					this.drawGuideCircle(x    , y - direction);
+					this.drawGuideCircle(x + 1, y - direction);
+					break;
+				case "gold":
+					this.drawGuideCircle(x - 1, y + direction);
+					this.drawGuideCircle(x    , y + direction);
+					this.drawGuideCircle(x + 1, y + direction);
+					
+					this.drawGuideCircle(x - 1, y);
+					this.drawGuideCircle(x + 1, y);
+					
+					this.drawGuideCircle(x    , y - direction);
+					break;
+				case "silver":
+					this.drawGuideCircle(x - 1, y + direction);
+					this.drawGuideCircle(x    , y + direction);
+					this.drawGuideCircle(x + 1, y + direction);
+					
+					this.drawGuideCircle(x - 1, y - direction);
+					this.drawGuideCircle(x + 1, y - direction);
+					break;
+				case "knight":
+					this.drawGuideCircle(x - 1, y + (2*direction));
+					this.drawGuideCircle(x + 1, y + (2*direction));
+					break;
+				case "pawn":
+					this.drawGuideCircle(x, y + direction);
+					break;
+					
+				case "rook":
+					this.drawGuideLine(x - 0.5, y, 0, y);
+					this.drawGuideLine(x + 0.5, y, 8, y);
+					this.drawGuideLine(x, y - 0.5, x, 0);
+					this.drawGuideLine(x, y + 0.5, x, 8);
+					break;
+				case "lance":
+					this.drawGuideLine(x, y + (direction > 0 ? 0.5 : -0.5), x, (direction > 0 ? 8 : 0));
+					break;
+					
+				case "bishop":
+					this.drawGuideLine(x - 0.5, y - 0.5, x - Math.min(x, y), y - Math.min(x, y));
+					this.drawGuideLine(x + 0.5, y - 0.5, x + Math.min(8-x, y), y - Math.min(8-x, y));
+					this.drawGuideLine(x - 0.5, y + 0.5, x - Math.min(x, 8-y), y + Math.min(x, 8-y));
+					this.drawGuideLine(x + 0.5, y + 0.5, x + Math.min(8-x, 8-y), y + Math.min(8-x, 8-y));
+					break;
+			}	
+		}
+
 	}
 	
 	draw() {
@@ -404,6 +541,7 @@ class Shogi extends Game {
 		}
 		
 		this.context.fillStyle = this.darkBg;
+		this.context.strokeStyle = this.darkBg;
 		
 		// draw vertical lines
 		for(var x=0; x<=9; x++) {
@@ -483,12 +621,43 @@ class Shogi extends Game {
 			this.drawHand("black");
 		}
 		
+		// draw guides
+		if(this.holdingPiece) {
+			this.drawPieceGuide(
+				this.holdingPiece.x, 
+				this.holdingPiece.y,
+				this.holdingPiece.type,
+				this.holdingPiece.color,
+				this.holdingPiece.isPromoted
+			);
+			
+		} else if (this.hoverOverX !== null && this.hoverOverY !== null) {
+			
+			if(Array.isArray(this.pieces)) {
+				for(var i = 0; i < this.pieces.length; i++) {
+					if(this.pieceToCanvasXCoord(this.pieces[i].x) === this.hoverOverX 
+					&& this.pieceToCanvasYCoord(this.pieces[i].y) === this.hoverOverY) {
+						this.drawPieceGuide(
+							this.hoverOverX, 
+							this.hoverOverY,
+							this.pieces[i].type,
+							this.pieces[i].color,
+							this.pieces[i].isPromoted,
+						);
+
+						this.drawPiece(this.pieces[i]);
+					}
+				}	
+			}
+		}
+		
 		// draw piece being held
 		if(Array.isArray(this.pieces)) {
 			for(var i = 0; i < this.pieces.length; i++) {
 				this.drawHoldingPiece(this.pieces[i]);
 			}	
 		}
+		
 		// draw hand piece being held
 		if(this.piecesInHand) {
 			if(this.playerIsWhite && Array.isArray(this.piecesInHand.white)) {
@@ -548,6 +717,8 @@ class Shogi extends Game {
 			};
 			chessObj.piecesInHand.white.sort(sortFunction);
 			chessObj.piecesInHand.black.sort(sortFunction);
+			
+			chessObj.handleResult(update.status, update.winner);
 		}	
 	}
 	
@@ -616,10 +787,14 @@ class Shogi extends Game {
 		y = Math.floor(y);
 
 		var type = null;
+		var isPromoted = null;
+		var color = null;
 		chessObj.pieces.forEach(piece => {
 			if(x === chessObj.pieceToCanvasXCoord(piece.x) && 
 			   y === chessObj.pieceToCanvasYCoord(piece.y)) {
 				type = piece.type;
+				isPromoted = piece.isPromoted;
+				color = piece.color;
 			}
 		});
 		
@@ -642,6 +817,8 @@ class Shogi extends Game {
 				destX: 0,
 				destY: 0,
 				type: type,
+				isPromoted: isPromoted,
+				color: color,
 				fromHand: fromHand
 			};
 		}
@@ -658,20 +835,37 @@ class Shogi extends Game {
 		}
 
 		var chessObj = event.currentTarget.chessObj;
+
+		var x = (event instanceof MouseEvent) ? event.clientX : 
+			(event instanceof TouchEvent) ? event.changedTouches[0].clientX : 
+			-1;
+		var y = (event instanceof MouseEvent) ? event.clientY : 
+			(event instanceof TouchEvent) ? event.changedTouches[0].clientY : 
+			-1;
+
+		var rect = chessObj.canvas.getBoundingClientRect();
 		if(chessObj.holdingPiece !== null) {
-
-			var x = (event instanceof MouseEvent) ? event.clientX : 
-				(event instanceof TouchEvent) ? event.changedTouches[0].clientX : 
-				-1;
-			var y = (event instanceof MouseEvent) ? event.clientY : 
-				(event instanceof TouchEvent) ? event.changedTouches[0].clientY : 
-				-1;
-
-			var rect = chessObj.canvas.getBoundingClientRect();
 			chessObj.holdingPiece.mouseX = (x - rect.left) * chessObj.boardWidth/chessObj.canvas.width;;
 			chessObj.holdingPiece.mouseY = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;
-			chessObj.draw();
 		}
+
+		x = (x - rect.left) * chessObj.boardWidth/chessObj.canvas.width;
+		x = (x - chessObj.boardStyle.x)/chessObj.boardStyle.width;
+		y = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;
+		y = (y - chessObj.boardStyle.y)/chessObj.boardStyle.height;
+
+		x = Math.floor(x);
+		y = Math.floor(y);
+
+		if(x >= 0 && x < 9 && y >= 0 && y < 9) {
+			chessObj.hoverOverX = x;
+			chessObj.hoverOverY = y;
+		} else {
+			chessObj.hoverOverX = null;
+			chessObj.hoverOverY = null;
+		}
+
+		chessObj.draw();
 	};
 		
 	onClickRelease (event) {

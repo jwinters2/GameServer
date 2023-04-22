@@ -1,5 +1,7 @@
 package net.wintersjames.gameserver.Games.Shogi.ShogiPieces;
 
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Moves.JumpMove;
+
 /**
  *
  * @author james

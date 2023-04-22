@@ -246,19 +246,8 @@ class Chess extends Game {
 		chessObj.lastMoved = update.lastMovedLastPosition;
 		
 		chessObj.draw();
-		
-		if(update.status !== "INCOMPLETE") {
-			let result = null;
-			if(update.status === "WINNER_DECIDED") {
-				result = (update.winner === chessObj.userid ? "You won" : "You lost");
-			} else if (update.status === "DRAW") {
-				result = "Game is a draw";
-			} else {
-				result = "Game has ended: " + update.status.toLowerCase();
-			}
-			
-			chessObj.showPopup(result);
-		}
+
+		chessObj.handleResult(update.status, update.winner);
 		
 	}
 	

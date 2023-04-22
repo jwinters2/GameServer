@@ -1,5 +1,7 @@
 package net.wintersjames.gameserver.Games.Shogi.ShogiPieces;
 
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Moves.JumpMove;
+
 /**
  *
  * @author james
@@ -31,7 +33,9 @@ public class Silver extends Piece {
 
 	@Override
 	public Piece deepCopy() {
-		return new Silver(this.x, this.y, this.color);
+		Piece retval = new Silver(this.x, this.y, this.color);
+		retval.isPromoted = this.isPromoted;
+		return retval;
 	}
 	
 }

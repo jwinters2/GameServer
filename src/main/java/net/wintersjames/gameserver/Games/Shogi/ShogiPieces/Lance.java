@@ -1,18 +1,18 @@
 package net.wintersjames.gameserver.Games.Shogi.ShogiPieces;
 
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Moves.JumpMove;
-import net.wintersjames.gameserver.Games.Chess.ChessState;
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Moves.LineMove;
 
 /**
  *
  * @author james
  */
-public class Pawn extends Piece {
+public class Lance extends Piece {
 
-	public Pawn(int x, int y, Color color) {
-		super(x, y, color, "pawn");
+	public Lance(int x, int y, Color color) {
+		super(x, y, color, "lance");
 		
-		this.moveSet.add(new JumpMove(0, 1));
+		this.moveSet.add(new LineMove( 0,  1));
 		
 		// promotes to a gold
 		this.promotedMoveSet.add(new JumpMove(-1,  1));
@@ -25,12 +25,12 @@ public class Pawn extends Piece {
 
 	@Override
 	public String toChar() {
-		return (this.isPromoted ? "+" : " ") + (this.color == Piece.Color.BLACK ? "P" : "p");
+		return " " + (this.color == Piece.Color.BLACK ? "L" : "l");
 	}
 
 	@Override
 	public Piece deepCopy() {
-		Piece retval = new Pawn(this.x, this.y, this.color);
+		Piece retval = new Lance(this.x, this.y, this.color);
 		retval.isPromoted = this.isPromoted;
 		return retval;
 	}

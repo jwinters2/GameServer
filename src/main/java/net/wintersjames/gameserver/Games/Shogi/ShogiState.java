@@ -5,12 +5,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Bishop;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Piece;
 import net.wintersjames.gameserver.Games.GameState;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Gold;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.King;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Knight;
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Lance;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Pawn;
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Rook;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Silver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,17 +51,13 @@ public class ShogiState extends GameState implements Serializable {
 			this.pieces.add(new Pawn(i, 6, Piece.Color.BLACK));
 		}
 		
-		if(pieces.get(11).getColor() == Piece.Color.BLACK) {
-			pieces.get(11).promote();
-		}
-
-		//this.pieces.add(new Bishop(1, 1, Piece.Color.WHITE));
-		//this.pieces.add(new Rook(1, 7, Piece.Color.WHITE));
+		this.pieces.add(new Rook(7, 1, Piece.Color.WHITE));
+		this.pieces.add(new Bishop(1, 1, Piece.Color.WHITE));
 		
-		//this.pieces.add(new Rook(7, 1, Piece.Color.BLACK));
-		//this.pieces.add(new Bishop(7, 7, Piece.Color.BLACK));
+		this.pieces.add(new Bishop(7, 7, Piece.Color.BLACK));
+		this.pieces.add(new Rook(1, 7, Piece.Color.BLACK));
 		
-		//this.pieces.add(new Lance(0, 0, Piece.Color.WHITE));
+		this.pieces.add(new Lance(0, 0, Piece.Color.WHITE));
 		this.pieces.add(new Knight(1, 0, Piece.Color.WHITE));
 		this.pieces.add(new Silver(2, 0, Piece.Color.WHITE));
 		this.pieces.add(new Gold(3, 0, Piece.Color.WHITE));
@@ -66,9 +65,9 @@ public class ShogiState extends GameState implements Serializable {
 		this.pieces.add(new Gold(5, 0, Piece.Color.WHITE));
 		this.pieces.add(new Silver(6, 0, Piece.Color.WHITE));
 		this.pieces.add(new Knight(7, 0, Piece.Color.WHITE));
-		//this.pieces.add(new Lance(8, 0, Piece.Color.WHITE));
+		this.pieces.add(new Lance(8, 0, Piece.Color.WHITE));
 		
-		//this.pieces.add(new Lance(0, 0, Piece.Color.WHITE));
+		this.pieces.add(new Lance(0, 8, Piece.Color.BLACK));
 		this.pieces.add(new Knight(1, 8, Piece.Color.BLACK));
 		this.pieces.add(new Silver(2, 8, Piece.Color.BLACK));
 		this.pieces.add(new Gold(3, 8, Piece.Color.BLACK));
@@ -76,8 +75,7 @@ public class ShogiState extends GameState implements Serializable {
 		this.pieces.add(new Gold(5, 8, Piece.Color.BLACK));
 		this.pieces.add(new Silver(6, 8, Piece.Color.BLACK));
 		this.pieces.add(new Knight(7, 8, Piece.Color.BLACK));
-		//this.pieces.add(new Lance(8, 0, Piece.Color.WHITE));
-		
+		this.pieces.add(new Lance(8, 8, Piece.Color.BLACK));
 	}
 	
 	public ShogiState(ShogiState other) {
@@ -185,7 +183,7 @@ public class ShogiState extends GameState implements Serializable {
 		ShogiState nextState = new ShogiState(this);
 		nextState.move(fromX, fromY, toX, toY);
 		if(nextState.isInCheck(color)) {
-			logger.info("king is in check");
+			logger.info("(move) king is in check");
 			return false;
 		}
 
@@ -203,6 +201,12 @@ public class ShogiState extends GameState implements Serializable {
 		
 		// it can't be the opponent's turn
 		if((color == Piece.Color.WHITE) != this.whiteToMove) {
+			return false;
+		}
+		
+		Map<String, Integer> hand = color == Piece.Color.WHITE ? this.whiteHand : this.blackHand;
+		if(!hand.containsKey(pieceType)) {
+			// we can't drop a piece we don't have
 			return false;
 		}
 		
@@ -230,7 +234,25 @@ public class ShogiState extends GameState implements Serializable {
 		}
 		
 		// pawns can't checkmate
+		if(pieceType.equals("pawn")) {
+			ShogiState nextState = new ShogiState(this);
+			nextState.drop(toX, toY, pieceType, isWhite);
+			nextState.nextMove();
+			if(!nextState.hasLegalMove()) {
+				logger.info("illegal checkmate by pawn drop");
+				return false;
+			}
+		}
 		
+		// we're not allowed to drop a piece that leaves us in check
+		ShogiState nextState = new ShogiState(this);
+		nextState.drop(toX, toY, pieceType, isWhite);
+		if(nextState.isInCheck(color)) {
+			logger.info("(drop) king is in check");
+			return false;
+		}
+
+
 		return true;
 	}
 	
@@ -273,9 +295,9 @@ public class ShogiState extends GameState implements Serializable {
 		
 		Piece droppedPiece = switch (pieceType) {
 			case "pawn" -> new Pawn(toX, toY, color);
-			//case "rook" -> new Rook(toX, toY, color);
-			//case "bishop" -> new Bishop(toX, toY, color);
-			//case "lance" -> new Lance(toX, toY, color);
+			case "rook" -> new Rook(toX, toY, color);
+			case "bishop" -> new Bishop(toX, toY, color);
+			case "lance" -> new Lance(toX, toY, color);
 			case "knight" -> new Knight(toX, toY, color);
 			case "silver" -> new Silver(toX, toY, color);
 			case "gold" -> new Gold(toX, toY, color);
@@ -283,7 +305,7 @@ public class ShogiState extends GameState implements Serializable {
 		};
 		
 		this.pieces.add(droppedPiece);
-		Map<String, Integer> hand = color == Piece.Color.WHITE ? this.whiteHand : this.blackHand;
+		Map<String, Integer> hand = (color == Piece.Color.WHITE ? this.whiteHand : this.blackHand);
 		
 		int count = hand.get(pieceType) - 1;
 		if(count == 0) {
@@ -344,6 +366,34 @@ public class ShogiState extends GameState implements Serializable {
 		// knights also can't drop on the second to last rank
 		if(toY == penultimateRank && pieceType.equals("knight")) {
 			return true;
+		}
+		
+		return false;
+	}
+	
+	public boolean hasLegalMove() {
+		logger.info("checking for legal move");
+		
+		Piece.Color colorToMove = this.whiteToMove ? Piece.Color.WHITE : Piece.Color.BLACK;
+		
+		// check for moving pieces
+		for(Piece piece: this.pieces) {
+			if(piece.getColor() == colorToMove && piece.hasLegalMove(this)) {
+				logger.info("piece {} has legal move", piece);
+				return true;
+			}
+		}
+		
+		// check for drops
+		Map<String, Integer> hand = (colorToMove == Piece.Color.WHITE ? this.whiteHand : this.blackHand);
+		for(String pieceType: hand.keySet()) {
+			for(int x = 0; x < 9; x++) {
+				for(int y = 0; y < 9; y++) {
+					if(canDrop(x, y, pieceType, colorToMove == Piece.Color.WHITE)) {
+						return true;
+					}
+				}
+			}
 		}
 		
 		return false;

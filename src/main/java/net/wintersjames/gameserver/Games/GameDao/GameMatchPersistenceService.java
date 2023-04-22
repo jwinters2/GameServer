@@ -25,6 +25,9 @@ public class GameMatchPersistenceService {
 	@Autowired
 	private final GameMatchRepository matchRepository;
 	
+	@Autowired
+	private PlayerToMatchService ptmService;
+	
 	public GameMatchPersistenceService(GameMatchRepository matchRepository) {
 		this.matchRepository = matchRepository;
 	}
@@ -91,6 +94,7 @@ public class GameMatchPersistenceService {
 	}
 	
 	public void deleteMatch(long matchid) {
+		ptmService.deleteMatch(matchid);
 		matchRepository.deleteById(matchid);
 	}
 }

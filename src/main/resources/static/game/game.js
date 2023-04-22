@@ -70,5 +70,20 @@ class Game {
 		let modal = new bootstrap.Modal(document.getElementById("popup"));
 		modal.show();
 	}
+	
+	handleResult(status, winner) {
+		if(status !== "INCOMPLETE") {
+			let result = null;
+			if(status === "WINNER_DECIDED") {
+				result = (winner === this.userid ? "You won" : "You lost");
+			} else if (status === "DRAW") {
+				result = "Game is a draw";
+			} else {
+				result = "Game has ended: " + status.toLowerCase();
+			}
+
+			this.showPopup(result);
+		}
+	}
 
 }

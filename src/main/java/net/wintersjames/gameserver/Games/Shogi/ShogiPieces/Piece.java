@@ -1,5 +1,6 @@
 package net.wintersjames.gameserver.Games.Shogi.ShogiPieces;
 
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Moves.MoveType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import net.wintersjames.gameserver.Games.Chess.ChessState;
 import net.wintersjames.gameserver.Games.GameMatch;
+import net.wintersjames.gameserver.Games.GameState;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Piece;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,6 +135,14 @@ public class ShogiMatch extends GameMatch {
 		}
 					
 		state.nextMove();
+		
+		// check if the next player has a legal move
+		if(!state.hasLegalMove()) {
+			logger.info("{} player has no legal move", state.isWhiteToMove() ? "white" : "black");
+			state.setStatus(GameState.Status.WINNER_DECIDED);
+			state.setWinner(state.isWhiteToMove() ? this.blackPlayer : this.whitePlayer);
+		}
+		
 		return HandleMoveResult.SUCCESS;
 	}
 	

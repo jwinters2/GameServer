@@ -1,6 +1,7 @@
-package net.wintersjames.gameserver.Games.Shogi.ShogiPieces;
+package net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Moves;
 
 import net.wintersjames.gameserver.Games.GameState;
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Piece;
 import net.wintersjames.gameserver.Games.Shogi.ShogiState;
 
 /**
@@ -19,4 +20,8 @@ public abstract class MoveType {
 	
 	public abstract boolean isMoveLegal(Piece piece, int x, int y, ShogiState state);
 	public abstract boolean hasLegalMove(Piece piece, ShogiState state);
+	
+	final protected int getDirection(Piece piece) {
+		return piece.getColor() == Piece.Color.WHITE ? 1 : -1;
+	}
 }

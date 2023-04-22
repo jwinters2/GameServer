@@ -381,17 +381,16 @@ public class ChessState extends GameState implements Serializable {
 	
 	public boolean hasLegalMove() {
 		
-		boolean retval = false;
 		Piece.Color colorToMove = this.whiteToMove ? Piece.Color.WHITE : Piece.Color.BLACK;
 		
 		for(Piece piece: this.pieces) {
 			if(piece.getColor() == colorToMove && piece.hasLegalMove(this)) {
 				logger.info("piece {} has legal move", piece);
-				retval = true;
+				return true;
 			}
 		}
 		
-		return retval;
+		return false;
 	}
 	
 	public void nextMove() {
