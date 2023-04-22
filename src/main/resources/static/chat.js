@@ -39,9 +39,15 @@ class Chat {
 	}
 
 	sendMessage() {
-
-		let message = document.getElementById("messageText").value;
-		document.getElementById("messageText").value = "";
+		console.log("chat.sendMessage");
+		let message = "";
+		let messageBoxes = document.getElementsByClassName("messageText");
+		for(var i=0; i<messageBoxes.length; i++) {
+			if(messageBoxes[i].value) {
+				message = messageBoxes[i].value;
+				messageBoxes[i].value = "";
+			}
+		}
 
 		const request = new XMLHttpRequest();  
 		request.open('POST', `${contextRoot}/game/${this.game}/${this.matchid}/chat`);

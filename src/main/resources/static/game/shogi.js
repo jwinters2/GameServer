@@ -21,13 +21,13 @@ class Shogi extends Game {
 		width: 90, 
 		height: 100,
 		lineWidth: 4,
-		textFont: "24px times new roman",
+		textFont: "24px yuji mai, georgia",
 		fileRankOffset: 25,
 		fontSize: 24,
-		pieceFont: "times new roman",
+		pieceFont: "yuji mai, georgia",
 		pieceFontSize: 50,
 		pieceYOffset: 0,
-		pieceTextYOffset: 5,
+		pieceTextYOffset: 1,
 		handOffset: 50,
 		guideWidth: 30,
 		guideColor: "#aa000040"
@@ -982,3 +982,5 @@ class Shogi extends Game {
 const shogi = new Shogi();
 
 document.title = "Shogi";
+
+var span = document.getElementById("extraButtonContainer");

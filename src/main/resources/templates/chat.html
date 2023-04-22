@@ -1,4 +1,4 @@
-<div class="container chat-container" th:attr="onload=|chat_init(${myuid}, ${game}, ${matchid})|">
+<div class="container chat-container"> <!-- th:attr="onload=|chat_init(${myuid}, ${game}, ${matchid})|"> -->
     <script th:inline="javascript">
         chat.init(/*[[${myuid}]]*/, /*[[${game}]]*/, /*[[${matchid}]]*/);
     </script>
@@ -12,7 +12,7 @@
         <div class="col">
             <form onsubmit="return false;">               
                 <div class="input-group" style="width: 100%; margin-right: 30px;">
-                    <input type="text" class="form-control" id="messageText">
+                    <input type="text" class="form-control messageText">
                     <input type="submit" 
                            class="btn btn-light" 
                            onclick="chat.sendMessage()" 

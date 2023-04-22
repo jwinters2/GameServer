@@ -1,8 +1,4 @@
 <!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit this template
--->
 <html>
     <head>
         <title>Game</title>
@@ -31,6 +27,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
         <div class="nabvar navbar-dark bg-chess">
             <h1 class="chess-text-light text-capitalize" style="margin: 0em 1em; display: inline-block;" th:text="${game}"></h1>
             <span style="margin: 0.25em 1em; float: right; display: inline-block;">
+                <span id="extraButtonContainer">
+                </span>
                 <a th:href="${#strings.concat(contextRoot +'/game/', game, '/', matchid, '/leavegame')}" class="btn btn-dark">Leave Game</a>
                 <a th:href="${#strings.concat(contextRoot +'/game/', game, '/', matchid, '/resign')}" class="btn btn-dark">Resign</a>
             </span>
@@ -54,7 +52,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 </div>
 
                 <!-- actual game -->
-                <div class="col-lg-9 col-md-11" th:insert="~{'games/' + ${game} + '.html'}"></div>
+                <div class="col-lg-9 col-md-12" th:insert="~{'games/' + ${game} + '.html'}"></div>
             </div>
         </div>
         
