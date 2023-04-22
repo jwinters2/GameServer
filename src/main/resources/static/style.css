@@ -78,7 +78,7 @@ body, .modal-content{
     border-color: #000000;
 }
 
-.btn-dark {
+.btn-dark, .chess-dark {
     background-color: #432618;
     color: #dfad68;     
     border-color: #dfad68;
@@ -141,4 +141,8 @@ body, .modal-content{
 
 #canvasParentDiv {
     height: calc(100vh - 5em);
+}
+
+.activeOption {
+    background-color: #704129;
 }

@@ -43,6 +43,8 @@ class Shogi extends Game {
 	
 	lastMoved = null;
 	
+	drawPieceGuides = true;
+	
 	// traditional = 2 kanji per piece
 	// abbreviated = 1 kanji per piece
 	// symbols = western chess pieces
@@ -100,6 +102,64 @@ class Shogi extends Game {
 		this.canvas.addEventListener('touchmove', this.onClickMove);
 		this.canvas.addEventListener('mouseup', this.onClickRelease);
 		this.canvas.addEventListener('touchend', this.onClickRelease);
+		
+		// setup options
+		let span = document.getElementById("extraButtonContainer");
+		let options = document.getElementById("optionsDropdown");
+		span.appendChild(options);
+
+		document.getElementById("optionButton").onclick = function () {
+			let list = document.getElementById("optionList");
+			if(list.style.display === "block") {
+				list.style.display = "none";
+			} else {
+				list.style.display = "block";
+			}
+		};
+
+		document.getElementById("optionTraditional").onclick = function () {
+			console.log("setting to traditional");
+			shogi.displayStyle = "traditional";
+			
+			document.getElementById("optionList").style.display = "none";
+			document.getElementById("optionTraditional").classList.add("activeOption");
+			document.getElementById("optionAbbreviated").classList.remove("activeOption");
+			document.getElementById("optionSymbols").classList.remove("activeOption");
+		};
+
+		document.getElementById("optionAbbreviated").onclick = function () {
+			console.log("setting to traditional");
+			shogi.displayStyle = "abbreviated";
+			
+			document.getElementById("optionList").style.display = "none";
+			document.getElementById("optionTraditional").classList.remove("activeOption");
+			document.getElementById("optionAbbreviated").classList.add("activeOption");
+			document.getElementById("optionSymbols").classList.remove("activeOption");
+		};
+
+		document.getElementById("optionSymbols").onclick = function () {
+			console.log("setting to traditional");
+			shogi.displayStyle = "symbols";
+			
+			document.getElementById("optionList").style.display = "none";
+			document.getElementById("optionTraditional").classList.remove("activeOption");
+			document.getElementById("optionAbbreviated").classList.remove("activeOption");
+			document.getElementById("optionSymbols").classList.add("activeOption");
+		};
+		
+		document.getElementById("optionGuide").onclick = function () {
+			let guideButton = document.getElementById("optionGuide");
+			if(guideButton.classList.contains("activeOption")) {
+				guideButton.classList.remove("activeOption");
+				guideButton.innerHTML = "Piece Guides Off";
+				shogi.setDrawPieceGuides(false);
+			} else {
+				guideButton.classList.add("activeOption");
+				guideButton.innerHTML = "Piece Guides On";
+				shogi.setDrawPieceGuides(true);
+			}
+			document.getElementById("optionList").style.display = "none";
+		};
 	}
 	
 	resetTransform() {
@@ -622,32 +682,34 @@ class Shogi extends Game {
 		}
 		
 		// draw guides
-		if(this.holdingPiece) {
-			this.drawPieceGuide(
-				this.holdingPiece.x, 
-				this.holdingPiece.y,
-				this.holdingPiece.type,
-				this.holdingPiece.color,
-				this.holdingPiece.isPromoted
-			);
-			
-		} else if (this.hoverOverX !== null && this.hoverOverY !== null) {
-			
-			if(Array.isArray(this.pieces)) {
-				for(var i = 0; i < this.pieces.length; i++) {
-					if(this.pieceToCanvasXCoord(this.pieces[i].x) === this.hoverOverX 
-					&& this.pieceToCanvasYCoord(this.pieces[i].y) === this.hoverOverY) {
-						this.drawPieceGuide(
-							this.hoverOverX, 
-							this.hoverOverY,
-							this.pieces[i].type,
-							this.pieces[i].color,
-							this.pieces[i].isPromoted,
-						);
+		if(this.drawPieceGuides) {
+			if(this.holdingPiece) {
+				this.drawPieceGuide(
+					this.holdingPiece.x, 
+					this.holdingPiece.y,
+					this.holdingPiece.type,
+					this.holdingPiece.color,
+					this.holdingPiece.isPromoted
+				);
 
-						this.drawPiece(this.pieces[i]);
-					}
-				}	
+			} else if (this.hoverOverX !== null && this.hoverOverY !== null) {
+
+				if(Array.isArray(this.pieces)) {
+					for(var i = 0; i < this.pieces.length; i++) {
+						if(this.pieceToCanvasXCoord(this.pieces[i].x) === this.hoverOverX 
+						&& this.pieceToCanvasYCoord(this.pieces[i].y) === this.hoverOverY) {
+							this.drawPieceGuide(
+								this.hoverOverX, 
+								this.hoverOverY,
+								this.pieces[i].type,
+								this.pieces[i].color,
+								this.pieces[i].isPromoted,
+							);
+
+							this.drawPiece(this.pieces[i]);
+						}
+					}	
+				}
 			}
 		}
 		
@@ -976,11 +1038,13 @@ class Shogi extends Game {
 		const data = dict.join('&');
 
 		super.sendMove(data);
-	} 
+	}
+	
+	setDrawPieceGuides(v) {
+		this.drawPieceGuides = !!v;
+	}
 }
 
 const shogi = new Shogi();
 
 document.title = "Shogi";
-
-var span = document.getElementById("extraButtonContainer");
