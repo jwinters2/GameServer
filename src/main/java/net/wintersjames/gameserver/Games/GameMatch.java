@@ -23,6 +23,12 @@ public abstract class GameMatch implements Serializable {
     private Class game;
 	protected GameState gameState;
     final private long id;
+	
+	public enum HandleMoveResult {
+		SUCCESS,
+		FAIL,
+		NEEDS_MORE_INFO
+	}
 
     public GameMatch(long id, Class game, GameState gameState) {
         this.id = id;
@@ -72,7 +78,7 @@ public abstract class GameMatch implements Serializable {
 		return gameState;
 	}
 
-	public abstract boolean handleMove(int uid, HttpServletRequest request);
+	public abstract HandleMoveResult handleMove(int uid, HttpServletRequest request);
 	
 	public Map<String, String> getAttributes(int uid) {
 		return null;

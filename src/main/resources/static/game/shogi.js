@@ -4,6 +4,7 @@ class Shogi extends Game {
 	piecesInHand = null;
 	whiteToMove = null;
 	highlightedSquares = [];
+	pieceNeedsPromotion = null;
 	
 	playerIsWhite = null;
 	
@@ -120,7 +121,7 @@ class Shogi extends Game {
 		}
 	}
 	
-	drawPiece(piece) {
+	drawPiece(piece, xOffset = 0, yOffset = 0) {
 		const fontSize = this.boardStyle.pieceFontSize * this.pieceChars[piece.type].size;
 		
 		this.context.textBaseline = "middle";
@@ -129,8 +130,8 @@ class Shogi extends Game {
 		
 		this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
 		
-		const x = this.playerIsWhite ? piece.x : (8 - piece.x);
-		const y = this.playerIsWhite ? (8 - piece.y) : piece.y;
+		const x = (this.playerIsWhite ? piece.x : (8 - piece.x)) + xOffset;
+		const y = (this.playerIsWhite ? (8 - piece.y) : piece.y) + yOffset;
 		
 		this.resetTransform();
 		this.context.translate(
@@ -268,52 +269,20 @@ class Shogi extends Game {
 
 		if(ourHand) {
 			// our hand
-			this.context.beginPath();
-			this.context.moveTo(
-				this.boardStyle.x + (this.boardStyle.width), 
-				this.boardStyle.y + (this.boardStyle.height * 11) - this.boardStyle.handOffset
+			this.context.strokeRect(
+				this.boardStyle.x + (this.boardStyle.width),
+				this.boardStyle.y + (this.boardStyle.height * 10) - this.boardStyle.handOffset,
+				this.boardStyle.width * 7,
+				this.boardStyle.height
 			);
-			this.context.lineTo(
-				this.boardStyle.x + (this.boardStyle.width * 8), 
-				this.boardStyle.y + (this.boardStyle.height * 11) - this.boardStyle.handOffset
-			);
-			this.context.lineTo(
-				this.boardStyle.x + (this.boardStyle.width * 8), 
-				this.boardStyle.y + (this.boardStyle.height * 10) - this.boardStyle.handOffset
-			);
-			this.context.lineTo(
-				this.boardStyle.x + (this.boardStyle.width), 
-				this.boardStyle.y + (this.boardStyle.height * 10) - this.boardStyle.handOffset
-			);
-			this.context.lineTo(
-				this.boardStyle.x + (this.boardStyle.width), 
-				this.boardStyle.y + (this.boardStyle.height * 11) - this.boardStyle.handOffset
-			);
-			this.context.stroke();
 		} else {
 			// opponent's hand
-			this.context.beginPath();
-			this.context.moveTo(
-				this.boardStyle.x + (this.boardStyle.width), 
-				this.boardStyle.y + (this.boardStyle.height * -2) + this.boardStyle.handOffset
+			this.context.strokeRect(
+				this.boardStyle.x + (this.boardStyle.width),
+				this.boardStyle.y + (this.boardStyle.height * -1) - this.boardStyle.handOffset,
+				this.boardStyle.width * 7,
+				this.boardStyle.height
 			);
-			this.context.lineTo(
-				this.boardStyle.x + (this.boardStyle.width * 8), 
-				this.boardStyle.y + (this.boardStyle.height * -2) + this.boardStyle.handOffset
-			);
-			this.context.lineTo(
-				this.boardStyle.x + (this.boardStyle.width * 8), 
-				this.boardStyle.y + (this.boardStyle.height * -1) + this.boardStyle.handOffset
-			);
-			this.context.lineTo(
-				this.boardStyle.x + (this.boardStyle.width), 
-				this.boardStyle.y + (this.boardStyle.height * -1) + this.boardStyle.handOffset
-			);
-			this.context.lineTo(
-				this.boardStyle.x + (this.boardStyle.width), 
-				this.boardStyle.y + (this.boardStyle.height * -2) + this.boardStyle.handOffset
-			);
-			this.context.stroke();
 		}
 		
 		if(piecesInHand) {
@@ -373,6 +342,38 @@ class Shogi extends Game {
 				}
 			}
 		}
+	}
+	
+	drawPromotionMenu(piece) {
+		// draw box
+		this.resetTransform();
+		
+		this.context.fillStyle = this.highlightColor;
+		this.context.lineWidth = this.boardStyle.lineWidth;
+		this.context.lineCap = "round";
+		
+		const x = this.playerIsWhite ? piece.x : (8 - piece.x);
+		const y = this.playerIsWhite ? (8 - piece.y) : piece.y;
+		
+		this.context.fillRect(
+			this.boardStyle.x + ((x - 0.5) * this.boardStyle.width),
+			this.boardStyle.y + (y * this.boardStyle.height),
+			this.boardStyle.width * 2,
+			this.boardStyle.height
+		);
+
+		this.context.fillStyle = this.darkBg;
+		this.context.strokeRect(
+			this.boardStyle.x + ((x - 0.5) * this.boardStyle.width),
+			this.boardStyle.y + (y * this.boardStyle.height),
+			this.boardStyle.width * 2,
+			this.boardStyle.height
+		);
+
+		this.drawPiece(piece, -0.5);
+		piece.isPromoted = true;
+		this.drawPiece(piece, 0.5);
+		piece.isPromoted = false;
 	}
 	
 	draw() {
@@ -509,7 +510,10 @@ class Shogi extends Game {
 			}
 		}
 		
-
+		// draw promotion menu
+		if(this.pieceNeedsPromotion && this.isOurPiece(this.pieceNeedsPromotion)) {
+			this.drawPromotionMenu(this.pieceNeedsPromotion);
+		}
 	}
 	
 	handleUpdate(update, chessObj) {
@@ -521,6 +525,7 @@ class Shogi extends Game {
 			chessObj.pieces = update.pieces;
 			chessObj.piecesInHand = {white: [], black: []};
 			chessObj.highlightedSquares = update.squaresToHighlight;
+			chessObj.pieceNeedsPromotion = update.pendingPromotion;
 
 			// sort hands
 			var whiteKeys = Object.keys(update.whiteHand);
@@ -566,12 +571,20 @@ class Shogi extends Game {
 		return this.playerIsWhite ? (y+1) : (9-y);
 	}
 	
+	isOurPiece(piece) {
+		return (piece.color === "WHITE") === this.playerIsWhite;
+	}
+	
 	onClick(event) {
 		if ((event instanceof MouseEvent)) {
 			event.preventDefault();
 		}
 
 		var chessObj = event.currentTarget.chessObj;
+		
+		if(chessObj.pieceNeedsPromotion) {
+			return;
+		}
 
 		var x = (event instanceof MouseEvent) ? event.clientX : 
 				(event instanceof TouchEvent) ? event.changedTouches[0].clientX : 
@@ -669,7 +682,7 @@ class Shogi extends Game {
 
 		var chessObj = event.currentTarget.chessObj;
 
-		if(chessObj.holdingPiece === null && !chessObj.showPromotionMenu) {
+		if(chessObj.holdingPiece === null && !chessObj.pieceNeedsPromotion) {
 			return;
 		}
 
@@ -683,24 +696,28 @@ class Shogi extends Game {
 		var rect = chessObj.canvas.getBoundingClientRect();
 
 		x = (x - rect.left) * chessObj.boardWidth/chessObj.canvas.width;
-		y = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;
+		y = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;	
+		x = (x - chessObj.boardStyle.x)/chessObj.boardStyle.width;
+		y = (y - chessObj.boardStyle.y)/chessObj.boardStyle.height;
 
-		if(chessObj.showPromotionMenu) {
+		if(chessObj.pieceNeedsPromotion) {
 			console.log("show promotion menu");
-			x = (x - chessObj.boardWidth/2 + chessObj.menuWidth/2)/chessObj.boardStyle.width;
-			y = (y - chessObj.boardHeight/2 + chessObj.menuHeight/2 - chessObj.boardStyle.y)/chessObj.boardStyle.height;
+			// offset for promotion menu
+			x += 0.5;
+			let offset = chessObj.playerIsWhite ? 1 : -1;
 
-			x = Math.floor(x);
-			y = Math.floor(y);
+			x = chessObj.pieceToCanvasXCoord(Math.floor(x));
+			y = chessObj.pieceToCanvasYCoord(Math.floor(y));
+			
+			console.log(`click release (x,y) = (${x},${y}), piece= (${chessObj.pieceNeedsPromotion.x},${chessObj.pieceNeedsPromotion.y})`);
 
-			console.log(`click release (x,y) = (${x},${y})`);
-
-			if(y === 0 && x >= 0 && x <= chessObj.promotionPieces.length) {
-				//chessObj.sendMove(null, null, null, null, chessObj.promotionPieces[x]);
+			if(y === chessObj.pieceNeedsPromotion.y && x === chessObj.pieceNeedsPromotion.x) {
+				chessObj.sendMove(null, null, null, {promotion: false});
+			}
+			if(y === chessObj.pieceNeedsPromotion.y && x === chessObj.pieceNeedsPromotion.x + offset) {
+				chessObj.sendMove(null, null, null, {promotion: true});
 			}
 		} else {					
-			x = (x - chessObj.boardStyle.x)/chessObj.boardStyle.width;
-			y = (y - chessObj.boardStyle.y)/chessObj.boardStyle.height;
 
 			x = Math.floor(x);
 			y = Math.floor(y);
@@ -708,7 +725,6 @@ class Shogi extends Game {
 			chessObj.holdingPiece.destX = x;
 			chessObj.holdingPiece.destY = y;
 
-			
 	
 			if(chessObj.holdingPiece.fromHand) {
 				console.log(`drop ${chessObj.holdingPiece.type} to ${chessObj.xToFile(chessObj.holdingPiece.destX)}${chessObj.yToRank(chessObj.holdingPiece.destY)}`);
@@ -754,12 +770,12 @@ class Shogi extends Game {
 		if(fromHand) {
 			// if we're dropping it, we need to include what piece it is
 			dict.push(`type=${extra.type}`);
-		} else {
+		} else if (extra && extra.fromX !== null && extra.fromY !== null) {
 			// if we're not dropping it, we need the from coordinates
 			dict.push(`from=${9 - this.xToFile(extra.fromX)},${9 - this.yToRankWestern(extra.fromY)}`);
 		}
 		
-		if(extra.promotion) {
+		if(extra && extra.promotion !== null) {
 			dict.push(`promotion=${!!extra.promotion}`);
 		}
 		

@@ -38,7 +38,7 @@ public class ChessMatch extends GameMatch {
 	}
 
 	@Override
-	public boolean handleMove(int uid, HttpServletRequest request) {
+	public HandleMoveResult handleMove(int uid, HttpServletRequest request) {
 		
 		String fromPos = request.getParameter("from");
 		if(fromPos != null) {
@@ -68,7 +68,7 @@ public class ChessMatch extends GameMatch {
 		
 		// check if move is valid
 		if(!state.canMove(fromPos, toPos, isWhite)) {
-			return false;
+			return HandleMoveResult.FAIL;
 		}
 		
 		// check if we need to promote
@@ -80,7 +80,7 @@ public class ChessMatch extends GameMatch {
 				this.lastFromPos = fromPos;
 				this.lastToPos = toPos;
 				
-				return true;
+				return HandleMoveResult.NEEDS_MORE_INFO;
 			}
 			
 			// we successfully promoted a piece, reset the pending promotion stuff
@@ -108,7 +108,7 @@ public class ChessMatch extends GameMatch {
 			}
 		}		
 		
-		return true;
+		return HandleMoveResult.SUCCESS;
 	}
     
 	@Override

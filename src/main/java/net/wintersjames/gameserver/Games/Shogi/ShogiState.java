@@ -295,28 +295,35 @@ public class ShogiState extends GameState implements Serializable {
 	
 	public boolean isPromotionOptional(int fromX, int fromY, int toX, int toY) {
 		
-		Piece toPromote = getPieceAt(fromX, fromY);
+		Piece toPromote = getPieceAt(toX, toY);
 		
 		// null pieces, already-promoted pieces, gold generals and kings can't promote
 		if(toPromote == null 
 			|| toPromote.getIsPromoted() 
 			|| toPromote.getType().equals("king")
 			|| toPromote.getType().equals("gold")) {
+			logger.info("promotion not allowed here, isPromoted={}, type={}",
+				toPromote == null ? null : toPromote.getIsPromoted(),
+				toPromote == null ? null : toPromote.getType()
+			);
 			return false;
 		}
 		
 		// piece must either start or end in their promotion zone
 		if(toPromote.getColor() == Piece.Color.WHITE) {
 			if(fromY < 6 && toY < 6) {
+				logger.info("y ({} & {}) >= 6", fromY, toY);
 				return false;
 			}
 		} else {
 			if(fromY > 2 && toY > 2) {
+				logger.info("y ({} & {}) <= 2", fromY, toY);
 				return false;
 			}
 		}
 		
 		if(isPromotionMandatory(toX, toY, toPromote.getType(), toPromote.getColor())) {
+			logger.info("promotion is mandatory");
 			return false;
 		}
 		

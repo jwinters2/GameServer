@@ -168,13 +168,18 @@ public class GameController implements ListenToDisconnects {
         
         GameMatch match = matchManager.getMatch(uid, matchid);
         if(match != null) {
-			boolean success = match.handleMove(uid, request);
-			logger.info("move {}", (success ? "succeeded" : "failed"));
-			if(success) {
+			GameMatch.HandleMoveResult moveResult = match.handleMove(uid, request);
+			logger.info("move {}", moveResult);
+			if(moveResult != GameMatch.HandleMoveResult.FAIL) {
 				
-				// send updates to each player
-				for(int pid: match.getPlayers()) {
-					updateGameForUsers(match, pid);
+				if(moveResult == GameMatch.HandleMoveResult.SUCCESS) {
+					// send updates to each player
+					for(int pid: match.getPlayers()) {
+						updateGameForUsers(match, pid);
+					}
+				} else if (moveResult == GameMatch.HandleMoveResult.NEEDS_MORE_INFO) {
+					// need more info, send info only to that user
+					updateGameForUsers(match, uid);
 				}
 				
 				if(match.getGameState(uid).getStatus() == GameState.Status.INCOMPLETE) {
