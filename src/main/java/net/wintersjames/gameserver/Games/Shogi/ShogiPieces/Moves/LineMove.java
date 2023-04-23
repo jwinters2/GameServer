@@ -28,7 +28,7 @@ public class LineMove extends MoveType {
 		int xToCheck = piece.getX() + this.x;
 		int yToCheck = piece.getY() + (this.y * getDirection(piece));
 		
-		while(xToCheck >= 0 && xToCheck < 9 && yToCheck >= 0 && yToCheck < 9) {
+		while(xToCheck >= 0 && xToCheck < state.boardWidth && yToCheck >= 0 && yToCheck < state.boardWidth) {
 			
 			logger.info("checking ({},{})", xToCheck, yToCheck);
 			// we hit our target point
@@ -57,7 +57,7 @@ public class LineMove extends MoveType {
 		int xToCheck = piece.getX() + this.x;
 		int yToCheck = piece.getY() + this.y;
 		
-		while(xToCheck >= 0 && xToCheck < 9 && yToCheck >= 0 && yToCheck < 9) {
+		while(xToCheck >= 0 && xToCheck < state.boardWidth && yToCheck >= 0 && yToCheck < state.boardWidth) {
 			
 			// we hit our target point
 			if (state.canMove(piece.getX(), piece.getY(), xToCheck, yToCheck, piece.getColor() == Piece.Color.WHITE)) {

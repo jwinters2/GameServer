@@ -50,14 +50,22 @@ class Shogi extends Game {
 	// symbols = western chess pieces
 	displayStyle = "traditional";
 	pieceChars = {
-		"pawn":		{chars: [["歩", "兵"], ["と", "金"]],	abbr: ["歩", "と"],	symbols: ["♟︎", "♟︎"],	size: 27/32},
-		"king":		{chars: [["王", "将"], ["玉", "将"]],	abbr: ["王", "玉"],	symbols: ["♔", "♚"],	size: 32/32},
-		"rook":		{chars: [["飛", "車"], ["龍", "王"]],	abbr: ["飛", "龍"],	symbols: ["♜", "♜"],	size: 31/32},
-		"bishop":	{chars: [["角", "行"], ["龍", "馬"]],	abbr: ["角", "馬"],	symbols: ["♝", "♝"],	size: 31/32},
-		"gold":		{chars: [["金", "将"]],				abbr: ["金"],		symbols: ["☉"],			size: 30/32},
-		"silver":	{chars: [["銀", "将"], ["成", "銀"]],	abbr: ["銀", "全"],	symbols: ["☽", "☽"],	size: 30/32},
-		"knight":	{chars: [["桂", "馬"], ["成", "桂"]],	abbr: ["桂", "圭"],	symbols: ["♞", "♞"],	size: 29/32},
-		"lance":	{chars: [["香", "車"], ["成", "香"]],	abbr: ["香", "杏"],	symbols: ["↟", "↟"],	size: 28/32}
+		"pawn":		{chars: [["歩", "兵"], ["と", "金"]],	abbr: ["歩", "と"],	symbols: ["♟︎", "♟︎"],	
+					 english: ["P", "P"],	hybrid: [["歩", "P"], ["と", "P"]],	size: 27/32},
+		"king":		{chars: [["王", "将"], ["玉", "将"]],	abbr: ["王", "玉"],	symbols: ["♔", "♚"],	
+					 english: ["K", "K"],	hybrid: [["王", "K"], ["玉", "K"]],	size: 32/32},
+		"rook":		{chars: [["飛", "車"], ["龍", "王"]],	abbr: ["飛", "龍"],	symbols: ["♜", "♜"],	
+					 english: ["R", "R"],	hybrid: [["飛", "R"], ["龍", "R"]],	size: 31/32},
+		"bishop":	{chars: [["角", "行"], ["龍", "馬"]],	abbr: ["角", "馬"],	symbols: ["♝", "♝"],	
+					 english: ["B", "B"],	hybrid: [["角", "B"], ["馬", "B"]],	size: 31/32},
+		"gold":		{chars: [["金", "将"]],				abbr: ["金"],		symbols: ["☉"],			
+					 english: ["G"],		hybrid: [["金", "G"]],		size: 30/32},
+		"silver":	{chars: [["銀", "将"], ["成", "銀"]],	abbr: ["銀", "全"],	symbols: ["☽", "☽"],	
+					 english: ["S", "S"],	hybrid: [["銀", "S"], ["全", "S"]],	size: 30/32},
+		"knight":	{chars: [["桂", "馬"], ["成", "桂"]],	abbr: ["桂", "圭"],	symbols: ["♞", "♞"],	
+					 english: ["N", "N"],	hybrid: [["桂", "N"], ["圭", "N"]],	size: 29/32},
+		"lance":	{chars: [["香", "車"], ["成", "香"]],	abbr: ["香", "杏"],	symbols: ["↟", "↟"],	
+					 english: ["L", "L"],	hybrid: [["香", "L"], ["杏", "L"]],	size: 28/32}
 	};
 	pieceOutline = [[0, -1], [0.75, -0.783], [1, 1], [-1, 1], [-0.75, -0.783]];
 	pieceOutlineScale = 0.4;
@@ -116,36 +124,30 @@ class Shogi extends Game {
 				list.style.display = "block";
 			}
 		};
-
-		document.getElementById("optionTraditional").onclick = function () {
-			console.log("setting to traditional");
-			shogi.displayStyle = "traditional";
-			
+		
+		let optionsButtonList = [
+			document.getElementById("optionTraditional"),
+			document.getElementById("optionAbbreviated"),
+			document.getElementById("optionSymbols"),
+			document.getElementById("optionEnglish"),
+			document.getElementById("optionHybrid")
+		];
+		
+		let switchStyle = function(button) {
+			shogi.displayStyle = button.id.replace("option","").toLowerCase();
 			document.getElementById("optionList").style.display = "none";
-			document.getElementById("optionTraditional").classList.add("activeOption");
-			document.getElementById("optionAbbreviated").classList.remove("activeOption");
-			document.getElementById("optionSymbols").classList.remove("activeOption");
+			for(var i=0; i<button.displayButtons.length; i++) {
+				button.displayButtons[i].classList.remove("activeOption");
+				button.classList.add("activeOption");
+			}
 		};
 
-		document.getElementById("optionAbbreviated").onclick = function () {
-			console.log("setting to traditional");
-			shogi.displayStyle = "abbreviated";
-			
-			document.getElementById("optionList").style.display = "none";
-			document.getElementById("optionTraditional").classList.remove("activeOption");
-			document.getElementById("optionAbbreviated").classList.add("activeOption");
-			document.getElementById("optionSymbols").classList.remove("activeOption");
-		};
-
-		document.getElementById("optionSymbols").onclick = function () {
-			console.log("setting to traditional");
-			shogi.displayStyle = "symbols";
-			
-			document.getElementById("optionList").style.display = "none";
-			document.getElementById("optionTraditional").classList.remove("activeOption");
-			document.getElementById("optionAbbreviated").classList.remove("activeOption");
-			document.getElementById("optionSymbols").classList.add("activeOption");
-		};
+		for(var i = 0; i < optionsButtonList.length; i++) {
+			optionsButtonList[i].displayButtons = optionsButtonList;
+			optionsButtonList[i].onclick = function (e) {
+				switchStyle(e.target);
+			};
+		}
 		
 		document.getElementById("optionGuide").onclick = function () {
 			let guideButton = document.getElementById("optionGuide");
@@ -236,21 +238,36 @@ class Shogi extends Game {
 		}
 		
 		// draw text
+		// default is abbreviated
+		var chars = this.pieceChars[piece.type].abbr;
+		switch(this.displayStyle) {
+			case "traditional":
+				chars = this.pieceChars[piece.type].chars;
+				break;
+			case "symbols":
+				chars = this.pieceChars[piece.type].symbols;
+				break;
+			case "english":
+				chars = this.pieceChars[piece.type].english;
+				break;
+			case "hybrid":
+				chars = this.pieceChars[piece.type].hybrid;
+				break;
+		}
+		
 		this.context.fillStyle = piece.isPromoted ? this.promotedColor : this.darkBg;
-		if ( this.displayStyle === "traditional" ) {
+		if ( Array.isArray(chars[0]) && chars[0].length > 1 ) {
+			
 			this.context.font = `${Math.floor(fontSize * 0.7)}px ${this.boardStyle.pieceFont}`;
 			this.context.textBaseline = "bottom";
-			this.context.fillText(this.pieceChars[piece.type].chars[charIndex][0], 0, this.boardStyle.pieceTextYOffset);
+			this.context.fillText(chars[charIndex][0], 0, this.boardStyle.pieceTextYOffset);
 			this.context.textBaseline = "top";
-			this.context.fillText(this.pieceChars[piece.type].chars[charIndex][1], 0, this.boardStyle.pieceTextYOffset);
-		} else if (this.displayStyle === "symbols" ) {
-			this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
-			this.context.textBaseline = "middle";
-			this.context.fillText(this.pieceChars[piece.type].symbols[charIndex], 0, this.boardStyle.pieceTextYOffset);
+			this.context.fillText(chars[charIndex][1], 0, this.boardStyle.pieceTextYOffset);
+			
 		} else {
 			this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
 			this.context.textBaseline = "middle";
-			this.context.fillText(this.pieceChars[piece.type].abbr[charIndex], 0, this.boardStyle.pieceTextYOffset);
+			this.context.fillText(chars[charIndex], 0, this.boardStyle.pieceTextYOffset);
 		}
 		
 		this.resetTransform();
@@ -302,22 +319,37 @@ class Shogi extends Game {
 		}
 
 		// draw text
+		var chars = this.pieceChars[piece.type].abbr;
+		switch(this.displayStyle) {
+			case "traditional":
+				chars = this.pieceChars[piece.type].chars;
+				break;
+			case "symbols":
+				chars = this.pieceChars[piece.type].symbols;
+				break;
+			case "english":
+				chars = this.pieceChars[piece.type].english;
+				break;
+			case "hybrid":
+				chars = this.pieceChars[piece.type].hybrid;
+				break;
+		}
+		
 		this.context.fillStyle = piece.isPromoted ? this.promotedColor : this.darkBg;
-		if ( this.displayStyle === "traditional" ) {
+		if ( Array.isArray(chars[0]) && chars[0].length > 1 ) {
+			
 			this.context.font = `${Math.floor(fontSize * 0.7)}px ${this.boardStyle.pieceFont}`;
 			this.context.textBaseline = "bottom";
-			this.context.fillText(this.pieceChars[piece.type].chars[charIndex][0], 0, this.boardStyle.pieceTextYOffset);
+			this.context.fillText(chars[charIndex][0], 0, this.boardStyle.pieceTextYOffset);
 			this.context.textBaseline = "top";
-			this.context.fillText(this.pieceChars[piece.type].chars[charIndex][1], 0, this.boardStyle.pieceTextYOffset);
-		} else if (this.displayStyle === "symbols" ) {
-			this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
-			this.context.textBaseline = "middle";
-			this.context.fillText(this.pieceChars[piece.type].symbols[charIndex], 0, this.boardStyle.pieceTextYOffset);
+			this.context.fillText(chars[charIndex][1], 0, this.boardStyle.pieceTextYOffset);
+			
 		} else {
 			this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
 			this.context.textBaseline = "middle";
-			this.context.fillText(this.pieceChars[piece.type].abbr[charIndex], 0, this.boardStyle.pieceTextYOffset);
+			this.context.fillText(chars[charIndex], 0, this.boardStyle.pieceTextYOffset);
 		}
+		
 
 		this.resetTransform();
 	}

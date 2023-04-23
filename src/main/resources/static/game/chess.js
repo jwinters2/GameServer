@@ -359,51 +359,55 @@ class Chess extends Game {
 		}
 		
 		// draw pieces
-		try {
-			this.context.font = this.boardStyle.pieceFont;
-			this.pieces.forEach(piece => {
-				if(this.pieceInHand !== null && !this.showPromotionMenu
-						&& this.pieceInHand.x === this.pieceToCanvasXCoord(piece.x)
-						&& this.pieceInHand.y === this.pieceToCanvasYCoord(piece.y)) {
-					
-					// draw transparent piece on board
-					this.context.fillStyle = this.darkBg + "40";
-					this.context.fillText(
-						this.pieceChars[piece.type].charAt(piece.color === "WHITE" ? 0 : 1),
-						this.boardStyle.x + (this.boardStyle.width  * (this.pieceToCanvasXCoord(piece.x) + 0.5)),
-						this.boardStyle.y + (this.boardStyle.height * (this.pieceToCanvasYCoord(piece.y) + 0.5)) + this.boardStyle.pieceYOffset
-					);
-			
-					// draw solid piece in hand
-					this.context.fillStyle = this.darkBg;
-					this.context.fillText(
-						this.pieceChars[piece.type].charAt(piece.color === "WHITE" ? 0 : 1),
-						this.pieceInHand.mouseX,
-						this.pieceInHand.mouseY
-					);
-			
-				} else {
-					this.context.fillStyle = this.darkBg;
-					this.context.fillText(
-						this.pieceChars[piece.type].charAt(piece.color === "WHITE" ? 0 : 1),
-						this.boardStyle.x + (this.boardStyle.width  * (this.pieceToCanvasXCoord(piece.x) + 0.5)),
-						this.boardStyle.y + (this.boardStyle.height * (this.pieceToCanvasYCoord(piece.y) + 0.5)) + this.boardStyle.pieceYOffset
-					);
-				}
+		if(Array.isArray(this.pieces)) {
 
-			});
-		} catch (e) {
-			console.log(e);
-		}
-		
-		// draw last moved piece's previous position
-		if(this.lastMoved !== null) {
-			this.context.fillStyle = this.darkBg + "40";
-			this.context.fillText(
-				this.pieceChars[this.lastMoved.type].charAt(this.lastMoved.color === "WHITE" ? 0 : 1),
-				this.boardStyle.x + (this.boardStyle.width  * (this.pieceToCanvasXCoord(this.lastMoved.x) + 0.5)),
-				this.boardStyle.y + (this.boardStyle.height * (this.pieceToCanvasYCoord(this.lastMoved.y) + 0.5)) + this.boardStyle.pieceYOffset
-			);
+			try {
+				this.context.font = this.boardStyle.pieceFont;
+				this.pieces.forEach(piece => {
+					if(this.pieceInHand !== null && !this.showPromotionMenu
+							&& this.pieceInHand.x === this.pieceToCanvasXCoord(piece.x)
+							&& this.pieceInHand.y === this.pieceToCanvasYCoord(piece.y)) {
+
+						// draw transparent piece on board
+						this.context.fillStyle = this.darkBg + "40";
+						this.context.fillText(
+							this.pieceChars[piece.type].charAt(piece.color === "WHITE" ? 0 : 1),
+							this.boardStyle.x + (this.boardStyle.width  * (this.pieceToCanvasXCoord(piece.x) + 0.5)),
+							this.boardStyle.y + (this.boardStyle.height * (this.pieceToCanvasYCoord(piece.y) + 0.5)) + this.boardStyle.pieceYOffset
+						);
+
+						// draw solid piece in hand
+						this.context.fillStyle = this.darkBg;
+						this.context.fillText(
+							this.pieceChars[piece.type].charAt(piece.color === "WHITE" ? 0 : 1),
+							this.pieceInHand.mouseX,
+							this.pieceInHand.mouseY
+						);
+
+					} else {
+						this.context.fillStyle = this.darkBg;
+						this.context.fillText(
+							this.pieceChars[piece.type].charAt(piece.color === "WHITE" ? 0 : 1),
+							this.boardStyle.x + (this.boardStyle.width  * (this.pieceToCanvasXCoord(piece.x) + 0.5)),
+							this.boardStyle.y + (this.boardStyle.height * (this.pieceToCanvasYCoord(piece.y) + 0.5)) + this.boardStyle.pieceYOffset
+						);
+					}
+
+				});
+			} catch (e) {
+				console.log(e);
+			}
+
+			// draw last moved piece's previous position
+			if(this.lastMoved !== null) {
+				this.context.fillStyle = this.darkBg + "40";
+				this.context.fillText(
+					this.pieceChars[this.lastMoved.type].charAt(this.lastMoved.color === "WHITE" ? 0 : 1),
+					this.boardStyle.x + (this.boardStyle.width  * (this.pieceToCanvasXCoord(this.lastMoved.x) + 0.5)),
+					this.boardStyle.y + (this.boardStyle.height * (this.pieceToCanvasYCoord(this.lastMoved.y) + 0.5)) + this.boardStyle.pieceYOffset
+				);
+			}
+					
 		}
 		
 		// draw promotion menu

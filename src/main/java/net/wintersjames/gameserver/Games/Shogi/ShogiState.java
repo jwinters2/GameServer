@@ -26,6 +26,9 @@ public class ShogiState extends GameState implements Serializable {
 	
 	Logger logger = LoggerFactory.getLogger(ShogiState.class);
 	
+	final public int boardWidth = 9;
+	final public int promotionWidth = 3;
+	
 	private List<Piece> pieces;
 	private Map<String, Integer> whiteHand;
 	private Map<String, Integer> blackHand;
@@ -142,7 +145,7 @@ public class ShogiState extends GameState implements Serializable {
 	public boolean canMove(int fromX, int fromY, int toX, int toY, boolean isWhite) {
 		
 		// check if the position is in bounds
-		if(fromX < 0 || fromX >= 9 || fromY < 0 || fromY >= 9) {
+		if(fromX < 0 || fromX >= boardWidth || fromY < 0 || fromY >= boardWidth) {
 			logger.info("piece is out of bounds");
 			return false;
 		}
@@ -166,7 +169,7 @@ public class ShogiState extends GameState implements Serializable {
 		}
 		
 		// check if the destination is in bounds
-		if(toX < 0 || toX >= 9 || toY < 0 || toY >= 9) {
+		if(toX < 0 || toX >= boardWidth || toY < 0 || toY >= boardWidth) {
 			logger.info("piece destination out of bounds");
 			return false;
 		}
@@ -192,6 +195,12 @@ public class ShogiState extends GameState implements Serializable {
 	
 	public boolean canDrop(int toX, int toY, String pieceType, boolean isWhite) {
 		
+				// check if the position is in bounds
+		if(toX < 0 || toX >= boardWidth || toY < 0 || toY >= boardWidth) {
+			logger.info("piece is out of bounds");
+			return false;
+		}
+		
 		// we can't drop on another piece
 		if(getPieceAt(toX, toY) != null) {
 			return false;
@@ -210,8 +219,8 @@ public class ShogiState extends GameState implements Serializable {
 			return false;
 		}
 		
-		int lastRank = (color == Piece.Color.WHITE ? 8 : 0);
-		int penultimateRank = (color == Piece.Color.WHITE ? 7 : 1);
+		int lastRank = (color == Piece.Color.WHITE ? boardWidth-1 : 0);
+		int penultimateRank = (color == Piece.Color.WHITE ? boardWidth-2 : 1);
 		
 		// pawns, knights and lances can't drop on the last rank
 		if(toY == lastRank && (pieceType.equals("pawn") || pieceType.equals("knight") || pieceType.equals("lance"))) {
@@ -225,7 +234,7 @@ public class ShogiState extends GameState implements Serializable {
 		
 		// pawns can't drop on a file that already has a pawn
 		if(pieceType.equals("pawn")) {
-			for(int y = 0; y < 9; y++) {
+			for(int y = 0; y < boardWidth; y++) {
 				Piece p = getPieceAt(toX, y);
 				if(p instanceof Pawn && !p.getIsPromoted() && p.getColor() == color) {
 					return false;
@@ -333,12 +342,12 @@ public class ShogiState extends GameState implements Serializable {
 		
 		// piece must either start or end in their promotion zone
 		if(toPromote.getColor() == Piece.Color.WHITE) {
-			if(fromY < 6 && toY < 6) {
+			if(fromY < boardWidth - promotionWidth && toY < boardWidth - promotionWidth) {
 				logger.info("y ({} & {}) >= 6", fromY, toY);
 				return false;
 			}
 		} else {
-			if(fromY > 2 && toY > 2) {
+			if(fromY >= promotionWidth && toY >= promotionWidth) {
 				logger.info("y ({} & {}) <= 2", fromY, toY);
 				return false;
 			}
@@ -354,14 +363,14 @@ public class ShogiState extends GameState implements Serializable {
 	
 	public boolean isPromotionMandatory(int toX, int toY, String pieceType, Piece.Color color) {
 		
-		int lastRank = (color == Piece.Color.WHITE ? 8 : 0);
+		int lastRank = (color == Piece.Color.WHITE ? boardWidth-1 : 0);
 		
 		// pawns, knights and lances can't drop on the last rank
 		if(toY == lastRank && (pieceType.equals("pawn") || pieceType.equals("knight") || pieceType.equals("lance"))) {
 			return true;
 		}
 		
-		int penultimateRank = (color == Piece.Color.WHITE ? 7 : 1);
+		int penultimateRank = (color == Piece.Color.WHITE ? boardWidth-2 : 1);
 		
 		// knights also can't drop on the second to last rank
 		if(toY == penultimateRank && pieceType.equals("knight")) {
@@ -387,8 +396,8 @@ public class ShogiState extends GameState implements Serializable {
 		// check for drops
 		Map<String, Integer> hand = (colorToMove == Piece.Color.WHITE ? this.whiteHand : this.blackHand);
 		for(String pieceType: hand.keySet()) {
-			for(int x = 0; x < 9; x++) {
-				for(int y = 0; y < 9; y++) {
+			for(int x = 0; x < boardWidth; x++) {
+				for(int y = 0; y < boardWidth; y++) {
 					if(canDrop(x, y, pieceType, colorToMove == Piece.Color.WHITE)) {
 						return true;
 					}

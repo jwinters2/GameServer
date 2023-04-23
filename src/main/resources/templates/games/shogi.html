@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Yuji+Mai&display=swap" rel="stylesheet"> 
 <script th:src="${contextRoot}+'/game/shogi.js'"></script>
-<div id="canvasParentDiv" class="d-flex justify-content-lg-start justify-content-md-center">
+<div id="canvasParentDiv" class="justify-content-lg-start justify-content-md-center">
     <canvas id="chessCanvas" width="100" height="100" lang="ja"></canvas>
 </div>
 
@@ -14,9 +14,12 @@
             Options
         </button>
         <ul id="optionList" class="dropdown-menu dropdown-menu-dark chess-dark">
+            
             <li><a id="optionTraditional" class="dropdown-item text-reset activeOption" href="#">Traditional</a></li>
             <li><a id="optionAbbreviated" class="dropdown-item text-reset" href="#">Abbreviated</a></li>
             <li><a id="optionSymbols" class="dropdown-item text-reset" href="#">Symbols</a></li>
+            <li><a id="optionEnglish" class="dropdown-item text-reset" href="#">English</a></li>
+            <li><a id="optionHybrid" class="dropdown-item text-reset" href="#">Hybrid</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a id="optionGuide" class="dropdown-item text-reset activeOption" href="#">Piece Guides On</a></li>
 
