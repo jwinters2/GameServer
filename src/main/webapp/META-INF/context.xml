@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context path="/gameserver">
     <!-- local -->
-<!-- --> 
+<!-- 
     <Environment name="spring.config.location" value="classpath:application.properties,file:/usr/share/tomcat10/conf/gameserver/config.properties" type="java.lang.String"/> 
-<!-- -->  
+ -->  
 
     
     <!-- prod -->
-<!--
+<!-- -->
     <Environment name="spring.config.location" value="classpath:application.properties,file:/usr/local/tomcat/conf/gameserver/config.properties" type="java.lang.String"/>
---> 
+<!-- --> 
 </Context>

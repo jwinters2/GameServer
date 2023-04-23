@@ -36,5 +36,8 @@ build/
 src/main/resources/application.properties
 
 *.log
+*.pem
 /tomcatJars/
-/kubernetes/
+/kubernetes/tomcat/wars/
+/kubernetes/tomcat/regcred.yaml
+/kubernetes/postgresql/
