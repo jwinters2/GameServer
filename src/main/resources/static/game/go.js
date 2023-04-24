@@ -3,6 +3,20 @@ class Go extends Game {
 	stones = null;
 	territory = null;
 	whiteToMove = null;
+	lastPlacedStone = null;
+	
+	scoreInfo = {
+		white: {
+			prisoners: 0,
+			territory: 0,
+			komi: 0
+		},
+		black: {
+			prisoners: 0,
+			territory: 0,
+			komi: 6.5
+		}
+	};
 	
 	playerIsWhite = null;
 	
@@ -16,11 +30,12 @@ class Go extends Game {
 	
 	boardStyle = {
 		x: 100, 
-		y: 100, 
+		y: 150, 
 		width: 50, 
 		height: 50,
 		pieceRadius: 24,
-		lineWidth: 2
+		lineWidth: 2,
+		scoreTextOffset: 10
 	};
 	
 	boardWidth = 0;
@@ -81,11 +96,17 @@ class Go extends Game {
 		this.boardAspectRatio = this.boardHeight/this.boardWidth;
 	}
 	
-	getStoneAt(x, y) {
+	getStoneAt(x, y, colorFilter) {
 		if(this.stones) {
 			for(var i=0; i<this.stones.length; i++) {
 				if(this.stones[i].x === x && this.stones[i].y === y) {
-					return this.stones[i];
+					if(!colorFilter || this.stones[i].color === colorFilter) {
+						// if there's no filter, or if the stone is the same color as the filter, return this stone
+						return this.stones[i];
+					} else {
+						// otherwise return null
+						return null;
+					}
 				}
 			}
 		}
@@ -139,8 +160,11 @@ class Go extends Game {
 				}
 			}
 			
+			const tx = (this.playerIsWhite ? 1: -1);
+			const ty = (this.playerIsWhite ? -1: 1);
+			
 			// check for board edge left and right
-			if(stone.x - 1 < 0 || stone.x - 1 >= 19) {
+			if(this.getStoneAt(stone.x - 1, stone.y, stone.color) || stone.x === 0) {
 				if(drawSegments[0]) {
 					drawSegments[7] = true;
 				}
@@ -148,7 +172,7 @@ class Go extends Game {
 					drawSegments[6] = true;
 				}
 			}
-			if(stone.x + 1 < 0 || stone.x + 1 >= 19) {
+			if(this.getStoneAt(stone.x + 1, stone.y, stone.color) || stone.x === 19 - 1) {
 				if(drawSegments[1]) {
 					drawSegments[2] = true;
 				}
@@ -157,8 +181,8 @@ class Go extends Game {
 				}
 			}
 			
-			// check for board edge above
-			if(stone.y - 1 < 0 || stone.y - 1 >= 19) {
+			// check for board edge above and below
+			if(this.getStoneAt(stone.x, stone.y - 1, stone.color) || stone.y === 0) {
 				if(drawSegments[3]) {
 					drawSegments[4] = true;
 				}
@@ -166,7 +190,7 @@ class Go extends Game {
 					drawSegments[5] = true;
 				}
 			}
-			if(stone.y + 1 < 0 || stone.y + 1 >= 19) {
+			if(this.getStoneAt(stone.x, stone.y + 1, stone.color) || stone.y === 19 - 1) {
 				if(drawSegments[7]) {
 					drawSegments[0] = true;
 				}
@@ -175,8 +199,7 @@ class Go extends Game {
 				}
 			}
 			
-			const tx = (this.playerIsWhite ? 1: -1);
-			const ty = (this.playerIsWhite ? -1: 1);
+
 			for(let i=0; i < 8; i++) {
 				if(drawSegments[i]) {
 					this.context.beginPath();
@@ -186,43 +209,6 @@ class Go extends Game {
 					this.context.fill();
 				}
 			}
-			
-			/*
-
-			if(stone.x !== 0 && this.territory[stone.x - 1][stone.y] === stone.color.toLowerCase()[0]) {
-				this.context.beginPath();
-				this.context.moveTo(0, 0);
-				this.context.lineTo(-this.boardStyle.width/2 * tx, -this.boardStyle.height/2 * ty);
-				this.context.lineTo(-this.boardStyle.width/2 * tx,  this.boardStyle.height/2 * ty);
-				this.context.fill();
-
-			}
-			if(stone.x !== 19-1 && this.territory[stone.x + 1][stone.y] === stone.color.toLowerCase()[0]) {
-				this.context.beginPath();
-				this.context.moveTo(0, 0);
-				this.context.lineTo( this.boardStyle.width/2 * tx, -this.boardStyle.height/2 * ty);
-				this.context.lineTo( this.boardStyle.width/2 * tx,  this.boardStyle.height/2 * ty);
-				this.context.fill();
-
-			}
-			if(stone.y !== 0 && this.territory[stone.x][stone.y - 1] === stone.color.toLowerCase()[0]) {
-				this.context.beginPath();
-				this.context.moveTo(0, 0);
-				this.context.lineTo(-this.boardStyle.width/2 * tx, -this.boardStyle.height/2 * ty);
-				this.context.lineTo( this.boardStyle.width/2 * tx, -this.boardStyle.height/2 * ty);
-				this.context.fill();
-
-			}
-			if(stone.y !== 19-1 && this.territory[stone.x][stone.y + 1] === stone.color.toLowerCase()[0]) {
-				this.context.beginPath();
-				this.context.moveTo(0, 0);
-				this.context.lineTo(-this.boardStyle.width/2 * tx,  this.boardStyle.height/2 * ty);
-				this.context.lineTo( this.boardStyle.width/2 * tx,  this.boardStyle.height/2 * ty);
-				this.context.fill();
-
-			}	
-			 * 
-			 */
 			this.context.globalAlpha = 1;
 		}
 		
@@ -246,7 +232,40 @@ class Go extends Game {
 			this.context.fillText(stone.liberties, 0, 0);
 		}
 		
+		// draw marker if this is the last placed stone
+		if(this.lastPlacedStone && this.lastPlacedStone.x === stone.x && this.lastPlacedStone.y === stone.y) {
+
+			this.context.strokeStyle = (stone.color === "WHITE") ? this.blackPieceColor : this.whitePieceColor;	
+			this.context.beginPath();
+			this.context.arc(0, 0, this.boardStyle.pieceRadius/2, 0, 2 * Math.PI);
+			this.context.stroke();
+		}
+		
 		this.resetTransform();
+	}
+	
+	drawScoreInfo(color, info) {
+		
+		this.context.font = "24px sans-serif";
+		this.context.textAlign = "start";
+		
+		let x = this.boardStyle.x + this.boardStyle.scoreTextOffset;
+		let y = this.boardStyle.y - this.boardStyle.scoreTextOffset;
+		if((color === "white") === this.playerIsWhite) {
+			// player's score: draw on the botton
+			y = this.boardStyle.y + (this.boardStyle.height * (19-1)) + this.boardStyle.scoreTextOffset;;
+			this.context.textBaseline = "top";
+		} else {
+			// opponen't score: draw on the top	
+			this.context.textBaseline = "bottom";
+		}
+		
+		let scoreText = `Score: ${info.prisoners + info.territory + info.komi}`;
+		let prisonerText = `${info.prisoners} prisoner${info.prisoners === 1 ? "" : "s"}`;
+		let territoryText = `${info.territory} territory`;
+		
+		this.context.fillStyle = (color === "white" ? this.whitePieceColor : this.blackPieceColor);
+		this.context.fillText(`${scoreText} (${prisonerText}, ${territoryText})`, x, y);
 	}
 	
 	draw() {
@@ -321,6 +340,10 @@ class Go extends Game {
 				this.drawStone(this.stones[i]);
 			}	
 		}
+		
+		// draw score info
+		this.drawScoreInfo("white", this.scoreInfo.white);
+		this.drawScoreInfo("black", this.scoreInfo.black);
 	}
 	
 	handleUpdate(update, chessObj) {
@@ -331,6 +354,13 @@ class Go extends Game {
 		if(update.type === "goState") {
 			chessObj.stones = update.stones;
 			chessObj.territory = update.territory;
+			chessObj.lastPlacedStone = update.lastPlacedStone;
+			
+			chessObj.scoreInfo.white.prisoners = update.whitePrisoners;
+			chessObj.scoreInfo.white.territory = update.whiteTerritoryScore;
+			chessObj.scoreInfo.black.prisoners = update.blackPrisoners;
+			chessObj.scoreInfo.black.territory = update.blackTerritoryScore;
+			
 			chessObj.handleResult(update.status, update.winner);
 			chessObj.draw();
 		}	

@@ -2,6 +2,7 @@ package net.wintersjames.gameserver.Games.Go;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ public class Stone implements Serializable {
 	}
 	
 	private void calculateLiberties(GoState state, Set<Stone> stones, Set<String> liberties) {
-		logger.info("begin calculate liberties for stone {},{}", x, y);
+		//logger.info("begin calculate liberties for stone {},{}", x, y);
 		if(stones.contains(this)) {
 			return;
 		}
@@ -76,17 +77,55 @@ public class Stone implements Serializable {
 				Stone newStone = state.getStoneAt(nextX, nextY);
 
 				if(newStone != null) {
-					logger.info("recursive newStone: {},{}", nextX, nextY);
+					//logger.info("recursive newStone: {},{}", nextX, nextY);
 					if(newStone.getColor() == this.color) {
 						newStone.calculateLiberties(state, stones, liberties);
 					}
 				} else {
-					logger.info("new liberty for stone: {},{}", nextX, nextY);
+					//logger.info("new liberty for stone: {},{}", nextX, nextY);
 					liberties.add(Integer.toString(nextX) + "," + Integer.toString(nextY));
 				}
 
 			}
 		}
 	}
+	
+	public Stone deepCopy() {
+		Stone retval = new Stone(this.x, this.y, this.color);
+		retval.liberties = this.liberties;
+		return retval;
+	}
+
+	@Override
+	public int hashCode() {
+		int hash = 7;
+		hash = 59 * hash + this.x;
+		hash = 59 * hash + this.y;
+		hash = 59 * hash + Objects.hashCode(this.color);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Stone other = (Stone) obj;
+		if (this.x != other.x) {
+			return false;
+		}
+		if (this.y != other.y) {
+			return false;
+		}
+		return this.color == other.color;
+	}
+	
+	
 
 }

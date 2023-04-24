@@ -49,10 +49,21 @@ public class GoMatch extends GameMatch {
 			return HandleMoveResult.FAIL;
 		}
 		
-		state.placeStone(x, y, movingColor);
-		state.calculateLiberties();
-		state.calculateTerritory();
-		state.nextMove();
+		GoState nextState = new GoState(state);
+		nextState.removeIfLastLibertyTaken(x, y, movingColor);
+		nextState.placeStone(x, y, movingColor);
+		logger.info("state hash: {}", nextState.boardStateHash());
+		if(state.containsPreviousState(nextState)) {
+			// ko rule, we're not allowed to repeat a position
+			return HandleMoveResult.FAIL;
+		}
+		
+		this.gameState = nextState;
+		
+		nextState.calculateLiberties();
+		nextState.nextMove();
+		
+		nextState.calculateTerritory();
 		
 		return HandleMoveResult.SUCCESS;
 	}
