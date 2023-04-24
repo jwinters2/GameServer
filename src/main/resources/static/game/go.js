@@ -81,6 +81,17 @@ class Go extends Game {
 		this.boardAspectRatio = this.boardHeight/this.boardWidth;
 	}
 	
+	getStoneAt(x, y) {
+		if(this.stones) {
+			for(var i=0; i<this.stones.length; i++) {
+				if(this.stones[i].x === x && this.stones[i].y === i) {
+					return this.stones[i];
+				}
+			}
+		}
+		return null;
+	}
+	
 	drawStone(stone, xOffset = 0, yOffset = 0) {
 		
 		this.context.lineWidth = this.boardStyle.lineWidth;
@@ -98,11 +109,87 @@ class Go extends Game {
 		this.context.fillStyle = pieceColor;
 		
 		// draw territory
-		/*
 		if(this.territory) {
+			
 			this.context.globalAlpha = 0.25;
+			// adjust for player color
 			const tx = (this.playerIsWhite ?  1 : -1);
 			const ty = (this.playerIsWhite ? -1 :  1);
+			
+			const boundaryXs = [-1, 0, 1, 1, 1, 0, -1, -1, -1];
+			const boundaryYs = [1, 1, 1, 0, -1, -1, -1, 0, 1];
+			
+			// which segment under the piece to draw territory for
+			//   0 1
+			// 7     2
+			// 6     3
+			//   5 4
+			let drawSegments = [false, false, false, false, false, false, false, false];
+			
+			for(let i=0; i < 8; i++) {
+				let bx = stone.x + boundaryXs[i];
+				let by = stone.y + boundaryYs[i];
+				
+				if(bx >= 0 && bx < 19 && by >= 0 && by < 19
+				&& this.territory[bx][by] === stone.color.toLowerCase()[0]) {
+					if(i === 0) {
+						drawSegments[0] = true;
+						drawSegments[7] = true;
+					} else {
+						drawSegments[i] = true;
+						drawSegments[i-1] = true;
+					}
+				}
+			}
+			
+			// check for stone/board edge left and right
+			if(this.getStoneAt(x - tx, y) || x - tx < 0 || x - tx >= 19) {
+				if(drawSegments[0]) {
+					drawSegments[7] = true;
+				}
+				if(drawSegments[5]) {
+					drawSegments[6] = true;
+				}
+			}
+			if(this.getStoneAt(x + tx, y) || x + tx < 0 || x + tx >= 19) {
+				if(drawSegments[1]) {
+					drawSegments[2] = true;
+				}
+				if(drawSegments[4]) {
+					drawSegments[3] = true;
+				}
+			}
+			
+			// check for stone/board edge above
+			if(this.getStoneAt(x, y - ty) || y - ty < 0 || y - ty >= 19) {
+				if(drawSegments[3]) {
+					drawSegments[4] = true;
+				}
+				if(drawSegments[6]) {
+					drawSegments[5] = true;
+				}
+			}
+			if(this.getStoneAt(x, y + ty) || y + ty < 0 || y + ty >= 19) {
+				if(drawSegments[7]) {
+					drawSegments[0] = true;
+				}
+				if(drawSegments[2]) {
+					drawSegments[1] = true;
+				}
+			}
+			
+			for(let i=0; i < 8; i++) {
+				if(drawSegments[i]) {
+					this.context.beginPath();
+					this.context.moveTo(0, 0);
+					this.context.lineTo(boundaryXs[i]   * this.boardStyle.width/2 * tx, boundaryYs[i]   * this.boardStyle.height/2 * ty);
+					this.context.lineTo(boundaryXs[i+1] * this.boardStyle.width/2 * tx, boundaryYs[i+1] * this.boardStyle.height/2 * ty);
+					this.context.fill();
+				}
+			}
+			
+			/*
+
 			if(stone.x !== 0 && this.territory[stone.x - 1][stone.y] === stone.color.toLowerCase()[0]) {
 				this.context.beginPath();
 				this.context.moveTo(0, 0);
@@ -135,9 +222,10 @@ class Go extends Game {
 				this.context.fill();
 
 			}	
+			 * 
+			 */
 			this.context.globalAlpha = 1;
 		}
-		*/
 		
 		// fill color
 		this.context.beginPath();
