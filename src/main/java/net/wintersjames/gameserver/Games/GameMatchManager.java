@@ -47,11 +47,8 @@ public class GameMatchManager {
 		// otherwise start a new one
         if(newMatch == null)
 		{
-			if (invite.getGameStr().toLowerCase().equals("chess")) {
-				newMatch = new ChessMatch(invite.getTimestamp(), invite.getToUid(), invite.getFromUid());
-			} else if (invite.getGameStr().toLowerCase().equals("shogi")) {
-				newMatch = new ShogiMatch(invite.getTimestamp(), invite.getToUid(), invite.getFromUid());
-			} 
+			newMatch = GameUtils.newMatch(invite);
+
         }
         
         if(newMatch != null) {

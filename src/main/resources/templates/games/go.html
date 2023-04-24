@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<meta name="playerColor" th:content="${playerColor}" />
+<script th:src="${contextRoot}+'/game/go.js'"></script>
+<div id="canvasParentDiv" class="justify-content-lg-start justify-content-md-center">
+    <canvas id="chessCanvas" width="100" height="100" lang="ja"></canvas>
+</div>
+
+<script th:inline="javascript">
+    go.init(/*[[${myuid}]]*/, /*[[${game}]]*/, /*[[${matchid}]]*/);
+</script>

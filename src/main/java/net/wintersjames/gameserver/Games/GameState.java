@@ -14,6 +14,7 @@ public abstract class GameState  implements Serializable {
         INCOMPLETE,
     }
 	
+	
 	final private String type;
 	private Status status;
 	private Integer winner;

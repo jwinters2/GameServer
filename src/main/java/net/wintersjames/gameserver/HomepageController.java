@@ -17,6 +17,7 @@ import net.wintersjames.gameserver.Session.SessionState;
 import net.wintersjames.gameserver.Session.SessionStateManager;
 import net.wintersjames.gameserver.Games.Chess.Chess;
 import net.wintersjames.gameserver.Games.Game;
+import net.wintersjames.gameserver.Games.Go.Go;
 import net.wintersjames.gameserver.Games.Shogi.Shogi;
 import net.wintersjames.gameserver.User.User;
 import net.wintersjames.gameserver.User.UserService;
@@ -108,7 +109,8 @@ public class HomepageController {
         List<Game> games = new ArrayList<>();
         games.add(new Chess());       
         games.add(new Shogi());
-        
+        games.add(new Go());
+		
         model.addAttribute("username", username);
         model.addAttribute("uid", state.getLoginState().getUid());
         model.addAttribute("games", games);

@@ -31,15 +31,9 @@ public class ShogiMatch extends GameMatch {
 		this.whitePlayer = whitePlayer;
 		this.blackPlayer = blackPlayer;
     }
-	
-	public enum MoveResult {
-		SUCCESS,
-		FAIL,
-		NEEDS_PROMOTION
-	}
 
 	@Override
-	public HandleMoveResult handleMove(int uid, HttpServletRequest request) {
+	public GameMatch.HandleMoveResult handleMove(int uid, HttpServletRequest request) {
 		
 		String promotionStr = request.getParameter("promotion");
 		if(promotionStr != null) {

@@ -813,6 +813,7 @@ class Shogi extends Game {
 			chessObj.piecesInHand.black.sort(sortFunction);
 			
 			chessObj.handleResult(update.status, update.winner);
+			chessObj.draw();
 		}	
 	}
 	
