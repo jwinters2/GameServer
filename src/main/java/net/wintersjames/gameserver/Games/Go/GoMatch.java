@@ -50,6 +50,8 @@ public class GoMatch extends GameMatch {
 		}
 		
 		state.placeStone(x, y, movingColor);
+		state.calculateLiberties();
+		state.calculateTerritory();
 		state.nextMove();
 		
 		return HandleMoveResult.SUCCESS;

@@ -1,6 +1,7 @@
 class Go extends Game {
 	
 	stones = null;
+	territory = null;
 	whiteToMove = null;
 	
 	playerIsWhite = null;
@@ -11,6 +12,7 @@ class Go extends Game {
 	whitePieceColor = "#ffffff";
 	blackPieceColor = "#221100";
 	pieceBorderColor = "#000000";
+	neutralColor = "#908880"
 	
 	boardStyle = {
 		x: 100, 
@@ -24,6 +26,8 @@ class Go extends Game {
 	boardWidth = 0;
 	boardHeight = 0;
 	boardAspectRatio = 1;
+	
+	showLiberties = true;
 	
 	lastMoved = null;
 	
@@ -90,10 +94,52 @@ class Go extends Game {
 			this.boardStyle.y + (this.boardStyle.height * y)
 		);
 		
-		const pieceColor = (stone.color === "WHITE") ? this.whitePieceColor : this.blackPieceColor;
+		const pieceColor = (stone.color === "WHITE") ? this.whitePieceColor : this.blackPieceColor;	
+		this.context.fillStyle = pieceColor;
+		
+		// draw territory
+		/*
+		if(this.territory) {
+			this.context.globalAlpha = 0.25;
+			const tx = (this.playerIsWhite ?  1 : -1);
+			const ty = (this.playerIsWhite ? -1 :  1);
+			if(stone.x !== 0 && this.territory[stone.x - 1][stone.y] === stone.color.toLowerCase()[0]) {
+				this.context.beginPath();
+				this.context.moveTo(0, 0);
+				this.context.lineTo(-this.boardStyle.width/2 * tx, -this.boardStyle.height/2 * ty);
+				this.context.lineTo(-this.boardStyle.width/2 * tx,  this.boardStyle.height/2 * ty);
+				this.context.fill();
+
+			}
+			if(stone.x !== 19-1 && this.territory[stone.x + 1][stone.y] === stone.color.toLowerCase()[0]) {
+				this.context.beginPath();
+				this.context.moveTo(0, 0);
+				this.context.lineTo( this.boardStyle.width/2 * tx, -this.boardStyle.height/2 * ty);
+				this.context.lineTo( this.boardStyle.width/2 * tx,  this.boardStyle.height/2 * ty);
+				this.context.fill();
+
+			}
+			if(stone.y !== 0 && this.territory[stone.x][stone.y - 1] === stone.color.toLowerCase()[0]) {
+				this.context.beginPath();
+				this.context.moveTo(0, 0);
+				this.context.lineTo(-this.boardStyle.width/2 * tx, -this.boardStyle.height/2 * ty);
+				this.context.lineTo( this.boardStyle.width/2 * tx, -this.boardStyle.height/2 * ty);
+				this.context.fill();
+
+			}
+			if(stone.y !== 19-1 && this.territory[stone.x][stone.y + 1] === stone.color.toLowerCase()[0]) {
+				this.context.beginPath();
+				this.context.moveTo(0, 0);
+				this.context.lineTo(-this.boardStyle.width/2 * tx,  this.boardStyle.height/2 * ty);
+				this.context.lineTo( this.boardStyle.width/2 * tx,  this.boardStyle.height/2 * ty);
+				this.context.fill();
+
+			}	
+			this.context.globalAlpha = 1;
+		}
+		*/
 		
 		// fill color
-		this.context.fillStyle = pieceColor;
 		this.context.beginPath();
 		this.context.arc(0, 0, this.boardStyle.pieceRadius, 0, 2 * Math.PI);
 		this.context.fill();
@@ -103,6 +149,15 @@ class Go extends Game {
 		this.context.beginPath();
 		this.context.arc(0, 0, this.boardStyle.pieceRadius, 0, 2 * Math.PI);
 		this.context.stroke();
+		
+		// draw liberty count
+		if(this.showLiberties) {
+			this.context.font = "24px sans-serif";
+			this.context.fillStyle = this.neutralColor;
+			this.context.textBaseline = "middle";
+			this.context.textAlign = "center";
+			this.context.fillText(stone.liberties, 0, 0);
+		}
 		
 		this.resetTransform();
 	}
@@ -117,6 +172,29 @@ class Go extends Game {
 		this.context.lineWidth = this.boardStyle.lineWidth;
 		this.context.lineCap = "round";
 		
+		
+		// draw territory
+		if(this.territory) {
+			this.context.globalAlpha = 0.25;
+			for(var x=0; x<19; x++) {
+				for(var y=0; y<19; y++) {
+					if(this.territory[x][y] === 'b' || this.territory[x][y] === 'w') {
+						const bx = (this.playerIsWhite ? x : (19 - 1 - x));
+						const by = (this.playerIsWhite ? (19 - 1 - y) : y);
+						
+						this.context.fillStyle = (this.territory[x][y] === 'w' ? this.whitePieceColor : this.blackPieceColor);
+						this.context.fillRect(
+							this.boardStyle.x + (this.boardStyle.width * (bx - 0.5)),
+							this.boardStyle.y + (this.boardStyle.height * (by - 0.5)),
+							this.boardStyle.width,
+							this.boardStyle.height
+						);
+					}
+				}
+			}
+			this.context.globalAlpha = 1;
+		}
+
 		this.context.fillStyle = this.darkBg;
 		this.context.strokeStyle = this.darkBg;
 		
@@ -165,6 +243,7 @@ class Go extends Game {
 		// check if this is the format we're expecting
 		if(update.type === "goState") {
 			chessObj.stones = update.stones;
+			chessObj.territory = update.territory;
 			chessObj.handleResult(update.status, update.winner);
 			chessObj.draw();
 		}	
