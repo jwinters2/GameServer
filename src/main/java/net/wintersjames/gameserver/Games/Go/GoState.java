@@ -22,6 +22,63 @@ public class GoState extends GameState {
 		stones = new ArrayList<>();
 		this.whiteToMove = false;
 		this.territory = new char[boardWidth][boardWidth];
+		
+		
+		stones.add(new Stone(16, 7, Stone.Color.BLACK));
+		stones.add(new Stone(1, 12, Stone.Color.WHITE));
+		stones.add(new Stone(15, 6, Stone.Color.BLACK));
+		stones.add(new Stone(2, 13, Stone.Color.WHITE));
+		stones.add(new Stone(14, 7, Stone.Color.BLACK));
+		stones.add(new Stone(3, 12, Stone.Color.WHITE));
+		stones.add(new Stone(13, 6, Stone.Color.BLACK));
+		stones.add(new Stone(4, 13, Stone.Color.WHITE));
+		stones.add(new Stone(12, 7, Stone.Color.BLACK));
+		stones.add(new Stone(5, 12, Stone.Color.WHITE));
+		stones.add(new Stone(16, 8, Stone.Color.BLACK));
+		stones.add(new Stone(5, 11, Stone.Color.WHITE));
+		stones.add(new Stone(12, 8, Stone.Color.BLACK));
+		stones.add(new Stone(1, 11, Stone.Color.WHITE));
+		stones.add(new Stone(15, 9, Stone.Color.BLACK));
+		stones.add(new Stone(2, 10, Stone.Color.WHITE));
+		stones.add(new Stone(13, 9, Stone.Color.BLACK));
+		stones.add(new Stone(4, 10, Stone.Color.WHITE));
+		stones.add(new Stone(14, 10, Stone.Color.BLACK));
+		stones.add(new Stone(3, 9, Stone.Color.WHITE));
+		stones.add(new Stone(15, 18, Stone.Color.BLACK));
+		stones.add(new Stone(2, 0, Stone.Color.WHITE));
+		stones.add(new Stone(14, 17, Stone.Color.BLACK));
+		stones.add(new Stone(1, 1, Stone.Color.WHITE));
+		stones.add(new Stone(13, 17, Stone.Color.BLACK));
+		stones.add(new Stone(2, 2, Stone.Color.WHITE));
+		stones.add(new Stone(12, 18, Stone.Color.BLACK));
+		stones.add(new Stone(3, 2, Stone.Color.WHITE));
+		stones.add(new Stone(11, 17, Stone.Color.BLACK));
+		stones.add(new Stone(4, 1, Stone.Color.WHITE));
+		stones.add(new Stone(10, 18, Stone.Color.BLACK));
+		stones.add(new Stone(5, 6, Stone.Color.WHITE));
+		stones.add(new Stone(15, 13, Stone.Color.BLACK));
+		stones.add(new Stone(5, 5, Stone.Color.WHITE));
+		stones.add(new Stone(15, 14, Stone.Color.BLACK));
+		stones.add(new Stone(5, 4, Stone.Color.WHITE));
+		stones.add(new Stone(15, 12, Stone.Color.BLACK));
+		stones.add(new Stone(6, 7, Stone.Color.WHITE));
+		stones.add(new Stone(14, 15, Stone.Color.BLACK));
+		stones.add(new Stone(7, 7, Stone.Color.WHITE));
+		stones.add(new Stone(14, 11, Stone.Color.BLACK));
+		stones.add(new Stone(8, 7, Stone.Color.WHITE));
+		stones.add(new Stone(13, 11, Stone.Color.BLACK));
+		stones.add(new Stone(9, 6, Stone.Color.WHITE));
+		stones.add(new Stone(12, 11, Stone.Color.BLACK));
+		stones.add(new Stone(9, 5, Stone.Color.WHITE));
+		stones.add(new Stone(11, 11, Stone.Color.BLACK));
+		stones.add(new Stone(9, 4, Stone.Color.WHITE));
+		stones.add(new Stone(10, 12, Stone.Color.BLACK));
+		stones.add(new Stone(8, 3, Stone.Color.WHITE));
+		stones.add(new Stone(10, 13, Stone.Color.BLACK));
+		stones.add(new Stone(7, 3, Stone.Color.WHITE));
+		stones.add(new Stone(10, 14, Stone.Color.BLACK));
+		stones.add(new Stone(6, 3, Stone.Color.WHITE));
+		
 		this.calculateTerritory();
 	}
 

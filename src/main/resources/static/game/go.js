@@ -84,7 +84,7 @@ class Go extends Game {
 	getStoneAt(x, y) {
 		if(this.stones) {
 			for(var i=0; i<this.stones.length; i++) {
-				if(this.stones[i].x === x && this.stones[i].y === i) {
+				if(this.stones[i].x === x && this.stones[i].y === y) {
 					return this.stones[i];
 				}
 			}
@@ -112,9 +112,6 @@ class Go extends Game {
 		if(this.territory) {
 			
 			this.context.globalAlpha = 0.25;
-			// adjust for player color
-			const tx = (this.playerIsWhite ?  1 : -1);
-			const ty = (this.playerIsWhite ? -1 :  1);
 			
 			const boundaryXs = [-1, 0, 1, 1, 1, 0, -1, -1, -1];
 			const boundaryYs = [1, 1, 1, 0, -1, -1, -1, 0, 1];
@@ -142,8 +139,8 @@ class Go extends Game {
 				}
 			}
 			
-			// check for stone/board edge left and right
-			if(this.getStoneAt(x - tx, y) || x - tx < 0 || x - tx >= 19) {
+			// check for board edge left and right
+			if(stone.x - 1 < 0 || stone.x - 1 >= 19) {
 				if(drawSegments[0]) {
 					drawSegments[7] = true;
 				}
@@ -151,7 +148,7 @@ class Go extends Game {
 					drawSegments[6] = true;
 				}
 			}
-			if(this.getStoneAt(x + tx, y) || x + tx < 0 || x + tx >= 19) {
+			if(stone.x + 1 < 0 || stone.x + 1 >= 19) {
 				if(drawSegments[1]) {
 					drawSegments[2] = true;
 				}
@@ -160,8 +157,8 @@ class Go extends Game {
 				}
 			}
 			
-			// check for stone/board edge above
-			if(this.getStoneAt(x, y - ty) || y - ty < 0 || y - ty >= 19) {
+			// check for board edge above
+			if(stone.y - 1 < 0 || stone.y - 1 >= 19) {
 				if(drawSegments[3]) {
 					drawSegments[4] = true;
 				}
@@ -169,7 +166,7 @@ class Go extends Game {
 					drawSegments[5] = true;
 				}
 			}
-			if(this.getStoneAt(x, y + ty) || y + ty < 0 || y + ty >= 19) {
+			if(stone.y + 1 < 0 || stone.y + 1 >= 19) {
 				if(drawSegments[7]) {
 					drawSegments[0] = true;
 				}
@@ -178,6 +175,8 @@ class Go extends Game {
 				}
 			}
 			
+			const tx = (this.playerIsWhite ? 1: -1);
+			const ty = (this.playerIsWhite ? -1: 1);
 			for(let i=0; i < 8; i++) {
 				if(drawSegments[i]) {
 					this.context.beginPath();
