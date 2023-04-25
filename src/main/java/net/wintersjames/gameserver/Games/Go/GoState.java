@@ -22,6 +22,7 @@ public class GoState extends GameState {
 	int blackPrisoners;
 	int whiteTerritoryScore;
 	int blackTerritoryScore;
+	int consecutivePasses;
 	
 	private boolean whiteToMove;
 	public final int boardWidth = 19;
@@ -55,6 +56,7 @@ public class GoState extends GameState {
 		}
 		
 		this.lastPlacedStone = null;
+		this.consecutivePasses = 0;
 	}
 	
 	public GoState(GoState other) {
@@ -77,6 +79,7 @@ public class GoState extends GameState {
 		}
 		
 		this.lastPlacedStone = other.lastPlacedStone == null ? null : other.lastPlacedStone.deepCopy();
+		this.consecutivePasses = other.consecutivePasses;
 	}
 
 	// todo: guarantee no hash collisions
@@ -120,7 +123,10 @@ public class GoState extends GameState {
 	public Stone getLastPlacedStone() {
 		return lastPlacedStone;
 	}
-	
+
+	public int getConsecutivePasses() {
+		return consecutivePasses;
+	}
 	
 	public Stone getStoneAt(int x, int y) {
 		for(Stone stone: this.stones) {
@@ -226,6 +232,8 @@ public class GoState extends GameState {
 	}
 
 	public void nextMove() {
+		this.consecutivePasses = 0;
+		
 		this.stones.sort(new StoneComparator());
 		this.previousStates.add(boardStateHash());
 		
@@ -234,6 +242,12 @@ public class GoState extends GameState {
 			logger.info("board state {}: {}", i, psa[i]);
 		}
 		
+		this.whiteToMove = !this.whiteToMove;
+	}
+	
+	public void pass() {
+		this.consecutivePasses++;
+		this.lastPlacedStone = null;
 		this.whiteToMove = !this.whiteToMove;
 	}
 
@@ -245,15 +259,6 @@ public class GoState extends GameState {
 	
 	boolean containsPreviousState(GoState other) {
 		return this.previousStates.contains(other.boardStateHash());
-		/*
-		long otherHash = other.boardStateHash();
-		for(long prevState: this.previousStates) {
-			if(prevState == otherHash) {
-				return true;
-			}
-		}
-		return false;
-		*/
 	}
 	
 	void calculateTerritory() {

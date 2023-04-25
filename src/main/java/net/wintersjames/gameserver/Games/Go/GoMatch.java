@@ -30,6 +30,26 @@ public class GoMatch extends GameMatch {
 	@Override
 	public GameMatch.HandleMoveResult handleMove(int uid, HttpServletRequest request) {
 		
+		String passStr = request.getParameter("pass");
+		if(passStr != null && passStr.equalsIgnoreCase("true")) {
+			// pass
+			GoState state = (GoState)this.gameState;
+			state.pass();
+			
+					
+			if(state.getConsecutivePasses() >= 2) {
+			// two passes in a row means the game is over
+				state.setStatus(GameState.Status.WINNER_DECIDED);
+
+				float blackScore = state.getBlackPrisoners() + state.getBlackTerritoryScore();
+				float whiteScore = state.getWhitePrisoners() + state.getWhiteTerritoryScore() + 6.5f;
+
+				state.setWinner(blackScore > whiteScore ? this.blackPlayer : this.whitePlayer);
+			}
+			
+			return HandleMoveResult.SUCCESS;
+		}
+		
 		String toPos = request.getParameter("to");
 		if(toPos != null) {
 			toPos = URLDecoder.decode(toPos, StandardCharsets.UTF_8);

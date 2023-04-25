@@ -5,6 +5,20 @@
     <canvas id="chessCanvas" width="100" height="100" lang="ja"></canvas>
 </div>
 
+<div style="display: none">
+    <span class="dropdown" id="optionsDropdown">
+        <button id="optionButton" class="btn btn-dark dropdown-toggle" type="button">
+            Options
+        </button>
+        <ul id="optionList" class="dropdown-menu dropdown-menu-dark chess-dark">
+        
+            <li><a id="optionLiberties" class="dropdown-item text-reset" href="#">Liberties Off</a></li>
+            <li><a id="optionTerritory" class="dropdown-item text-reset activeOption" href="#">Territory On</a></li>
+
+        </ul>
+    </span>
+</div>
+
 <script th:inline="javascript">
     go.init(/*[[${myuid}]]*/, /*[[${game}]]*/, /*[[${matchid}]]*/);
 </script>

@@ -35,14 +35,16 @@ class Go extends Game {
 		height: 50,
 		pieceRadius: 24,
 		lineWidth: 2,
-		scoreTextOffset: 10
+		scoreTextOffset: 10,
+		passButtonRect: {x: 10, y: 10, w: 100, h: 50}
 	};
 	
 	boardWidth = 0;
 	boardHeight = 0;
 	boardAspectRatio = 1;
 	
-	showLiberties = true;
+	drawLiberties = false;
+	drawTerritory = true;
 	
 	lastMoved = null;
 	
@@ -84,6 +86,48 @@ class Go extends Game {
 		this.canvas.addEventListener('touchmove', this.onClickMove);
 		this.canvas.addEventListener('mouseup', this.onClickRelease);
 		this.canvas.addEventListener('touchend', this.onClickRelease);
+		
+				// setup options
+		let span = document.getElementById("extraButtonContainer");
+		let options = document.getElementById("optionsDropdown");
+		span.appendChild(options);
+
+		document.getElementById("optionButton").onclick = function () {
+			let list = document.getElementById("optionList");
+			if(list.style.display === "block") {
+				list.style.display = "none";
+			} else {
+				list.style.display = "block";
+			}
+		};
+		
+		document.getElementById("optionLiberties").onclick = function () {
+			let libertiesButton = document.getElementById("optionLiberties");
+			if(libertiesButton.classList.contains("activeOption")) {
+				libertiesButton.classList.remove("activeOption");
+				libertiesButton.innerHTML = "Liberties Off";
+				go.setDrawLiberties(false);
+			} else {
+				libertiesButton.classList.add("activeOption");
+				libertiesButton.innerHTML = "Liberties On";
+				go.setDrawLiberties(true);
+			}
+			document.getElementById("optionList").style.display = "none";
+		};
+		
+		document.getElementById("optionTerritory").onclick = function () {
+			let territoryButton = document.getElementById("optionTerritory");
+			if(territoryButton.classList.contains("activeOption")) {
+				territoryButton.classList.remove("activeOption");
+				territoryButton.innerHTML = "Territory Off";
+				go.setDrawTerritory(false);
+			} else {
+				territoryButton.classList.add("activeOption");
+				territoryButton.innerHTML = "Territory On";
+				go.setDrawTerritory(true);
+			}
+			document.getElementById("optionList").style.display = "none";
+		};
 	}
 	
 	resetTransform() {
@@ -130,7 +174,7 @@ class Go extends Game {
 		this.context.fillStyle = pieceColor;
 		
 		// draw territory
-		if(this.territory) {
+		if(this.drawTerritory && this.territory && this.stones.length > 1) {
 			
 			this.context.globalAlpha = 0.25;
 			
@@ -224,7 +268,7 @@ class Go extends Game {
 		this.context.stroke();
 		
 		// draw liberty count
-		if(this.showLiberties) {
+		if(this.drawLiberties) {
 			this.context.font = "24px sans-serif";
 			this.context.fillStyle = this.neutralColor;
 			this.context.textBaseline = "middle";
@@ -280,7 +324,7 @@ class Go extends Game {
 		
 		
 		// draw territory
-		if(this.territory) {
+		if(this.drawTerritory && this.territory && this.stones.length > 1)  {
 			this.context.globalAlpha = 0.25;
 			for(var x=0; x<19; x++) {
 				for(var y=0; y<19; y++) {
@@ -344,6 +388,31 @@ class Go extends Game {
 		// draw score info
 		this.drawScoreInfo("white", this.scoreInfo.white);
 		this.drawScoreInfo("black", this.scoreInfo.black);
+		
+		// draw pass button
+		this.context.fillStyle = this.lightBg;
+		this.context.strokeStyle = this.darkBg;
+		this.context.fillRect(
+			this.boardStyle.x + (this.boardStyle.width * (19 - 1)) - this.boardStyle.passButtonRect.w -  this.boardStyle.passButtonRect.x,
+			this.boardStyle.y + (this.boardStyle.height * (19 - 1)) + this.boardStyle.passButtonRect.y,
+			this.boardStyle.passButtonRect.w,
+			this.boardStyle.passButtonRect.h
+		);
+		this.context.strokeRect(
+			this.boardStyle.x + (this.boardStyle.width * (19 - 1)) - this.boardStyle.passButtonRect.w -  this.boardStyle.passButtonRect.x,
+			this.boardStyle.y + (this.boardStyle.height * (19 - 1)) + this.boardStyle.passButtonRect.y,
+			this.boardStyle.passButtonRect.w,
+			this.boardStyle.passButtonRect.h
+		);
+
+		this.context.textBaseline = "middle";
+		this.context.textAlign = "center";
+		this.context.fillStyle = this.darkBg;
+		this.context.fillText(
+			"Pass",
+			this.boardStyle.x + (this.boardStyle.width * (19 - 1)) - (this.boardStyle.passButtonRect.w/2) -  this.boardStyle.passButtonRect.x,
+			this.boardStyle.y + (this.boardStyle.height * (19 - 1)) + (this.boardStyle.passButtonRect.h/2) + this.boardStyle.passButtonRect.y,
+		);
 	}
 	
 	handleUpdate(update, chessObj) {
@@ -426,16 +495,29 @@ class Go extends Game {
 
 		x = (x - rect.left) * chessObj.boardWidth/chessObj.canvas.width;
 		y = (y - rect.top) * chessObj.boardHeight/chessObj.canvas.height;	
-		x = (x - chessObj.boardStyle.x)/chessObj.boardStyle.width;
-		y = (y - chessObj.boardStyle.y)/chessObj.boardStyle.height;
+		
+		// check for click pass button
+		let passX = chessObj.boardStyle.x + (chessObj.boardStyle.width * (19 - 1)) - chessObj.boardStyle.passButtonRect.w -  chessObj.boardStyle.passButtonRect.x;
+		let passY = chessObj.boardStyle.y + (chessObj.boardStyle.height * (19 - 1)) + chessObj.boardStyle.passButtonRect.y;
+		let passW = chessObj.boardStyle.passButtonRect.w;
+		let passH = chessObj.boardStyle.passButtonRect.h;
+		
+		if(x >= passX && x <= passX + passW && y >= passY && y <= passY + passH) {
+			
+			chessObj.sendMove(null, null, "pass");
+			
+		} else {
+			x = (x - chessObj.boardStyle.x)/chessObj.boardStyle.width;
+			y = (y - chessObj.boardStyle.y)/chessObj.boardStyle.height;
 				
 
-		x = Math.round(x);
-		y = Math.round(y);
+			x = Math.round(x);
+			y = Math.round(y);
 
-		console.log(`place piece at ${chessObj.xToFile(x)},${chessObj.yToRank(y)}`);	
+			console.log(`place piece at ${chessObj.xToFile(x)},${chessObj.yToRank(y)}`);	
 
-		chessObj.sendMove(x, y);
+			chessObj.sendMove(x, y);
+		}
 		
 		chessObj.draw();
 	};
@@ -448,14 +530,21 @@ class Go extends Game {
 		if(toX !== null && toY !== null) {
 			dict.push(`to=${19 - this.xToFile(toX)},${19 - this.yToRank(toY)}`);
 		}
+		if(extra === "pass") {
+			dict.push("pass=true");
+		}
 		
 		const data = dict.join('&');
 
 		super.sendMove(data);
 	}
 	
-	setDrawPieceGuides(v) {
-		this.drawPieceGuides = !!v;
+	setDrawLiberties(v) {
+		this.drawLiberties = !!v;
+	}
+	
+	setDrawTerritory(v) {
+		this.drawTerritory = !!v;
 	}
 }
 

@@ -7,7 +7,7 @@
 
     
     <!-- prod -->
-<!-- 
+<!-- -->
     <Environment name="spring.config.location" value="classpath:application.properties,file:/usr/local/tomcat/conf/gameserver/config.properties" type="java.lang.String"/>
---> 
+<!-- -->
 </Context>
