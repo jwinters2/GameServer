@@ -5,7 +5,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import net.wintersjames.gameserver.Games.Chess.ChessState;
 import net.wintersjames.gameserver.Games.GameMatch;
 import net.wintersjames.gameserver.Games.GameState;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Piece;
@@ -53,17 +52,13 @@ public class ShogiMatch extends GameMatch {
 		String promotionStr = request.getParameter("promotion");
 		if(promotionStr != null) {
 			promotionStr = URLDecoder.decode(promotionStr, StandardCharsets.UTF_8);
-		}
-		
-		
+		}	
 		
 		String isDropStr = request.getParameter("drop");
 		if(isDropStr != null) {
 			isDropStr = URLDecoder.decode(isDropStr, StandardCharsets.UTF_8);
 		}
 		boolean isDrop = isDropStr != null && isDropStr.toLowerCase().equals("true");
-		
-
 		
 		// get the color of the moving player
 		boolean isWhite = (uid == whitePlayer);
@@ -153,10 +148,10 @@ public class ShogiMatch extends GameMatch {
 					
 		if(state.getPendingSecondMove() == null) {
 			state.nextMove();
-		}	
+		}
 		
-		// check if the next player has a legal move
-		if(!state.hasLegalMove()) {
+		// check if the next player has a legal move, of if they've lost their kings/princes/etc.
+		if(!state.hasLegalMove() || state.numRoyal(state.isWhiteToMove() ? Piece.Color.WHITE : Piece.Color.BLACK) == 0) {
 			logger.info("{} player has no legal move", state.isWhiteToMove() ? "white" : "black");
 			state.setStatus(GameState.Status.WINNER_DECIDED);
 			state.setWinner(state.isWhiteToMove() ? this.blackPlayer : this.whitePlayer);

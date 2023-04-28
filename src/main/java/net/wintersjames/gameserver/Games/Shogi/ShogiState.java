@@ -157,7 +157,7 @@ public class ShogiState extends GameState implements Serializable {
 	}
 	
 	protected Piece setupNewPiece(String piece, int x, int y, Piece.Color color, JSONObject pieceConfig) {
-		logger.info("adding new piece {} {} at {},{}", color, piece, x, y);
+		
 		Piece retval = switch(piece.toLowerCase()) {
 			case "king"		-> new King(x, y, color);
 			//case "gold"		-> new Gold(x, y, color);
@@ -175,13 +175,21 @@ public class ShogiState extends GameState implements Serializable {
 			
 			parsePieceMove(pieceInfo.getJSONObject("moves"), vp, false);
 			
+			vp.setIsRoyal(pieceInfo.optBoolean("isKing", false));
 			vp.setCanPromote(pieceInfo.optString("promotesTo", null) != null);
 			
 			if(vp.getCanPromote()) {
 				JSONObject promotionPieceInfo = pieceConfig.getJSONObject(pieceInfo.getString("promotesTo"));
 			
 				parsePieceMove(promotionPieceInfo.getJSONObject("moves"), vp, true);
+				
+				vp.setPromotesToRoyal(promotionPieceInfo.optBoolean("isKing", false));
 			}
+		}
+		
+		if(piece.equalsIgnoreCase("drunk elephant")) {
+			logger.info("drunk elephant");
+			logger.info(retval.toString());
 		}
 		
 		return retval;
@@ -451,6 +459,12 @@ public class ShogiState extends GameState implements Serializable {
 	}
 	
 	public boolean isInCheck(Piece.Color colorInCheck) {
+		
+		// if we have more than one king, we're not in check
+		if(numRoyal(colorInCheck) > 1) {
+			return false;
+		}
+	
 		Piece.Color attackingColor = (colorInCheck == Piece.Color.WHITE ? Piece.Color.BLACK : Piece.Color.WHITE);
 		for(Piece piece: pieces) {
 			if(piece.isRoyal() && piece.getColor() == colorInCheck) {
@@ -463,6 +477,20 @@ public class ShogiState extends GameState implements Serializable {
 			}
 		}
 		return true;
+	}
+	
+	public int numRoyal(Piece.Color color) {
+		
+		int retval = 0;
+		
+		for(Piece piece: pieces) {
+			if(piece.isRoyal() && piece.getColor() == color) {
+				retval++;
+			}
+		}
+		
+		logger.info("numRoyal = {}", retval);
+		return retval;
 	}
 	
 	public void move(int fromX, int fromY, int toX, int toY) {

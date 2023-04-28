@@ -15,6 +15,8 @@ public class VariantPiece extends Piece {
 	
 	String abbr;
 	boolean canPromote;
+	boolean isRoyal;
+	boolean promotesToRoyal;
 	List<MoveType> lionMoves;
 
 	public VariantPiece(int x, int y, Color color, String type) {
@@ -34,8 +36,10 @@ public class VariantPiece extends Piece {
 
 	@Override
 	public Piece deepCopy() {
-		Piece retval = new VariantPiece(x, y, color, type);
+		VariantPiece retval = new VariantPiece(x, y, color, type);
 		retval.isPromoted = this.isPromoted;
+		retval.isRoyal = this.isRoyal;
+		retval.promotesToRoyal = this.promotesToRoyal;
 		retval.moveSet.addAll(this.moveSet);
 		retval.promotedMoveSet.addAll(this.promotedMoveSet);
 		return retval;
@@ -72,6 +76,19 @@ public class VariantPiece extends Piece {
 
 	public void setCanPromote(boolean canPromote) {
 		this.canPromote = canPromote;
+	}
+	 
+	public void setIsRoyal(boolean isRoyal) {
+		this.isRoyal = isRoyal;
+	}
+	
+	public void setPromotesToRoyal(boolean promotesToRoyal) {
+		this.promotesToRoyal = promotesToRoyal;
+	}
+	
+	@Override
+	public boolean isRoyal() {
+		return this.isRoyal || (this.isPromoted && this.promotesToRoyal);
 	}
 	
 	@Override
@@ -117,4 +134,11 @@ public class VariantPiece extends Piece {
 		
 		return false;
 	}
+
+	@Override
+	public String toString() {
+		return "VariantPiece{" + "abbr=" + abbr + ", canPromote=" + canPromote + ", isRoyal=" + isRoyal + ", promotesToRoyal=" + promotesToRoyal + ", lionMoves=" + lionMoves + '}';
+	}
+	
+	
 }
