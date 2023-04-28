@@ -208,6 +208,7 @@
                 "jump": [[-1, -1], [-1, 1], [1, -1], [1, 1], [-2, 0], [2, 0], [0, -2], [0, 2]]
             },
             "promotesTo": "lion",
+			"noTradesOnPromote": true,
             "pieceSize": 0.875,
             "pieceChars": {
                 "trad": [["麒", "麟"]],
@@ -240,6 +241,7 @@
             },
             "promotesTo": null,
             "pieceSize": 0.875,
+			"noTrades": true,
             "pieceChars": {
                 "trad": [["獅", "子"]],
                 "abbr": ["獅"],
@@ -376,6 +378,8 @@
             },
             "promotesTo": "gold",
             "pieceSize": 0.84375,
+			"substantial": false,
+			"canPromoteOnFinalRank": true,
             "pieceChars": {
 				"trad": [["歩", "兵"], ["と", "金"]],	
 				"abbr": ["歩", "と"],	
@@ -391,6 +395,8 @@
             },
             "promotesTo": "drunk elephant",
             "pieceSize": 0.84375,
+			"substantial": false,
+			"canPromoteOnFinalRank": true,
             "pieceChars": {
 				"trad": [["仲", "人"]],	
 				"abbr": ["仲"],	

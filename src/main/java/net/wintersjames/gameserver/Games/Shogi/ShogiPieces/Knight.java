@@ -33,4 +33,9 @@ public class Knight extends Piece {
 		retval.isPromoted = this.isPromoted;
 		return retval;
 	}
+	
+	@Override
+	public String getPromotesTo() {
+		return "gold";
+	}
 }

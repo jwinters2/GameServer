@@ -63,5 +63,4 @@ public class Game implements Serializable {
         this.isMultiPlayer = isMultiPlayer;
     }
     
-    
 }

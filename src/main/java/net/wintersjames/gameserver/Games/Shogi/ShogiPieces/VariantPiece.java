@@ -14,9 +14,14 @@ import net.wintersjames.gameserver.Games.Shogi.ShogiState;
 public class VariantPiece extends Piece {
 	
 	String abbr;
+	String promotesTo;
 	boolean canPromote;
 	boolean isRoyal;
 	boolean promotesToRoyal;
+	boolean tradeDisabled;
+	boolean tradeDisabledOnPromote;
+	boolean substantial;
+	boolean canPromoteOnFinalRank;
 	List<MoveType> lionMoves;
 
 	public VariantPiece(int x, int y, Color color, String type) {
@@ -37,10 +42,20 @@ public class VariantPiece extends Piece {
 	@Override
 	public Piece deepCopy() {
 		VariantPiece retval = new VariantPiece(x, y, color, type);
+		
+		retval.canPromote = this.canPromote;
+		retval.promotesTo = this.promotesTo;
+		retval.canPromoteOnFinalRank = this.canPromoteOnFinalRank;
+		
 		retval.isPromoted = this.isPromoted;
 		retval.isRoyal = this.isRoyal;
 		retval.promotesToRoyal = this.promotesToRoyal;
+		
+		retval.tradeDisabled = this.tradeDisabled;
+		retval.tradeDisabledOnPromote = this.tradeDisabledOnPromote;
+		retval.substantial = this.substantial;
 		retval.moveSet.addAll(this.moveSet);
+		
 		retval.promotedMoveSet.addAll(this.promotedMoveSet);
 		return retval;
 	}
@@ -84,6 +99,96 @@ public class VariantPiece extends Piece {
 	
 	public void setPromotesToRoyal(boolean promotesToRoyal) {
 		this.promotesToRoyal = promotesToRoyal;
+	}
+
+	@Override
+	public boolean isTradeDisabled() {
+		return isPromoted ? tradeDisabledOnPromote : tradeDisabled;
+	}
+
+	public void setTradeDisabled(boolean tradeDisabled) {
+		this.tradeDisabled = tradeDisabled;
+	}
+	
+	public void setTradeDisabledOnPromote(boolean tradeDisabledOnPromote) {
+		this.tradeDisabledOnPromote = tradeDisabledOnPromote;
+	}
+
+	@Override
+	public boolean isSubstantial() {
+		return substantial;
+	}
+
+	public void setSubstantial(boolean substantial) {
+		this.substantial = substantial;
+	}
+
+	@Override
+	public String getPromotesTo() {
+		return promotesTo;
+	}
+
+	public void setPromotesTo(String promotesTo) {
+		this.promotesTo = promotesTo;
+	}
+
+	@Override
+	public boolean getCanPromoteOnFinalRank() {
+		return canPromoteOnFinalRank;
+	}
+
+	public void setCanPromoteOnFinalRank(boolean canPromoteOnFinalRank) {
+		this.canPromoteOnFinalRank = canPromoteOnFinalRank;
+	}
+	
+	
+	
+	@Override
+	public boolean canTrade(ShogiState state, Piece toCapture) {
+		
+		// if trade is not disabled there are no restrictions
+		if(!isTradeDisabled()) {
+			return true;
+		}
+		
+		
+		// the capturing piece must exist ... 
+		if(toCapture == null) {
+			return true;
+		}
+		
+		// ... and be the same type as this piece
+		String thisType = this.isPromoted ? this.promotesTo : this.type;
+		String toCaptureType = toCapture.isPromoted ? toCapture.getPromotesTo() : toCapture.getType();
+		if(!toCaptureType.equals(thisType)) {
+			return true;
+		}
+		
+		// we can trade if the lion is undefended
+		if(!state.isSquareUnderAttack(toCapture.getX(), toCapture.getY(), toCapture.getColor())) {
+			return true;
+		}
+	
+		// if we just captured a substantial piece, we can trade
+		// when we capture a piece it's ours now, so if we captured it the colors will differ
+		if(state.getLastCapturedPiece() != null
+		&& state.getLastCapturedPiece().getColor() != toCapture.getColor()
+		&& state.getLastCapturedPiece().isSubstantial()
+		&& !state.getLastCapturedPiece().getIsPromoted()) {
+			return true;
+		}
+		
+		// lions can capture adjacent lions no problem
+		int[] startPos = state.getLionOriginalPos();
+		if(startPos == null) {
+			// if there's no original start pos, use our current pos instead
+			startPos = new int[]{x, y};
+		}
+		if(Math.abs(toCapture.getX() - startPos[0]) <= 1 && Math.abs(toCapture.getY() - startPos[1]) <= 1) {
+			return true;
+		}
+		
+		return false;
 	}
 	
 	@Override

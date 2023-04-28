@@ -41,6 +41,12 @@ public class ChuShogiState extends ShogiState {
 		
 		// piece must end in promotion zone
 		if(toPromote.getColor() == Piece.Color.WHITE) {
+			
+			// some pieces can promote on the final rank regardless of how they get there
+			if(toY == boardWidth - 1 && toPromote.getCanPromoteOnFinalRank()) {
+				return true;
+			}
+			
 			if( toY < boardWidth - promotionWidth) {
 				logger.info("y ({} & {}) >= {}", fromY, toY, boardWidth - promotionWidth);
 				return false;
@@ -52,6 +58,12 @@ public class ChuShogiState extends ShogiState {
 			}
 			
 		} else {
+			
+			// some pieces can promote on the final rank regardless of how they get there
+			if(toY == 0 && toPromote.getCanPromoteOnFinalRank()) {
+				return true;
+			}
+			
 			if(toY >= promotionWidth) {
 				logger.info("y ({} & {}) <= {}", fromY, toY, promotionWidth);
 				return false;
@@ -62,28 +74,17 @@ public class ChuShogiState extends ShogiState {
 				return false;
 			}
 		}
-		
-		if(isPromotionMandatory(toX, toY, toPromote, toPromote.getColor())) {
-			logger.info("promotion is mandatory");
-			return false;
-		}
-		
+				
 		return true;
 	}
 	
 	@Override
 	public boolean isPromotionMandatory(int toX, int toY, Piece piece, Piece.Color color) {
-		
-		int spaceBeforeEdge = (color == Piece.Color.WHITE ? boardWidth - 1 - toY : toY);
-		
-		for(MoveType move: piece.getMoveSet() ) {
-			
-			// if we have space for another move, we don't need to promote
-			if(move.getY() <= spaceBeforeEdge) {
-				return false;
-			}
-		}
-		
-		return true;
+		return false;
+	}
+	
+	@Override
+	public boolean isPromotionMandatory(int toX, int toY, String pieceType, Piece.Color color) {
+		return false;
 	}
 }

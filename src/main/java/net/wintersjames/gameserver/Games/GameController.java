@@ -94,7 +94,7 @@ public class GameController implements ListenToDisconnects {
 		}
 		
         model.addAttribute("matchid", matchid);
-        model.addAttribute("game", game);
+        model.addAttribute("game", GameUtils.getDisplayNameFromName(game));
 		model.addAttribute("gameFileStr", game.replace(" ", ""));
         model.addAttribute("myuid", uid);
 		

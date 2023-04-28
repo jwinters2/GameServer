@@ -35,4 +35,8 @@ public class Lance extends Piece {
 		return retval;
 	}
 	
+	@Override
+	public String getPromotesTo() {
+		return "gold";
+	}
 }

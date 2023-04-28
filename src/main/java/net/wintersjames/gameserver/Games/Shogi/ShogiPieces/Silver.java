@@ -38,4 +38,9 @@ public class Silver extends Piece {
 		return retval;
 	}
 	
+	@Override
+	public String getPromotesTo() {
+		return "gold";
+	}
+	
 }

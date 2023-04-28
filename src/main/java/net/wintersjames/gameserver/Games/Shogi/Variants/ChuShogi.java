@@ -9,7 +9,7 @@ import net.wintersjames.gameserver.Games.Game;
 public class ChuShogi extends Game {
 	public ChuShogi() {
         this.description = "\"Middle\" Japanese chess played on a 12x12 board.";
-        this.image = "/gameserver/images/shogi.jpg";
+        this.image = "/gameserver/images/chushogi.jpg";
         this.title = "Chu Shogi";
         this.isSinglePlayer = false;
         this.isMultiPlayer = true;

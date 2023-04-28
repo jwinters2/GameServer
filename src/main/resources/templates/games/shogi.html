@@ -34,7 +34,7 @@
     request.onload = function () {
         if(this.readyState === 4 && this.status === 200) {
             shogi.parseGameConfig(JSON.parse(request.response));
-            shogi.init(/*[[${myuid}]]*/, /*[[${game}]]*/, /*[[${matchid}]]*/);
+            shogi.init(/*[[${myuid}]]*/, /*[[${gameFileStr}]]*/, /*[[${matchid}]]*/);
         }
     };
     request.send();

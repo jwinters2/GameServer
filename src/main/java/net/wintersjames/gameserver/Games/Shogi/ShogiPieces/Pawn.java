@@ -35,4 +35,13 @@ public class Pawn extends Piece {
 		return retval;
 	}
 	
+	@Override
+	public boolean isSubstantial() {
+		return false;
+	}
+	
+	@Override
+	public String getPromotesTo() {
+		return "gold";
+	}
 }

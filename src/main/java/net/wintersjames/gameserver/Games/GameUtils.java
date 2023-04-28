@@ -14,6 +14,8 @@ import net.wintersjames.gameserver.Queue.GameInvite;
  * @author james
  */
 public class GameUtils {
+	
+	private GameUtils() {}
 
 	static GameMatch newMatch(GameInvite invite) {
 	
@@ -32,8 +34,6 @@ public class GameUtils {
 		 
 	}
     
-    private GameUtils() {}
-    
     public static Class getClassFromName(String name) {
 		
 		if(name == null) {
@@ -49,5 +49,17 @@ public class GameUtils {
             default -> null;
         };
     }
+	
+	public static String getDisplayNameFromName(String name) {
+		return switch (name.toLowerCase()) {
+            case "chess"	-> "Chess";
+			case "shogi"	-> "Shogi";
+			case "go"		-> "Go";
+			case "chu_shogi", "chushogi"	
+							-> "Chu Shogi";
+            default -> name;
+        };
+	}
+	
     
 }

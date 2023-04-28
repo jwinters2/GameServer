@@ -134,6 +134,27 @@ public abstract class Piece implements Serializable {
 		return false;
 	}
 	
+	// in chu shogi, you can't just trade lions
+	public boolean isTradeDisabled() {
+		return false;
+	}
+	
+	public boolean isSubstantial() {
+		return true;
+	}
+	
+	public boolean canTrade(ShogiState state, Piece toCapture) {
+		return true;
+	}
+	
+	public String getPromotesTo() {
+		return null;
+	}
+	
+	public boolean getCanPromoteOnFinalRank() {
+		return false;
+	}
+	
 	// some variants have pieces that can move twice in one turn
 	// so depending on how we moved the first turn, the same player might have a second move to make
 	public List<MoveType> getSecondLionMoves() {

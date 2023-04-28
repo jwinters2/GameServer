@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,8 @@ public class ShogiState extends GameState implements Serializable {
 	// the piece we're waiting on whether or not to promote, if there is one
 	private Piece pendingPromotion;
 	private Piece pendingSecondMove;
+	private int[] lionOriginalPos;
+	private Piece lastCapturedPiece;
 	
 	public ShogiState() {
 		super("shogiState");
@@ -61,11 +64,12 @@ public class ShogiState extends GameState implements Serializable {
 		this.boardWidth = 9;
 		this.promotionWidth = 3;
 		this.configFile = "shogi.json";
-		
 	
 		this.whiteToMove = true;
 		this.pendingPromotion = null;
 		this.pendingSecondMove = null;
+		this.lionOriginalPos = null;
+		this.lastCapturedPiece = null;
 		this.squaresToHighlight = new ArrayList<>();
 		
 		this.setupPieces();
@@ -85,6 +89,8 @@ public class ShogiState extends GameState implements Serializable {
 		this.whiteToMove = true;
 		this.pendingPromotion = null;
 		this.pendingSecondMove = null;
+		this.lionOriginalPos = null;
+		this.lastCapturedPiece = null;
 		this.squaresToHighlight = new ArrayList<>();
 		
 		this.setupPieces();
@@ -99,6 +105,14 @@ public class ShogiState extends GameState implements Serializable {
 		this.whiteToMove = other.whiteToMove;
 		this.pendingPromotion = other.pendingPromotion;
 		this.pendingSecondMove = other.pendingSecondMove;
+		
+		if(other.lionOriginalPos != null) {
+			this.lionOriginalPos = Arrays.copyOf(other.lionOriginalPos, other.lionOriginalPos.length);
+		} else {
+			this.lionOriginalPos = null;
+		}
+		
+		this.lastCapturedPiece = other.lastCapturedPiece;
 		this.squaresToHighlight = other.squaresToHighlight;
 		
 		this.boardWidth = other.boardWidth;
@@ -176,9 +190,18 @@ public class ShogiState extends GameState implements Serializable {
 			parsePieceMove(pieceInfo.getJSONObject("moves"), vp, false);
 			
 			vp.setIsRoyal(pieceInfo.optBoolean("isKing", false));
+			vp.setSubstantial(pieceInfo.optBoolean("substantial", true));
+			
+			vp.setTradeDisabled(pieceInfo.optBoolean("noTrades", false));
+			vp.setTradeDisabledOnPromote(pieceInfo.optBoolean("noTradesOnPromote", false));
+			
 			vp.setCanPromote(pieceInfo.optString("promotesTo", null) != null);
+			vp.setCanPromoteOnFinalRank(pieceInfo.optBoolean("canPromoteOnFinalRank", false));
 			
 			if(vp.getCanPromote()) {
+				
+				vp.setPromotesTo(pieceInfo.getString("promotesTo"));
+				
 				JSONObject promotionPieceInfo = pieceConfig.getJSONObject(pieceInfo.getString("promotesTo"));
 			
 				parsePieceMove(promotionPieceInfo.getJSONObject("moves"), vp, true);
@@ -354,6 +377,21 @@ public class ShogiState extends GameState implements Serializable {
 			logger.info("cannot capture our own pieces");
 			return false;
 		}
+		
+		// check for no-trade pieces (i.e. lion) trading
+		if(!pieceToMove.canTrade(this, pieceToCapture)) {
+			return false;
+		}
+		
+		// if we just lost our non-tradable piece, we can't take the same piece
+		if(pieceToCapture != null && pieceToCapture.isTradeDisabled() 
+		&& lastCapturedPiece != null && lastCapturedPiece.getColor() != pieceToCapture.getColor()) {
+			String pieceToCaptureType = pieceToCapture.getIsPromoted() ? pieceToCapture.getPromotesTo() : pieceToCapture.getType();
+			String lastCapturedPieceType = lastCapturedPiece.getIsPromoted() ? lastCapturedPiece.getPromotesTo() : lastCapturedPiece.getType();
+			if(lastCapturedPieceType.equals(pieceToCaptureType)) {
+				return false;
+			}
+		}
 
 		// we're not allowed to move into check
 		ShogiState nextState = new ShogiState(this);
@@ -363,6 +401,7 @@ public class ShogiState extends GameState implements Serializable {
 			return false;
 		}
 
+		// if this is the second move of a lion move, use the special moveset for it instead of the regular one
 		if(this.pendingSecondMove != null) {
 			return pieceToMove.canLionMove(toX, toY, this);
 		}
@@ -496,6 +535,7 @@ public class ShogiState extends GameState implements Serializable {
 	public void move(int fromX, int fromY, int toX, int toY) {
 		logger.info("moving ({},{}) to ({},{})", fromX, fromY, toX, toY);
 		if(fromX != toX || fromY != toY) {
+			this.lastCapturedPiece = getPieceAt(toX, toY);
 			this.captureAt(toX, toY);
 		}
 		Piece toMove = getPieceAt(fromX, fromY);
@@ -506,8 +546,10 @@ public class ShogiState extends GameState implements Serializable {
 		}
 		
 		if(toMove.getSecondLionMoves() != null) {
+			this.lionOriginalPos = new int[]{fromX, fromY};
 			this.pendingSecondMove = toMove;
 		} else {
+			this.lionOriginalPos = null;
 			this.pendingSecondMove = null;
 		}
 	}
@@ -674,6 +716,14 @@ public class ShogiState extends GameState implements Serializable {
 
 	public Piece getPendingSecondMove() {
 		return pendingSecondMove;
+	}
+
+	public Piece getLastCapturedPiece() {
+		return lastCapturedPiece;
+	}
+
+	public int[] getLionOriginalPos() {
+		return lionOriginalPos;
 	}
 	
 	public void nextMove() {
