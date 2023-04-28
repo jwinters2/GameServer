@@ -7,6 +7,7 @@
         <meta name="_csrf" th:content="${_csrf.token}" />
         <meta name="_csrf_header" th:content="${_csrf.headerName}" />
         <meta name="contextRoot" th:content="${contextRoot}" />
+        <meta name="gameFileStr" th:content="${gameFileStr}" />
         
         <link rel="stylesheet" th:href="${contextRoot}+'/webjars/bootstrap/css/bootstrap.min.css'" />
         <link rel="stylesheet" th:href="${contextRoot}+'/style.css'" type="text/css"/>
@@ -18,9 +19,10 @@
         
         <script>
             const contextRoot = document.querySelector("meta[name='contextRoot']").content;
+            const gameFileStr = document.querySelector("meta[name='gameFileStr']").content;
         </script>
         
-        <script th:src="${contextRoot}+'/game/game.js'"></script>
+        <script th:src="${contextRoot}+'/gameres/game.js'"></script>
         <script th:src="${contextRoot}+'/chat.js'"></script>
     </head>
     <body>
@@ -52,7 +54,7 @@
                 </div>
 
                 <!-- actual game -->
-                <div class="col-lg-9 col-md-12" th:insert="~{'games/' + ${game} + '.html'}"></div>
+                <div class="col-lg-9 col-md-12" th:insert="~{'games/' + ${gameFileStr} + '.html'}"></div>
             </div>
         </div>
         

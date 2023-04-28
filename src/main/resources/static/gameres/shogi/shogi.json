@@ -1,0 +1,146 @@
+{
+    "boardWidth": 9,
+    "promotionWidth": 3,
+    
+    "pieces": {
+        "king": {
+            "moves": {
+                "jump": [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
+            },
+            "promotesTo": null,
+            "pieceSize": 1,
+            "pieceChars": {
+                "trad": [["王", "将"], ["玉", "将"]],
+                "abbr": ["王", "玉"],
+                "symbols": ["♔", "♚"],
+                "english": ["K", "K"],
+                "hybrid": [["王", "K"], ["玉", "K"]]
+            }
+        },
+        
+        "gold": {
+            "moves": {
+                "jump": [[0, -1], [-1, 0], [1, 0], [1, 1], [0, 1], [-1, 1]]
+            },
+            "promotesTo": null,
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["金", "将"]],	
+                "abbr": ["金"],	
+                "symbols": ["☉"],
+                "english": ["G"],		
+                "hybrid": [["金", "G"]]
+            }
+        }, 
+        
+        "silver": {
+            "moves": {
+                "jump": [[-1, -1], [1, -1], [-1, 1], [0, 1], [1, 1]]
+            },
+            "promotesTo": "gold",
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["銀", "将"], ["成", "銀"]],
+                "abbr": ["銀", "全"],
+                "symbols": ["☽", "☽"],	
+                "english": ["S", "S"],
+                "hybrid": [["銀", "S"], ["全", "S"]]
+            }
+        }, 
+        
+        "knight": {
+            "moves": {
+                "jump": [[-1, 2], [1, 2]]
+            },
+            "promotesTo": "gold",
+            "pieceSize": 0.90625,
+            "pieceChars": {
+                "trad": [["桂", "馬"], ["成", "桂"]],
+                "abbr": ["桂", "圭"],
+                "symbols": ["♞", "♞"],	
+                "english": ["N", "N"],
+                "hybrid": [["桂", "N"], ["圭", "N"]]
+            }
+        }, 
+        
+        "lance": {
+            "moves": {
+                "line": [[0, 1]]
+            },
+            "promotesTo": "gold",
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["香", "車"], ["成", "香"]],
+                "abbr": ["香", "杏"],
+                "symbols": ["↟", "↟"],	
+                "english": ["L", "L"],
+                "hybrid": [["香", "L"], ["杏", "L"]]
+            }
+        }, 
+        
+        "rook": {
+            "moves": {
+                "line": [[-1, 0], [1, 0], [0, -1], [0, 1]]
+            },
+            "promotesTo": "dragon king",
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["飛", "車"], ["龍", "王"]],
+                "abbr": ["飛", "龍"],
+                "symbols": ["♜", "♜"],	
+                "english": ["R", "R"],
+                "hybrid": [["飛", "R"], ["龍", "R"]]
+            }
+        }, 
+        
+        "bishop": {
+            "moves": {
+                "line": [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+            },
+            "promotesTo": "dragon horse",
+            "pieceSize": 0.96875,
+            "pieceChars": {
+                "trad": [["角", "行"], ["龍", "馬"]],
+                "abbr": ["角", "馬"],
+                "symbols": ["♝", "♝"],	
+                "english": ["B", "B"],
+                "hybrid": [["角", "B"], ["馬", "B"]]
+            }
+        }, 
+        
+        "pawn": {
+            "moves": {
+                "jump": [[0, 1]]
+            },
+            "promotesTo": "gold",
+            "pieceSize": 0.84375,
+            "pieceChars": {
+		"trad": [["歩", "兵"], ["と", "金"]],	
+		"abbr": ["歩", "と"],	
+		"symbols": ["♟︎", "♟︎"],	
+		"english": ["P", "P"],	
+		"hybrid": [["歩", "P"], ["と", "P"]]
+            }
+        },
+        
+        "dragon king": {
+            "moves": {
+                "line": [[-1, 0], [1, 0], [0, -1], [0, 1]],
+                "jump": [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+            }
+        },
+        
+        "dragon horse": {
+            "moves": {
+                "line": [[-1, -1], [-1, 1], [1, -1], [1, 1]],
+                "jump": [[-1, 0], [1, 0], [0, -1], [0, 1]]              
+            }
+        }
+    },
+    
+    "setup": {
+        "2": ["pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn"],
+        "1": [null, "bishop", null, null, null, null, null, "rook", null],
+        "0": ["lance", "knight", "silver", "gold", "king", "gold", "silver", "knight", "lance"]
+    }
+}

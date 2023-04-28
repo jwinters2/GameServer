@@ -1,0 +1,503 @@
+{
+    "boardWidth": 12,
+    "promotionWidth": 4,
+    
+    "pieces": {
+        "king": {
+            "moves": {
+                "jump": [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
+            },
+            "promotesTo": null,
+            "isKing": true,
+            "pieceSize": 1,
+            "pieceChars": {
+                "trad": [["王", "将"], ["玉", "将"]],
+                "abbr": ["王", "玉"],
+                "symbols": ["♔", "♚"],
+                "english": ["K", "K"],
+                "hybrid": [["王", "K"], ["玉", "K"]]
+            }
+        },
+
+		"drunk elephant": {
+            "moves": {
+                "jump": [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, -1], [1, 0], [1, 1]]
+            },
+            "promotesTo": "prince",
+            "pieceSize": 1,
+            "pieceChars": {
+                "trad": [["酔", "象"]],
+                "abbr": ["象"],
+                "symbols": ["♔"],
+                "english": ["DE"],
+                "hybrid": [["象", "DE"]]
+            }
+        },
+
+		"prince": {
+            "moves": {
+                "jump": [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
+            },
+            "promotesTo": null,
+            "isKing": true,
+            "pieceSize": 1,
+            "pieceChars": {
+                "trad": [["太", "子"]],
+                "abbr": ["太"],
+                "symbols": ["♔"],
+                "english": ["Pr"],
+                "hybrid": [["太", "Pr"]]
+            }
+        },
+        
+        "gold": {
+            "moves": {
+                "jump": [[0, -1], [-1, 0], [1, 0], [1, 1], [0, 1], [-1, 1]]
+            },
+            "promotesTo": "rook",
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["金", "将"]],	
+                "abbr": ["金"],	
+                "symbols": ["☉"],
+                "english": ["G"],		
+                "hybrid": [["金", "G"]]
+            }
+        }, 
+        
+        "silver": {
+            "moves": {
+                "jump": [[-1, -1], [1, -1], [-1, 1], [0, 1], [1, 1]]
+            },
+            "promotesTo": "vertical mover",
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["銀", "将"]],
+                "abbr": ["銀"],
+                "symbols": ["☽"],	
+                "english": ["S"],
+                "hybrid": [["銀", "S"]]
+            }
+        },
+
+		"vertical mover": {
+            "moves": {
+                "jump": [[-1, 0], [1, 0]],
+				"line": [[0, -1], [0, 1]]
+		    },
+		    "promotesTo": "flying ox",
+		    "pieceSize": 0.9375,
+		    "pieceChars": {
+		        "trad": [["竪", "行"]],
+		        "abbr": ["竪"],
+		        "symbols": ["☽"],	
+		        "english": ["VM"],
+		        "hybrid": [["竪", "VM"]]
+		    }
+        }, 
+
+		"flying ox": {
+            "moves": {
+                "line": [[-1, -1], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 1]]
+            },
+            "promotesTo": null,
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["飛", "牛"]],
+                "abbr": ["牛"],
+                "symbols": ["☽"],	
+                "english": ["FO"],
+                "hybrid": [["牛", "FO"]]
+            }
+        }, 
+
+		"copper": {
+            "moves": {
+                "jump": [[0, -1], [-1, 1], [0, 1], [1, 1]]
+            },
+            "promotesTo": "side mover",
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["銅", "将"]],
+                "abbr": ["銅"],
+                "symbols": ["☽"],	
+                "english": ["C"],
+                "hybrid": [["銅", "C"]]
+            }
+        },
+
+		"side mover": {
+            "moves": {
+                "jump": [[0, -1], [0, 1]],
+		"line": [[-1, 0], [1, 0]]
+            },
+            "promotesTo": "free boar",
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["横", "行"]],
+                "abbr": ["横"],
+                "symbols": ["☽"],	
+                "english": ["SM"],
+                "hybrid": [["横", "SM"]]
+            }
+        },
+
+		"free boar": {
+            "moves": {
+                "line": [[-1, -1], [-1, 0], [-1, 1], [1, -1], [1, 0], [1, 1]]
+            },
+            "promotesTo": null,
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["奔", "猪"]],
+                "abbr": ["猪"],
+                "symbols": ["☽"],	
+                "english": ["FB"],
+                "hybrid": [["猪", "FB"]]
+            }
+        },
+
+		"ferocious leopard": {
+            "moves": {
+                "jump": [[-1, -1], [0, -1], [1, -1], [-1, 1], [0, 1], [1, 1]]
+            },
+            "promotesTo": "bishop",
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["猛", "豹"]],
+                "abbr": ["豹"],
+                "symbols": ["☽"],	
+                "english": ["FL"],
+                "hybrid": [["豹", "FL"]]
+            }
+        },
+        
+        
+        "lance": {
+            "moves": {
+                "line": [[0, 1]]
+            },
+            "promotesTo": "white horse",
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["香", "車"]],
+                "abbr": ["香"],
+                "symbols": ["↟"],	
+                "english": ["L"],
+                "hybrid": [["香", "L"]]
+            }
+        }, 
+
+		"white horse": {
+            "moves": {
+                "line": [[0, -1], [-1, 1], [0, 1], [1, 1]]
+            },
+            "promotesTo": null,
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["白", "駒"]],
+                "abbr": ["駒"],
+                "symbols": ["↟+"],	
+                "english": ["WH"],
+                "hybrid": [["駒", "WH"]]
+            }
+        }, 
+
+		"kirin": {
+            "moves": {
+                "jump": [[-1, -1], [-1, 1], [1, -1], [1, 1], [-2, 0], [2, 0], [0, -2], [0, 2]]
+            },
+            "promotesTo": "lion",
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["麒", "麟"]],
+                "abbr": ["麒"],
+                "symbols": ["↟+"],	
+                "english": ["Kr"],
+                "hybrid": [["麒", "Kr"]]
+            }
+        },  
+
+		"lion": {
+            "moves": {
+                "jump": [
+					[-2, -2], [-2, -1], [-2, 0], [-2, 1], [-2, 2],
+					[-1, -2], [-1, 2],
+					[0, -2], [0, 2],
+					[1, -2], [1, 2],
+					[2, -2], [2, -1], [2, 0], [2, 1], [2, 2]
+				],
+	        	"lion": [
+					{
+						"first": {
+							"jump": [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
+						},
+						"second": {
+							"jump": [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 0], [0, 1], [1, -1], [1, 0], [1, 1]]
+						}
+					}
+				]
+            },
+            "promotesTo": null,
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["獅", "子"]],
+                "abbr": ["獅"],
+                "symbols": ["↟+"],	
+                "english": ["Ln"],
+                "hybrid": [["獅", "Ln"]]
+            }
+        },
+
+		"phoenix": {
+            "moves": {
+                "jump": [[-2, -2], [-2, 2], [2, -2], [2, 2], [-1, 0], [1, 0], [0, -1], [0, 1]]
+            },
+            "promotesTo": "queen",
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["鳳", "凰"]],
+                "abbr": ["鳳"],
+                "symbols": ["↟+"],	
+                "english": ["Ph"],
+                "hybrid": [["鳳", "Ph"]]
+            }
+        },  
+
+		"queen": {
+            "moves": {
+                "line": [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]]
+            },
+            "promotesTo": null,
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["奔", "王"]],
+                "abbr": ["奔"],
+                "symbols": ["↟+"],	
+                "english": ["Q"],
+                "hybrid": [["奔", "Q"]]
+            }
+        },
+
+		"blind tiger": {
+            "moves": {
+                "jump": [[-1, -1], [-1, 0], [-1, 1], [0, -1], [1, -1], [1, 0], [1, 1]]
+            },
+            "promotesTo": "flying stag",
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["盲", "虎"]],	
+                "abbr": ["虎"],	
+                "symbols": ["☉"],
+                "english": ["BT"],		
+                "hybrid": [["虎", "BT"]]
+            }
+        }, 
+
+		"flying stag": {
+            "moves": {
+                "jump": [[-1, 0], [1, 0], [-1, -1], [-1, 1], [1, -1], [1, 1]],
+				"line": [[0, -1], [0, 1]]
+            },
+            "promotesTo": null,
+            "pieceSize": 0.9375,
+            "pieceChars": {
+                "trad": [["飛", "鹿"]],	
+                "abbr": ["鹿"],	
+                "symbols": ["☉"],
+                "english": ["FS"],		
+                "hybrid": [["鹿", "FS"]]
+            }
+        }, 
+
+		"reverse chariot": {
+            "moves": {
+                "line": [[0, 1], [0, -1]]
+            },
+            "promotesTo": "whale",
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["反", "車"]],
+                "abbr": ["反"],
+                "symbols": ["↟"],	
+                "english": ["RC"],
+                "hybrid": [["反", "RC"]]
+            }
+        }, 
+
+		"whale": {
+            "moves": {
+                "line": [[0, -1], [-1, -1], [0, 1], [1, -1]]
+            },
+            "promotesTo": null,
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["鯨", "鯢"]],
+                "abbr": ["鯨"],
+                "symbols": ["↟+"],	
+                "english": ["W"],
+                "hybrid": [["鯨", "W"]]
+            }
+        }, 
+        
+        "rook": {
+            "moves": {
+                "line": [[-1, 0], [1, 0], [0, -1], [0, 1]]
+            },
+            "promotesTo": "dragon king",
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["飛", "車"], ["龍", "王"]],
+                "abbr": ["飛", "龍"],
+                "symbols": ["♜", "♜"],	
+                "english": ["R", "R"],
+                "hybrid": [["飛", "R"], ["龍", "R"]]
+            }
+        }, 
+        
+        "bishop": {
+            "moves": {
+                "line": [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+            },
+            "promotesTo": "dragon horse",
+            "pieceSize": 0.96875,
+            "pieceChars": {
+                "trad": [["角", "行"], ["龍", "馬"]],
+                "abbr": ["角", "馬"],
+                "symbols": ["♝", "♝"],	
+                "english": ["B", "B"],
+                "hybrid": [["角", "B"], ["馬", "B"]]
+            }
+        }, 
+        
+        "pawn": {
+            "moves": {
+                "jump": [[0, 1]]
+            },
+            "promotesTo": "gold",
+            "pieceSize": 0.84375,
+            "pieceChars": {
+				"trad": [["歩", "兵"], ["と", "金"]],	
+				"abbr": ["歩", "と"],	
+				"symbols": ["♟︎", "♟︎"],	
+				"english": ["P", "P"],	
+				"hybrid": [["歩", "P"], ["と", "P"]]
+            }
+        },
+
+		"go-between": {
+            "moves": {
+                "jump": [[0, 1], [0, -1]]
+            },
+            "promotesTo": "drunk elephant",
+            "pieceSize": 0.84375,
+            "pieceChars": {
+				"trad": [["仲", "人"]],	
+				"abbr": ["仲"],	
+				"symbols": ["♟︎"],	
+				"english": ["GB"],	
+				"hybrid": [["仲", "GB"]]
+            }
+        },
+        
+        "dragon king": {
+            "moves": {
+                "line": [[-1, 0], [1, 0], [0, -1], [0, 1]],
+                "jump": [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+            },
+            "promotesTo": "soaring eagle",
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["龍", "王"]],
+                "abbr": ["龍"],
+                "symbols": ["♜+"],	
+                "english": ["DK"],
+                "hybrid": [["龍", "DK"]]
+            }
+        },
+        
+        "dragon horse": {
+            "moves": {
+                "line": [[-1, -1], [-1, 1], [1, -1], [1, 1]],
+                "jump": [[-1, 0], [1, 0], [0, -1], [0, 1]]              
+            },
+            "promotesTo": "horned falcon",
+            "pieceSize": 0.96875,
+            "pieceChars": {
+                "trad": [["龍", "馬"]],
+                "abbr": ["馬"],
+                "symbols": ["♝+"],	
+                "english": ["DH"],
+                "hybrid": [["馬", "DH"]]
+            }
+        },
+
+		"soaring eagle": {
+            "moves": {
+                "line": [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [0, 1]],
+                "jump": [[2, 2], [-2, 2]],
+				"lion": [
+					{
+						"first": {
+							"jump": [[1, 1]]
+						},
+						"second": {
+							"jump": [[-1, -1], [0, 0], [1, 1]]
+						}
+					},
+{
+						"first": {
+							"jump": [[-1, 1]]
+						},
+						"second": {
+							"jump": [[1, -1], [0, 0], [-1, 1]]
+						}
+					}
+				]
+            },
+            "promotesTo": "soaring eagle",
+            "pieceSize": 0.875,
+            "pieceChars": {
+                "trad": [["飛", "鷲"]],
+                "abbr": ["鷲"],
+                "symbols": ["♜E"],	
+                "english": ["SE"],
+                "hybrid": [["鷲", "SE"]]
+            }
+        },
+        
+        "horned falcon": {
+            "moves": {
+                "line": [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]],
+                "jump": [[0, 2]],
+				"lion": [
+					{
+						"first": {
+							"jump": [[0, 1]]
+						},
+						"second": {
+							"jump": [[0, -1], [0, 0], [0, 1]]
+						}
+					}
+				]            
+            },
+            "promotesTo": "horned falcon",
+            "pieceSize": 0.96875,
+            "pieceChars": {
+                "trad": [["角", "鷹"]],
+                "abbr": ["鷹"],
+                "symbols": ["♝F"],	
+                "english": ["HF"],
+                "hybrid": [["鷹", "HF"]]
+            }
+        }
+    },
+    
+    "setup": {
+		"4": [null, null, null, "go-between", null, null, null, null, "go-between", null, null, null],
+        "3": ["pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn"],
+        "2": ["side mover", "vertical mover", "rook", "dragon horse", "dragon king", "lion", "queen", "dragon king", "dragon horse", "rook", "vertical mover", "side mover"],
+        "1": ["reverse chariot", null, "bishop", null, "blind tiger", "kirin", "phoenix", "blind tiger", null, "bishop", null, "reverse chariot"],
+        "0": ["lance", "ferocious leopard", "copper", "silver", "gold", "king", "drunk elephant", "gold", "silver", "copper", "ferocious leopard", "lance"]
+    }
+}

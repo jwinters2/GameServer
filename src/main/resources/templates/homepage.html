@@ -40,7 +40,7 @@
                             <p th:text="${game.description}"></p>
                             
                             <a th:if="${game.isSinglePlayer}" href="#" class="btn btn-primary border-0">Play</a>
-                            <a th:if="${game.isMultiPlayer}" th:href="${contextRoot} + '/queue/' + ${game.title.toLowerCase()}" class="btn btn-primary border-0">Find Opponent</a>
+                            <a th:if="${game.isMultiPlayer}" th:href="${contextRoot} + '/queue/' + ${game.title.toLowerCase().replace(' ','')}" class="btn btn-primary border-0">Find Opponent</a>
                             <a th:if="${game.isMultiPlayer}" href="#" class="btn btn-primary border-0" style="display: none;">Send Invite</a>
 
                         </div>

@@ -29,4 +29,14 @@ public class King extends Piece {
 	public Piece deepCopy() {
 		return new King(this.x, this.y, this.color);
 	}
+	
+	@Override
+	public boolean getCanPromote() {
+		return false;
+	}
+	
+	@Override
+	public boolean isRoyal() {
+		return true;
+	}
 }

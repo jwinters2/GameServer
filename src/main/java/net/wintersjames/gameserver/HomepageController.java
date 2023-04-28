@@ -19,7 +19,7 @@ import net.wintersjames.gameserver.Games.Chess.Chess;
 import net.wintersjames.gameserver.Games.Game;
 import net.wintersjames.gameserver.Games.Go.Go;
 import net.wintersjames.gameserver.Games.Shogi.Shogi;
-import net.wintersjames.gameserver.User.User;
+import net.wintersjames.gameserver.Games.Shogi.Variants.ChuShogi;
 import net.wintersjames.gameserver.User.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
 
 /**
  *
@@ -110,6 +109,7 @@ public class HomepageController {
         games.add(new Chess());       
         games.add(new Shogi());
         games.add(new Go());
+		games.add(new ChuShogi());
 		
         model.addAttribute("username", username);
         model.addAttribute("uid", state.getLoginState().getUid());

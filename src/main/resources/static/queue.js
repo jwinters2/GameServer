@@ -239,5 +239,5 @@ function findPendingGame(uid) {
 }
 
 function goToGame(body) {
-    window.location.href = (`${contextRoot}/game/${body.gameStr}/${body.timestamp}`);
+    window.location.href = (`${contextRoot}/game/${body.gameStr.replace(" ","")}/${body.timestamp}`);
 }

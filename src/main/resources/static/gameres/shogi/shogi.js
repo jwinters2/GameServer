@@ -30,12 +30,16 @@ class Shogi extends Game {
 		pieceTextYOffset: 1,
 		handOffset: 50,
 		guideWidth: 30,
-		guideColor: "#aa000040"
+		guideColor: "#aa000040",
+		guideColorBlue: "#0055aa40"
 	};
 	
 	boardWidth = 0;
 	boardHeight = 0;
 	boardAspectRatio = 1;
+	
+	boardDim = 9;
+	promotionDim = 3;
 	
 	holdingPiece = null;
 	hoverOverX = null;
@@ -45,32 +49,15 @@ class Shogi extends Game {
 	
 	drawPieceGuides = true;
 	
-	// traditional = 2 kanji per piece
-	// abbreviated = 1 kanji per piece
-	// symbols = western chess pieces
 	displayStyle = "traditional";
-	pieceChars = {
-		"pawn":		{chars: [["歩", "兵"], ["と", "金"]],	abbr: ["歩", "と"],	symbols: ["♟︎", "♟︎"],	
-					 english: ["P", "P"],	hybrid: [["歩", "P"], ["と", "P"]],	size: 27/32},
-		"king":		{chars: [["王", "将"], ["玉", "将"]],	abbr: ["王", "玉"],	symbols: ["♔", "♚"],	
-					 english: ["K", "K"],	hybrid: [["王", "K"], ["玉", "K"]],	size: 32/32},
-		"rook":		{chars: [["飛", "車"], ["龍", "王"]],	abbr: ["飛", "龍"],	symbols: ["♜", "♜"],	
-					 english: ["R", "R"],	hybrid: [["飛", "R"], ["龍", "R"]],	size: 31/32},
-		"bishop":	{chars: [["角", "行"], ["龍", "馬"]],	abbr: ["角", "馬"],	symbols: ["♝", "♝"],	
-					 english: ["B", "B"],	hybrid: [["角", "B"], ["馬", "B"]],	size: 31/32},
-		"gold":		{chars: [["金", "将"]],				abbr: ["金"],		symbols: ["☉"],			
-					 english: ["G"],		hybrid: [["金", "G"]],		size: 30/32},
-		"silver":	{chars: [["銀", "将"], ["成", "銀"]],	abbr: ["銀", "全"],	symbols: ["☽", "☽"],	
-					 english: ["S", "S"],	hybrid: [["銀", "S"], ["全", "S"]],	size: 30/32},
-		"knight":	{chars: [["桂", "馬"], ["成", "桂"]],	abbr: ["桂", "圭"],	symbols: ["♞", "♞"],	
-					 english: ["N", "N"],	hybrid: [["桂", "N"], ["圭", "N"]],	size: 29/32},
-		"lance":	{chars: [["香", "車"], ["成", "香"]],	abbr: ["香", "杏"],	symbols: ["↟", "↟"],	
-					 english: ["L", "L"],	hybrid: [["香", "L"], ["杏", "L"]],	size: 28/32}
-	};
+
+	pieceChars = {};
+	pieceMoves = {};
 	pieceOutline = [[0, -1], [0.75, -0.783], [1, 1], [-1, 1], [-0.75, -0.783]];
 	pieceOutlineScale = 0.4;
 	
 	japaneseNumerals = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+	japaneseNumeralTen = "十";
 	
 	init(_uid, _game, _matchid) {
 
@@ -138,8 +125,8 @@ class Shogi extends Game {
 			document.getElementById("optionList").style.display = "none";
 			for(var i=0; i<button.displayButtons.length; i++) {
 				button.displayButtons[i].classList.remove("activeOption");
-				button.classList.add("activeOption");
 			}
+			button.classList.add("activeOption");
 		};
 
 		for(var i = 0; i < optionsButtonList.length; i++) {
@@ -169,8 +156,8 @@ class Shogi extends Game {
 	}
 	
 	calculateBoardDimensions() {
-		this.boardWidth  = (2 * this.boardStyle.x) + (9 * this.boardStyle.width);
-		this.boardHeight = (2 * this.boardStyle.y) + (9 * this.boardStyle.height);
+		this.boardWidth  = (2 * this.boardStyle.x) + (this.boardDim * this.boardStyle.width);
+		this.boardHeight = (2 * this.boardStyle.y) + (this.boardDim * this.boardStyle.height);
 		this.boardAspectRatio = this.boardHeight/this.boardWidth;
 	}
 	
@@ -196,8 +183,8 @@ class Shogi extends Game {
 		
 		this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
 		
-		const x = (this.playerIsWhite ? piece.x : (8 - piece.x)) + xOffset;
-		const y = (this.playerIsWhite ? (8 - piece.y) : piece.y) + yOffset;
+		const x = (this.playerIsWhite ? piece.x : (this.boardDim - 1 - piece.x)) + xOffset;
+		const y = (this.playerIsWhite ? (this.boardDim - 1 - piece.y) : piece.y) + yOffset;
 		
 		this.resetTransform();
 		this.context.translate(
@@ -233,41 +220,78 @@ class Shogi extends Game {
 		var charIndex = 0;
 		if(piece.type === "king") {
 			charIndex = (piece.color.toLowerCase() === "white" ? 0 : 1);
-		} else if (piece.type !== "gold") {
+		} else {
 			charIndex = (piece.isPromoted ? 1 : 0);
 		}
 		
+		let charSet = this.pieceChars[piece.type];
+		
 		// draw text
 		// default is abbreviated
-		var chars = this.pieceChars[piece.type].abbr;
+		var chars = charSet.abbr;
 		switch(this.displayStyle) {
 			case "traditional":
-				chars = this.pieceChars[piece.type].chars;
+				chars = charSet.trad;
 				break;
 			case "symbols":
-				chars = this.pieceChars[piece.type].symbols;
+				chars = charSet.symbols;
 				break;
 			case "english":
-				chars = this.pieceChars[piece.type].english;
+				chars = charSet.english;
 				break;
 			case "hybrid":
-				chars = this.pieceChars[piece.type].hybrid;
+				chars = charSet.hybrid;
 				break;
+		}
+		
+		// if this piece is promoted and there is no second set of chars, find it's promotion and use those
+		let promotionChars = null;
+		if(charIndex > 0 && this.pieceChars[piece.type].abbr.length === 1) {
+			let promotionCharSet = this.pieceChars[this.pieceMoves[piece.type].promotesTo];
+			promotionChars = promotionCharSet.abbr;
+			switch(this.displayStyle) {
+			case "traditional":
+				promotionChars = promotionCharSet.trad;
+				break;
+			case "symbols":
+				promotionChars = promotionCharSet.symbols;
+				break;
+			case "english":
+				promotionChars = promotionCharSet.english;
+				break;
+			case "hybrid":
+				promotionChars = promotionCharSet.hybrid;
+				break;
+			}
 		}
 		
 		this.context.fillStyle = piece.isPromoted ? this.promotedColor : this.darkBg;
 		if ( Array.isArray(chars[0]) && chars[0].length > 1 ) {
 			
+			// use the promotion chars for the second value if there is one]
 			this.context.font = `${Math.floor(fontSize * 0.7)}px ${this.boardStyle.pieceFont}`;
-			this.context.textBaseline = "bottom";
-			this.context.fillText(chars[charIndex][0], 0, this.boardStyle.pieceTextYOffset);
-			this.context.textBaseline = "top";
-			this.context.fillText(chars[charIndex][1], 0, this.boardStyle.pieceTextYOffset);
+
+			if(promotionChars && charIndex === 1) {
+				this.context.textBaseline = "bottom";
+				this.context.fillText(promotionChars[0][0], 0, this.boardStyle.pieceTextYOffset);
+				this.context.textBaseline = "top";
+				this.context.fillText(promotionChars[0][1], 0, this.boardStyle.pieceTextYOffset);
+			} else {
+				this.context.textBaseline = "bottom";
+				this.context.fillText(chars[charIndex][0], 0, this.boardStyle.pieceTextYOffset);
+				this.context.textBaseline = "top";
+				this.context.fillText(chars[charIndex][1], 0, this.boardStyle.pieceTextYOffset);
+			}
+			
 			
 		} else {
 			this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
 			this.context.textBaseline = "middle";
-			this.context.fillText(chars[charIndex], 0, this.boardStyle.pieceTextYOffset);
+			if(promotionChars && charIndex === 1) {
+				this.context.fillText(promotionChars[0], 0, this.boardStyle.pieceTextYOffset);
+			} else {
+				this.context.fillText(chars[charIndex], 0, this.boardStyle.pieceTextYOffset);
+			}
 		}
 		
 		this.resetTransform();
@@ -276,8 +300,8 @@ class Shogi extends Game {
 	
 	drawHoldingPiece(piece) {
 		
-		const x = this.playerIsWhite ? piece.x : (8 - piece.x);
-		const y = this.playerIsWhite ? (8 - piece.y) : piece.y;
+		const x = this.playerIsWhite ? piece.x : (this.boardDim - 1 - piece.x);
+		const y = this.playerIsWhite ? (this.boardDim - 1 - piece.y) : piece.y;
 		
 		var isHoldingPiece = (this.holdingPiece !== null && this.holdingPiece.x === x && this.holdingPiece.y === y);
 		if(this.holdingPiece !== null && this.holdingPiece.fromHand) {
@@ -314,7 +338,7 @@ class Shogi extends Game {
 		var charIndex = 0;
 		if(piece.type === "king") {
 			charIndex = (piece.color.toLowerCase() === "white" ? 0 : 1);
-		} else if (piece.type !== "gold") {
+		} else {
 			charIndex = (piece.isPromoted ? 1 : 0);
 		}
 
@@ -322,7 +346,7 @@ class Shogi extends Game {
 		var chars = this.pieceChars[piece.type].abbr;
 		switch(this.displayStyle) {
 			case "traditional":
-				chars = this.pieceChars[piece.type].chars;
+				chars = this.pieceChars[piece.type].trad;
 				break;
 			case "symbols":
 				chars = this.pieceChars[piece.type].symbols;
@@ -335,19 +359,51 @@ class Shogi extends Game {
 				break;
 		}
 		
+		// if this piece is promoted and there is no second set of chars, find it's promotion and use those
+		let promotionChars = null;
+		if(charIndex > 0 && this.pieceChars[piece.type].abbr.length === 1) {
+			let promotionCharSet = this.pieceChars[this.pieceMoves[piece.type].promotesTo];
+			promotionChars = promotionCharSet.abbr;
+			switch(this.displayStyle) {
+			case "traditional":
+				promotionChars = promotionCharSet.trad;
+				break;
+			case "symbols":
+				promotionChars = promotionCharSet.symbols;
+				break;
+			case "english":
+				promotionChars = promotionCharSet.english;
+				break;
+			case "hybrid":
+				promotionChars = promotionCharSet.hybrid;
+				break;
+			}
+		}
+		
 		this.context.fillStyle = piece.isPromoted ? this.promotedColor : this.darkBg;
 		if ( Array.isArray(chars[0]) && chars[0].length > 1 ) {
 			
 			this.context.font = `${Math.floor(fontSize * 0.7)}px ${this.boardStyle.pieceFont}`;
-			this.context.textBaseline = "bottom";
-			this.context.fillText(chars[charIndex][0], 0, this.boardStyle.pieceTextYOffset);
-			this.context.textBaseline = "top";
-			this.context.fillText(chars[charIndex][1], 0, this.boardStyle.pieceTextYOffset);
+			if(promotionChars && charIndex === 1) {
+				this.context.textBaseline = "bottom";
+				this.context.fillText(promotionChars[0][0], 0, this.boardStyle.pieceTextYOffset);
+				this.context.textBaseline = "top";
+				this.context.fillText(promotionChars[0][1], 0, this.boardStyle.pieceTextYOffset);
+			} else {
+				this.context.textBaseline = "bottom";
+				this.context.fillText(chars[charIndex][0], 0, this.boardStyle.pieceTextYOffset);
+				this.context.textBaseline = "top";
+				this.context.fillText(chars[charIndex][1], 0, this.boardStyle.pieceTextYOffset);
+			}
 			
 		} else {
 			this.context.font = `${fontSize}px ${this.boardStyle.pieceFont}`;
 			this.context.textBaseline = "middle";
-			this.context.fillText(chars[charIndex], 0, this.boardStyle.pieceTextYOffset);
+			if(promotionChars && charIndex === 1) {
+				this.context.fillText(promotionChars[0], 0, this.boardStyle.pieceTextYOffset);
+			} else {
+				this.context.fillText(chars[charIndex], 0, this.boardStyle.pieceTextYOffset);
+			}
 		}
 		
 
@@ -368,8 +424,8 @@ class Shogi extends Game {
 			// our hand
 			this.context.strokeRect(
 				this.boardStyle.x + (this.boardStyle.width),
-				this.boardStyle.y + (this.boardStyle.height * 10) - this.boardStyle.handOffset,
-				this.boardStyle.width * 7,
+				this.boardStyle.y + (this.boardStyle.height * (this.boardDim + 1)) - this.boardStyle.handOffset,
+				this.boardStyle.width * (this.boardDim - 2),
 				this.boardStyle.height
 			);
 		} else {
@@ -377,34 +433,38 @@ class Shogi extends Game {
 			this.context.strokeRect(
 				this.boardStyle.x + (this.boardStyle.width),
 				this.boardStyle.y + (this.boardStyle.height * -1) - this.boardStyle.handOffset,
-				this.boardStyle.width * 7,
+				this.boardStyle.width * (this.boardDim - 2),
 				this.boardStyle.height
 			);
 		}
 		
 		if(piecesInHand) {
 			
+			// if we have more pieces in hand than space, we need to squish them
+			let xSquish = piecesInHand.length > this.boardDim - 2 ? (this.boardDim - 2) / piecesInHand.length : 1;
+			
 			for(var i=0; i<piecesInHand.length; i++) {
-				var handPieceX = side === "white" ? i+1 : 7-i;
-				var handPieceY = side === "white"
+				
+				let handPieceX = side === "white" ? (i * xSquish) + 1 : this.boardDim - 2 - (i * xSquish);
+				let handPieceY = side === "white"
 					? -2 + this.boardStyle.handOffset/this.boardStyle.height
-					: 10 - this.boardStyle.handOffset/this.boardStyle.height;
+					: (this.boardDim + 1) - this.boardStyle.handOffset/this.boardStyle.height;
 				this.drawPiece({type: piecesInHand[i][0], x: handPieceX, y: handPieceY, color: side, inHand: true});
 
-				var quantity = piecesInHand[i][1];
+				let quantity = piecesInHand[i][1];
 				if(quantity > 1) {
 
 					// the pieces adjust for whose side it is on their own, so for the numbers
 					// use their unadjusted values
-					handPieceX = i+1;
-					handPieceY = 10 - this.boardStyle.handOffset/this.boardStyle.height;
+					handPieceX = (i * xSquish) + 1;
+					handPieceY = (this.boardDim + 1) - this.boardStyle.handOffset/this.boardStyle.height;
 
 					var quantityX = this.boardStyle.x + (this.boardStyle.width * (handPieceX + 0.8)); 
 					var quantityY = this.boardStyle.y + (this.boardStyle.height * (handPieceY + 0.8));
 
 					if(!ourHand) {
-						quantityX = this.boardStyle.x + (this.boardStyle.width * ((8-handPieceX) + 0.8)); 
-						quantityY = this.boardStyle.y + (this.boardStyle.height * ((8-handPieceY) + 0.2));
+						quantityX = this.boardStyle.x + (this.boardStyle.width * ((this.boardDim - 1 - handPieceX) + 0.8)); 
+						quantityY = this.boardStyle.y + (this.boardStyle.height * ((this.boardDim - 1 - handPieceY) + 0.2));
 					}
 
 					// draw the circle around the number
@@ -449,8 +509,8 @@ class Shogi extends Game {
 		this.context.lineWidth = this.boardStyle.lineWidth;
 		this.context.lineCap = "round";
 		
-		const x = this.playerIsWhite ? piece.x : (8 - piece.x);
-		const y = this.playerIsWhite ? (8 - piece.y) : piece.y;
+		const x = this.playerIsWhite ? piece.x : (this.boardDim - 1 - piece.x);
+		const y = this.playerIsWhite ? (this.boardDim - 1 - piece.y) : piece.y;
 		
 		this.context.fillRect(
 			this.boardStyle.x + ((x - 0.5) * this.boardStyle.width),
@@ -473,9 +533,9 @@ class Shogi extends Game {
 		piece.isPromoted = false;
 	}
 	
-	drawGuideCircle(x, y) {
-		if(x >= 0 && x < 9 && y >= 0 && y < 9) {
-			this.context.fillStyle = this.boardStyle.guideColor;
+	drawGuideCircle(x, y, color) {
+		if(x >= 0 && x < this.boardDim && y >= 0 && y < this.boardDim) {
+			this.context.fillStyle = (color ? color : this.boardStyle.guideColor);
 			this.context.beginPath();
 			this.context.arc(
 				this.boardStyle.x + ((x+0.5) * this.boardStyle.width), 
@@ -485,10 +545,10 @@ class Shogi extends Game {
 		}
 	}
 	
-	drawGuideLine(x, y, toX, toY) {
-		if(x >= 0 && x <= 8 && y >= 0 && y <= 8 
-		&& toX >= 0 && toX <= 8  && toY >= 0 && toY <= 8 ) {
-			this.context.strokeStyle = this.boardStyle.guideColor;
+	drawGuideLine(x, y, toX, toY, color) {
+		if(x >= 0 && x <= this.boardDim - 1 && y >= 0 && y <= this.boardDim - 1 
+		&& toX >= 0 && toX <= this.boardDim - 1  && toY >= 0 && toY <= this.boardDim - 1 ) {
+			this.context.strokeStyle = (color ? color : this.boardStyle.guideColor);
 			this.context.lineWidth = this.boardStyle.guideWidth;
 			this.context.beginPath();
 			this.context.moveTo(
@@ -504,103 +564,53 @@ class Shogi extends Game {
 	
 	drawPieceGuide(x, y, type, color, isPromoted) {
 		this.resetTransform();
-		var direction = ((color === "WHITE") === this.playerIsWhite) ? -1 : 1;
+		var xDir = ((color === "WHITE") === this.playerIsWhite) ? 1 : -1;
+		var yDir = xDir * -1;
 		
-		if(isPromoted) {
-			switch (type) {
-				case "silver":
-				case "knight":
-				case "pawn":
-				case "lance":
-					this.drawGuideCircle(x - 1, y + direction);
-					this.drawGuideCircle(x    , y + direction);
-					this.drawGuideCircle(x + 1, y + direction);
-					
-					this.drawGuideCircle(x - 1, y);
-					this.drawGuideCircle(x + 1, y);
-					
-					this.drawGuideCircle(x    , y - direction);
-					break;
-				case "rook":
-					this.drawGuideLine(x - 0.5, y, 0, y);
-					this.drawGuideLine(x + 0.5, y, 8, y);
-					this.drawGuideLine(x, y - 0.5, x, 0);
-					this.drawGuideLine(x, y + 0.5, x, 8);
-					
-					this.drawGuideCircle(x - 1, y + direction);
-					this.drawGuideCircle(x + 1, y + direction);
-					this.drawGuideCircle(x - 1, y - direction);
-					this.drawGuideCircle(x + 1, y - direction);
-					break;
-				case "bishop":
-					this.drawGuideLine(x - 0.5, y - 0.5, x - Math.min(x, y), y - Math.min(x, y));
-					this.drawGuideLine(x + 0.5, y - 0.5, x + Math.min(8-x, y), y - Math.min(8-x, y));
-					this.drawGuideLine(x - 0.5, y + 0.5, x - Math.min(x, 8-y), y + Math.min(x, 8-y));
-					this.drawGuideLine(x + 0.5, y + 0.5, x + Math.min(8-x, 8-y), y + Math.min(8-x, 8-y));
-					
-					this.drawGuideCircle(x    , y + direction);
-					this.drawGuideCircle(x - 1, y);
-					this.drawGuideCircle(x + 1, y);
-					this.drawGuideCircle(x    , y - direction);
-					break;
+		let moveSet = isPromoted ? this.pieceMoves[this.pieceMoves[type].promotesTo] : this.pieceMoves[type];
+		
+		if(moveSet.jump) {
+			for(var i = 0; i < moveSet.jump.length; i++) {
+				this.drawGuideCircle(
+					x + (moveSet.jump[i][0] * xDir), 
+					y + (moveSet.jump[i][1] * yDir)
+				);
 			}
-		} else {
-			switch (type) {
-				case "king":
-					this.drawGuideCircle(x - 1, y + direction);
-					this.drawGuideCircle(x    , y + direction);
-					this.drawGuideCircle(x + 1, y + direction);
-					
-					this.drawGuideCircle(x - 1, y);
-					this.drawGuideCircle(x + 1, y);
-					
-					this.drawGuideCircle(x - 1, y - direction);
-					this.drawGuideCircle(x    , y - direction);
-					this.drawGuideCircle(x + 1, y - direction);
-					break;
-				case "gold":
-					this.drawGuideCircle(x - 1, y + direction);
-					this.drawGuideCircle(x    , y + direction);
-					this.drawGuideCircle(x + 1, y + direction);
-					
-					this.drawGuideCircle(x - 1, y);
-					this.drawGuideCircle(x + 1, y);
-					
-					this.drawGuideCircle(x    , y - direction);
-					break;
-				case "silver":
-					this.drawGuideCircle(x - 1, y + direction);
-					this.drawGuideCircle(x    , y + direction);
-					this.drawGuideCircle(x + 1, y + direction);
-					
-					this.drawGuideCircle(x - 1, y - direction);
-					this.drawGuideCircle(x + 1, y - direction);
-					break;
-				case "knight":
-					this.drawGuideCircle(x - 1, y + (2*direction));
-					this.drawGuideCircle(x + 1, y + (2*direction));
-					break;
-				case "pawn":
-					this.drawGuideCircle(x, y + direction);
-					break;
-					
-				case "rook":
-					this.drawGuideLine(x - 0.5, y, 0, y);
-					this.drawGuideLine(x + 0.5, y, 8, y);
-					this.drawGuideLine(x, y - 0.5, x, 0);
-					this.drawGuideLine(x, y + 0.5, x, 8);
-					break;
-				case "lance":
-					this.drawGuideLine(x, y + (direction > 0 ? 0.5 : -0.5), x, (direction > 0 ? 8 : 0));
-					break;
-					
-				case "bishop":
-					this.drawGuideLine(x - 0.5, y - 0.5, x - Math.min(x, y), y - Math.min(x, y));
-					this.drawGuideLine(x + 0.5, y - 0.5, x + Math.min(8-x, y), y - Math.min(8-x, y));
-					this.drawGuideLine(x - 0.5, y + 0.5, x - Math.min(x, 8-y), y + Math.min(x, 8-y));
-					this.drawGuideLine(x + 0.5, y + 0.5, x + Math.min(8-x, 8-y), y + Math.min(8-x, 8-y));
-					break;
-			}	
+		}
+		if(moveSet.line) {
+			for(var i = 0; i < moveSet.line.length; i++) {
+				
+				let destX = x;
+				let destY = y;
+				
+				while(destX >= 0 && destX < this.boardDim && destY >= 0 && destY < this.boardDim) {
+					destX += (moveSet.line[i][0] * xDir);
+					destY += (moveSet.line[i][1] * yDir);
+				}
+				
+				destX -= (moveSet.line[i][0] * xDir);
+				destY -= (moveSet.line[i][1] * yDir);
+				
+				this.drawGuideLine(
+					x + (moveSet.line[i][0] * xDir * 0.5), 
+					y + (moveSet.line[i][1] * yDir * 0.5), 
+					destX, 
+					destY
+				);
+			}
+		}
+		if(moveSet.lion) {
+			for(var i = 0; i < moveSet.lion.length; i++) {
+				if(moveSet.lion[i].first.jump) {
+					for(var j = 0; j < moveSet.lion[i].first.jump.length; j++) {
+						this.drawGuideCircle(
+							x + (moveSet.lion[i].first.jump[j][0] * xDir), 
+							y + (moveSet.lion[i].first.jump[j][1] * yDir),
+							this.boardStyle.guideColorBlue
+						);
+					}
+				}
+			}
 		}
 
 	}
@@ -621,8 +631,8 @@ class Shogi extends Game {
 		this.context.fillStyle = this.highlightColor;
 		for(var i=0; i<this.highlightedSquares.length-1; i+=2) {
 			
-			var highlightX = this.playerIsWhite ? this.highlightedSquares[i] : 8-this.highlightedSquares[i];
-			var highlightY = this.playerIsWhite ? 8-this.highlightedSquares[i+1] : this.highlightedSquares[i+1];
+			var highlightX = this.playerIsWhite ? this.highlightedSquares[i] : this.boardDim - 1 - this.highlightedSquares[i];
+			var highlightY = this.playerIsWhite ? this.boardDim - 1 - this.highlightedSquares[i+1] : this.highlightedSquares[i+1];
 			
 			this.context.fillRect(
 				this.boardStyle.x + (highlightX * this.boardStyle.width), 
@@ -636,18 +646,18 @@ class Shogi extends Game {
 		this.context.strokeStyle = this.darkBg;
 		
 		// draw vertical lines
-		for(var x=0; x<=9; x++) {
+		for(var x=0; x<=this.boardDim; x++) {
 			this.context.beginPath();
 			this.context.moveTo(this.boardStyle.x + (x * this.boardStyle.width), this.boardStyle.y);
-			this.context.lineTo(this.boardStyle.x + (x * this.boardStyle.width), this.boardStyle.y + (9 * this.boardStyle.height));
+			this.context.lineTo(this.boardStyle.x + (x * this.boardStyle.width), this.boardStyle.y + (this.boardDim * this.boardStyle.height));
 			this.context.stroke();
 		}
 		
 		// draw horizontal lines
-		for(var y=0; y<=9; y++) {
+		for(var y=0; y<=this.boardDim; y++) {
 			this.context.beginPath();
 			this.context.moveTo(this.boardStyle.x, this.boardStyle.y + (y * this.boardStyle.height));
-			this.context.lineTo(this.boardStyle.x + (9 * this.boardStyle.width), this.boardStyle.y + (y * this.boardStyle.height));
+			this.context.lineTo(this.boardStyle.x + (this.boardDim * this.boardStyle.width), this.boardStyle.y + (y * this.boardStyle.height));
 			this.context.stroke();
 		}
 		
@@ -657,29 +667,29 @@ class Shogi extends Game {
 		this.context.font = this.boardStyle.textFont;
 		
 		// draw the file labels
-		for(var i=0; i<9; i++) {
+		for(var i=0; i<this.boardDim; i++) {
 			this.context.fillText(
-				this.playerIsWhite ? (8-i)+1 : i+1, 
+				this.playerIsWhite ? (this.boardDim - 1 - i)+1 : i+1, 
 				this.boardStyle.x + ((i+0.5) * this.boardStyle.width), 
 				this.boardStyle.y - this.boardStyle.fileRankOffset
 			);
 			this.context.fillText(
-				this.playerIsWhite ? (8-i)+1 : i+1, 
+				this.playerIsWhite ? (this.boardDim - 1 - i)+1 : i+1, 
 				this.boardStyle.x + ((i+0.5) * this.boardStyle.width), 
-				this.boardStyle.y + (this.boardStyle.height * 9) + this.boardStyle.fileRankOffset
+				this.boardStyle.y + (this.boardStyle.height * this.boardDim) + this.boardStyle.fileRankOffset
 			);
 		}
 		
 		// draw the rank labels
-		for(var i=0; i<9; i++) {
+		for(var i=0; i<this.boardDim; i++) {
 			this.context.fillText(
-				this.japaneseNumerals[this.playerIsWhite ? i+1 : (8-i)+1], 
+				this.toJapaneseNumeral(this.playerIsWhite ? i+1 : (this.boardDim - i)), 
 				this.boardStyle.x - this.boardStyle.fileRankOffset,
 				this.boardStyle.y + ((i+0.5) * this.boardStyle.height)
 			);
 			this.context.fillText(
-				this.japaneseNumerals[this.playerIsWhite ? i+1 : (8-i)+1], 
-				this.boardStyle.x + (this.boardStyle.width * 9) + this.boardStyle.fileRankOffset,
+				this.toJapaneseNumeral(this.playerIsWhite ? i+1 : (this.boardDim - i)), 
+				this.boardStyle.x + (this.boardStyle.width * this.boardDim) + this.boardStyle.fileRankOffset,
 				this.boardStyle.y + ((i+0.5) * this.boardStyle.height)
 			);
 		}
@@ -687,10 +697,12 @@ class Shogi extends Game {
 		// draw the dots
 		for(var x = 0; x <= 1; x++) {
 			for(var y = 0; y <= 1; y++) {
+				let dotX = (x === 0 ? this.promotionDim : this.boardDim - this.promotionDim);
+				let dotY = (y === 0 ? this.promotionDim : this.boardDim - this.promotionDim);
 				this.context.beginPath();
 				this.context.arc(
-					this.boardStyle.x + (3 * (x+1) * this.boardStyle.width),
-					this.boardStyle.y + (3 * (y+1) * this.boardStyle.height),
+					this.boardStyle.x + (dotX * this.boardStyle.width),
+					this.boardStyle.y + (dotY * this.boardStyle.height),
 					this.boardStyle.lineWidth * 1.5,
 					0, 2 * Math.PI
 				);
@@ -716,13 +728,15 @@ class Shogi extends Game {
 		// draw guides
 		if(this.drawPieceGuides) {
 			if(this.holdingPiece) {
-				this.drawPieceGuide(
-					this.holdingPiece.x, 
-					this.holdingPiece.y,
-					this.holdingPiece.type,
-					this.holdingPiece.color,
-					this.holdingPiece.isPromoted
-				);
+				if(!this.holdingPiece.fromHand) {
+					this.drawPieceGuide(
+						this.holdingPiece.x, 
+						this.holdingPiece.y,
+						this.holdingPiece.type,
+						this.holdingPiece.color,
+						this.holdingPiece.isPromoted
+					);
+				}
 
 			} else if (this.hoverOverX !== null && this.hoverOverY !== null) {
 
@@ -779,6 +793,32 @@ class Shogi extends Game {
 		}
 	}
 	
+	parseGameConfig(config) {
+		console.log("parseGameConfig: ", typeof config);
+		if(config.boardWidth) {
+			this.boardDim = config.boardWidth;
+		}
+		if(config.promotionWidth) {
+			this.promotionDim = config.promotionWidth;
+		}
+		
+		for(let name in config.pieces) {
+			console.log("parsing piece ", name, config.pieces);
+			let piece = config.pieces[name];
+			
+			if(piece.pieceChars) {
+				this.pieceChars[name] = piece.pieceChars;
+				this.pieceChars[name].size = piece.pieceSize;
+			}
+			
+			if(piece.moves) {
+				this.pieceMoves[name] = piece.moves;
+				this.pieceMoves[name].promotesTo = piece.promotesTo;
+			}
+			
+		}
+	}
+	
 	handleUpdate(update, chessObj) {
 		
 		console.log("update", update);
@@ -818,23 +858,32 @@ class Shogi extends Game {
 	}
 	
 	pieceToCanvasXCoord(x) {
-		return this.playerIsWhite ? x : (8 - x);
+		return this.playerIsWhite ? x : (this.boardDim - 1 - x);
 	}
 	
 	pieceToCanvasYCoord(y) {
-		return this.playerIsWhite ? (8 - y) : y;
+		return this.playerIsWhite ? (this.boardDim - 1 - y) : y;
 	}
 	
 	xToFile(x) {
-		return this.playerIsWhite ? (9-x) : (x+1);
+		return this.playerIsWhite ? (this.boardDim-x) : (x+1);
+	}
+	
+	toJapaneseNumeral(n) {
+		if(n < 10) {
+			return this.japaneseNumerals[n];
+		}
+		return (Math.floor(n/10) === 1 ? "" : this.japaneseNumerals[Math.floor(n/10)])
+				+ this.japaneseNumeralTen 
+				+ (n%10 === 0 ? "" : this.japaneseNumerals[n%10]);
 	}
 	
 	yToRank(y) {
-		return this.playerIsWhite ? this.japaneseNumerals[y+1] : this.japaneseNumerals[9-y];
+		return this.playerIsWhite ? this.toJapaneseNumeral(y+1) : this.toJapaneseNumeral(this.boardDim - y);
 	}
 	
 	yToRankWestern(y) {
-		return this.playerIsWhite ? (y+1) : (9-y);
+		return this.playerIsWhite ? (y+1) : (this.boardDim-y);
 	}
 	
 	isOurPiece(piece) {
@@ -871,7 +920,7 @@ class Shogi extends Game {
 		
 		// offset for player's hand
 		var clickOnHand = false;
-		if(y > 9 + chessObj.boardStyle.handOffset/chessObj.boardStyle.height) {
+		if(y > chessObj.boardDim + chessObj.boardStyle.handOffset/chessObj.boardStyle.height) {
 			clickOnHand = true;
 		}
 
@@ -952,7 +1001,7 @@ class Shogi extends Game {
 		x = Math.floor(x);
 		y = Math.floor(y);
 
-		if(x >= 0 && x < 9 && y >= 0 && y < 9) {
+		if(x >= 0 && x < chessObj.boardDim && y >= 0 && y < chessObj.boardDim) {
 			chessObj.hoverOverX = x;
 			chessObj.hoverOverY = y;
 		} else {
@@ -1051,7 +1100,7 @@ class Shogi extends Game {
 		
 		// destination
 		if(toX !== null && toY !== null) {
-			dict.push(`to=${9 - this.xToFile(toX)},${9 - this.yToRankWestern(toY)}`);
+			dict.push(`to=${this.boardDim - this.xToFile(toX)},${this.boardDim - this.yToRankWestern(toY)}`);
 		}
 		
 		// whether or not we're dropping it (from hand) or moving it
@@ -1061,7 +1110,7 @@ class Shogi extends Game {
 			dict.push(`type=${extra.type}`);
 		} else if (extra && extra.fromX !== null && extra.fromY !== null) {
 			// if we're not dropping it, we need the from coordinates
-			dict.push(`from=${9 - this.xToFile(extra.fromX)},${9 - this.yToRankWestern(extra.fromY)}`);
+			dict.push(`from=${this.boardDim - this.xToFile(extra.fromX)},${this.boardDim - this.yToRankWestern(extra.fromY)}`);
 		}
 		
 		if(extra && extra.promotion !== null) {

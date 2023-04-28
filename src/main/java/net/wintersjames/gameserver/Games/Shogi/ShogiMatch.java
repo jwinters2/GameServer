@@ -9,6 +9,7 @@ import net.wintersjames.gameserver.Games.Chess.ChessState;
 import net.wintersjames.gameserver.Games.GameMatch;
 import net.wintersjames.gameserver.Games.GameState;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Piece;
+import net.wintersjames.gameserver.Games.Shogi.Variants.ChuShogiState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,20 @@ public class ShogiMatch extends GameMatch {
 		this.whitePlayer = whitePlayer;
 		this.blackPlayer = blackPlayer;
     }
+	
+	public ShogiMatch(long id, int whitePlayer, int blackPlayer, Class game, String variant) {
+        super(id, game, null);
+		this.gameState = this.getNewVariantState(variant);
+		this.whitePlayer = whitePlayer;
+		this.blackPlayer = blackPlayer;
+    }
+	
+	private GameState getNewVariantState(String variant) {
+		return switch(variant.toLowerCase()) {
+			case "chushogi" -> new ChuShogiState();
+			default -> new ShogiState();
+		};
+	}
 
 	@Override
 	public GameMatch.HandleMoveResult handleMove(int uid, HttpServletRequest request) {
@@ -114,13 +129,21 @@ public class ShogiMatch extends GameMatch {
 				return HandleMoveResult.FAIL;
 			}
 			
+			boolean lionMove = (state.getPendingSecondMove() != null);
+			
+			Piece toCapture = state.getPieceAt(toX, toY);
 			state.move(fromX, fromY, toX, toY);
-			state.setSquaresToHighlight(fromX, fromY, toX, toY);
+			
+			if(lionMove) {
+				state.addSquaresToHighlight( toX, toY);
+			} else {
+				state.setSquaresToHighlight(fromX, fromY, toX, toY);
+			}
 			
 			// check for promotion
 			logger.info("checking for promotion");
-			if(state.isPromotionOptional(fromX, fromY, toX, toY)) {
-				logger.info("promotion required");
+			if(state.isPromotionOptional(fromX, fromY, toX, toY, toCapture)) {
+				logger.info("user needs to say whether or not to promote");
 				state.setPendingPromotion(toX, toY);
 				
 				return HandleMoveResult.NEEDS_MORE_INFO;
@@ -128,7 +151,9 @@ public class ShogiMatch extends GameMatch {
 
 		}
 					
-		state.nextMove();
+		if(state.getPendingSecondMove() == null) {
+			state.nextMove();
+		}	
 		
 		// check if the next player has a legal move
 		if(!state.hasLegalMove()) {

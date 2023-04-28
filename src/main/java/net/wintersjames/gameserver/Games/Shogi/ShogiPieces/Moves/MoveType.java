@@ -24,4 +24,12 @@ public abstract class MoveType {
 	final protected int getDirection(Piece piece) {
 		return piece.getColor() == Piece.Color.WHITE ? 1 : -1;
 	}
+
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
+	}
 }

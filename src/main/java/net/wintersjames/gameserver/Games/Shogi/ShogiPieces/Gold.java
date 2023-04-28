@@ -29,4 +29,8 @@ public class Gold extends Piece {
 		return new Gold(this.x, this.y, this.color);
 	}
 	
+	@Override
+	public boolean getCanPromote() {
+		return false;
+	}
 }

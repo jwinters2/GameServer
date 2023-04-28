@@ -1,10 +1,13 @@
 package net.wintersjames.gameserver.Games.Shogi;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Bishop;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Piece;
 import net.wintersjames.gameserver.Games.GameState;
@@ -12,11 +15,19 @@ import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Gold;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.King;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Knight;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Lance;
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Moves.JumpMove;
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Moves.LineMove;
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Moves.LionMove;
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Moves.MoveType;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Pawn;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Rook;
 import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.Silver;
+import net.wintersjames.gameserver.Games.Shogi.ShogiPieces.VariantPiece;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ResourceUtils;
 
 /**
  *
@@ -26,8 +37,9 @@ public class ShogiState extends GameState implements Serializable {
 	
 	Logger logger = LoggerFactory.getLogger(ShogiState.class);
 	
-	final public int boardWidth = 9;
-	final public int promotionWidth = 3;
+	final public int boardWidth;
+	final public int promotionWidth;
+	final protected String configFile;
 	
 	private List<Piece> pieces;
 	private Map<String, Integer> whiteHand;
@@ -38,47 +50,44 @@ public class ShogiState extends GameState implements Serializable {
 	
 	// the piece we're waiting on whether or not to promote, if there is one
 	private Piece pendingPromotion;
+	private Piece pendingSecondMove;
 	
 	public ShogiState() {
 		super("shogiState");
 		this.pieces = new ArrayList<>();
 		this.whiteHand = new HashMap<>();
 		this.blackHand = new HashMap<>();
+		
+		this.boardWidth = 9;
+		this.promotionWidth = 3;
+		this.configFile = "shogi.json";
+		
 	
 		this.whiteToMove = true;
 		this.pendingPromotion = null;
+		this.pendingSecondMove = null;
 		this.squaresToHighlight = new ArrayList<>();
 		
-		for(int i=0; i<9; i++) {
-			this.pieces.add(new Pawn(i, 2, Piece.Color.WHITE));
-			this.pieces.add(new Pawn(i, 6, Piece.Color.BLACK));
-		}
+		this.setupPieces();
+	}
+	
+	// for subclasses to call
+	public ShogiState(int width, int promotionWidth, String config) {
+		super("shogiState");
+		this.pieces = new ArrayList<>();
+		this.whiteHand = new HashMap<>();
+		this.blackHand = new HashMap<>();
 		
-		this.pieces.add(new Rook(7, 1, Piece.Color.WHITE));
-		this.pieces.add(new Bishop(1, 1, Piece.Color.WHITE));
+		this.boardWidth = width;
+		this.promotionWidth = promotionWidth;
+		this.configFile = config;
+	
+		this.whiteToMove = true;
+		this.pendingPromotion = null;
+		this.pendingSecondMove = null;
+		this.squaresToHighlight = new ArrayList<>();
 		
-		this.pieces.add(new Bishop(7, 7, Piece.Color.BLACK));
-		this.pieces.add(new Rook(1, 7, Piece.Color.BLACK));
-		
-		this.pieces.add(new Lance(0, 0, Piece.Color.WHITE));
-		this.pieces.add(new Knight(1, 0, Piece.Color.WHITE));
-		this.pieces.add(new Silver(2, 0, Piece.Color.WHITE));
-		this.pieces.add(new Gold(3, 0, Piece.Color.WHITE));
-		this.pieces.add(new King(4, 0, Piece.Color.WHITE));
-		this.pieces.add(new Gold(5, 0, Piece.Color.WHITE));
-		this.pieces.add(new Silver(6, 0, Piece.Color.WHITE));
-		this.pieces.add(new Knight(7, 0, Piece.Color.WHITE));
-		this.pieces.add(new Lance(8, 0, Piece.Color.WHITE));
-		
-		this.pieces.add(new Lance(0, 8, Piece.Color.BLACK));
-		this.pieces.add(new Knight(1, 8, Piece.Color.BLACK));
-		this.pieces.add(new Silver(2, 8, Piece.Color.BLACK));
-		this.pieces.add(new Gold(3, 8, Piece.Color.BLACK));
-		this.pieces.add(new King(4, 8, Piece.Color.BLACK));
-		this.pieces.add(new Gold(5, 8, Piece.Color.BLACK));
-		this.pieces.add(new Silver(6, 8, Piece.Color.BLACK));
-		this.pieces.add(new Knight(7, 8, Piece.Color.BLACK));
-		this.pieces.add(new Lance(8, 8, Piece.Color.BLACK));
+		this.setupPieces();
 	}
 	
 	public ShogiState(ShogiState other) {
@@ -89,7 +98,154 @@ public class ShogiState extends GameState implements Serializable {
 	
 		this.whiteToMove = other.whiteToMove;
 		this.pendingPromotion = other.pendingPromotion;
+		this.pendingSecondMove = other.pendingSecondMove;
 		this.squaresToHighlight = other.squaresToHighlight;
+		
+		this.boardWidth = other.boardWidth;
+		this.promotionWidth = other.promotionWidth;
+		this.configFile = other.configFile;
+	}
+	
+	protected void setupPieces() {
+		try {
+			logger.info("reading config file {}", this.configFile);
+			File shogiFile = ResourceUtils.getFile("classpath:static/gameres/shogi/" + this.configFile);
+			Scanner scanner = new Scanner(shogiFile);
+			
+			String contents = "";
+			while(scanner.hasNextLine()) {
+				contents += scanner.nextLine();
+			}
+			
+			scanner.close();
+			JSONObject shogiJson = new JSONObject(contents);
+			
+			logger.info("shogiJson");
+			logger.info(shogiJson.toString(2));
+			
+			JSONObject setup = shogiJson.getJSONObject("setup");
+			for(String key: setup.keySet()) {
+				
+				int y = Integer.parseInt(key);
+				List<Object> piecesInRow = setup.getJSONArray(key).toList();
+				for(int x = 0; x < piecesInRow.size(); x++) {
+					if(piecesInRow.get(x) != null && piecesInRow.get(x) instanceof String) {
+						this.pieces.add(
+							setupNewPiece(
+								(String)piecesInRow.get(x), 
+								x, 
+								y, 
+								Piece.Color.WHITE,
+								shogiJson.getJSONObject("pieces"))
+						);
+						this.pieces.add(
+							setupNewPiece(
+								(String)piecesInRow.get(x), 
+								this.boardWidth - 1 - x,
+								this.boardWidth - 1 - y, 
+								Piece.Color.BLACK,
+								shogiJson.getJSONObject("pieces"))
+						);
+					}
+				}
+			}
+			
+		} catch (IOException e) {
+			logger.info("{} failed to parse", this.configFile);
+			logger.info(e.getMessage());
+		}
+	}
+	
+	protected Piece setupNewPiece(String piece, int x, int y, Piece.Color color, JSONObject pieceConfig) {
+		logger.info("adding new piece {} {} at {},{}", color, piece, x, y);
+		Piece retval = switch(piece.toLowerCase()) {
+			case "king"		-> new King(x, y, color);
+			//case "gold"		-> new Gold(x, y, color);
+			//case "silver"	-> new Silver(x, y, color);
+			//case "knight"	-> new Knight(x, y, color);
+			//case "lance"	-> new Lance(x, y, color);
+			//case "rook"		-> new Rook(x, y, color);
+			//case "bishop"	-> new Bishop(x, y, color);
+			//case "pawn"		-> new Pawn(x, y, color);
+			default -> new VariantPiece(x, y, color, piece);
+		};
+		
+		if(retval instanceof VariantPiece vp) {
+			JSONObject pieceInfo = pieceConfig.getJSONObject(piece);
+			
+			parsePieceMove(pieceInfo.getJSONObject("moves"), vp, false);
+			
+			vp.setCanPromote(pieceInfo.optString("promotesTo", null) != null);
+			
+			if(vp.getCanPromote()) {
+				JSONObject promotionPieceInfo = pieceConfig.getJSONObject(pieceInfo.getString("promotesTo"));
+			
+				parsePieceMove(promotionPieceInfo.getJSONObject("moves"), vp, true);
+			}
+		}
+		
+		return retval;
+	}
+	
+	private void parsePieceMove(JSONObject moves, VariantPiece vp, boolean isPromotion) {
+		List<MoveType> parsedMoves = parsePieceMoves(moves);
+		if(isPromotion) {
+			vp.addPromotedMoves(parsedMoves);
+		} else {
+			vp.addMoves(parsedMoves);
+		}
+		
+		JSONArray lionMoves = moves.optJSONArray("lion");
+		if(lionMoves != null) {
+			for(int i = 0; i < lionMoves.length(); i++) {
+				
+				JSONObject firstMoves = lionMoves.getJSONObject(i).getJSONObject("first");
+				JSONObject secondMoves = lionMoves.getJSONObject(i).getJSONObject("second");
+				
+				List<MoveType> parsedFirstMoves = parsePieceMoves(firstMoves);
+				List<MoveType> parsedSecondMoves = parsePieceMoves(secondMoves);
+				
+				List<MoveType> parsedLionMoves = new ArrayList<>();
+				for(MoveType firstMove: parsedFirstMoves) {
+					parsedLionMoves.add(new LionMove(firstMove, parsedSecondMoves));
+				}
+				
+				// get the set of moves
+				if(isPromotion) {
+					vp.addPromotedMoves(parsedLionMoves);
+				} else {
+					vp.addMoves(parsedLionMoves);
+				}
+			}
+		}
+	}
+	
+	private List<MoveType> parsePieceMoves(JSONObject moves) {
+		
+		List<MoveType> retval = new ArrayList<>();
+		
+		JSONArray jumpMoves = moves.optJSONArray("jump");
+		if(jumpMoves != null) {
+			for(int i = 0; i < jumpMoves.length(); i++) {
+				retval.add(new JumpMove(
+					jumpMoves.getJSONArray(i).getInt(0),
+					jumpMoves.getJSONArray(i).getInt(1)
+				));
+			}
+		}
+
+
+		JSONArray lineMoves = moves.optJSONArray("line");
+		if(lineMoves != null) {
+			for(int i = 0; i < lineMoves.length(); i++) {
+				retval.add(new LineMove(
+					lineMoves.getJSONArray(i).getInt(0),
+					lineMoves.getJSONArray(i).getInt(1)
+				));
+			}
+		}
+		
+		return retval;
 	}
 
 	public List<Piece> getPieces() {
@@ -144,6 +300,15 @@ public class ShogiState extends GameState implements Serializable {
 	
 	public boolean canMove(int fromX, int fromY, int toX, int toY, boolean isWhite) {
 		
+		// if we're expecting a second move we have to move that piece
+		// according to its second moveset
+		if(this.pendingSecondMove != null) {
+			Piece toMove = getPieceAt(fromX, fromY);
+			if(toMove != this.pendingSecondMove) {
+				return false;
+			}
+		}
+		
 		// check if the position is in bounds
 		if(fromX < 0 || fromX >= boardWidth || fromY < 0 || fromY >= boardWidth) {
 			logger.info("piece is out of bounds");
@@ -177,7 +342,7 @@ public class ShogiState extends GameState implements Serializable {
 		Piece pieceToCapture = getPieceAt(toX, toY);
 		// if there's a piece in the square we're moving to, and it's the same
 		// color as the moving piece, it's an invalid move
-		if(pieceToCapture != null && pieceToCapture.getColor() == color) {
+		if(pieceToCapture != null && pieceToCapture.getColor() == color && pieceToCapture != pieceToMove) {
 			logger.info("cannot capture our own pieces");
 			return false;
 		}
@@ -190,12 +355,21 @@ public class ShogiState extends GameState implements Serializable {
 			return false;
 		}
 
+		if(this.pendingSecondMove != null) {
+			return pieceToMove.canLionMove(toX, toY, this);
+		}
+		
 		return pieceToMove.canMove(toX, toY, this);
 	}
 	
 	public boolean canDrop(int toX, int toY, String pieceType, boolean isWhite) {
 		
-				// check if the position is in bounds
+		// if we're expecting a second move we can't drop
+		if(this.pendingSecondMove != null) {
+			return false;
+		}
+		
+		// check if the position is in bounds
 		if(toX < 0 || toX >= boardWidth || toY < 0 || toY >= boardWidth) {
 			logger.info("piece is out of bounds");
 			return false;
@@ -279,22 +453,34 @@ public class ShogiState extends GameState implements Serializable {
 	public boolean isInCheck(Piece.Color colorInCheck) {
 		Piece.Color attackingColor = (colorInCheck == Piece.Color.WHITE ? Piece.Color.BLACK : Piece.Color.WHITE);
 		for(Piece piece: pieces) {
-			if(piece instanceof King && piece.getColor() == colorInCheck) {
+			if(piece.isRoyal() && piece.getColor() == colorInCheck) {
 				logger.info("king piece: {}", piece);
-				return isSquareUnderAttack(piece.getX(), piece.getY(), attackingColor);
+				// in some variants a player might have more than one king-like piece
+				// so if any of them are safe then we're good
+				if(!isSquareUnderAttack(piece.getX(), piece.getY(), attackingColor)) {
+					return false;
+				}
 			}
 		}
-		return false;
+		return true;
 	}
 	
 	public void move(int fromX, int fromY, int toX, int toY) {
 		logger.info("moving ({},{}) to ({},{})", fromX, fromY, toX, toY);
-		this.captureAt(toX, toY);
+		if(fromX != toX || fromY != toY) {
+			this.captureAt(toX, toY);
+		}
 		Piece toMove = getPieceAt(fromX, fromY);
-		toMove.move(toX, toY);
+		toMove.move(toX, toY, this);
 		
 		if(isPromotionMandatory(toX, toY, toMove.getType(), toMove.getColor())) {
 			toMove.promote();
+		}
+		
+		if(toMove.getSecondLionMoves() != null) {
+			this.pendingSecondMove = toMove;
+		} else {
+			this.pendingSecondMove = null;
 		}
 	}
 	
@@ -322,17 +508,22 @@ public class ShogiState extends GameState implements Serializable {
 		} else {
 			hand.put(pieceType, count);
 		}
+		
+		this.pendingSecondMove = null;
 	}
 	
 	public boolean isPromotionOptional(int fromX, int fromY, int toX, int toY) {
+		return isPromotionOptional(fromX, fromY, toX, toY, null);
+	}
+	
+	public boolean isPromotionOptional(int fromX, int fromY, int toX, int toY, Piece toCapture) {
 		
 		Piece toPromote = getPieceAt(toX, toY);
 		
 		// null pieces, already-promoted pieces, gold generals and kings can't promote
 		if(toPromote == null 
 			|| toPromote.getIsPromoted() 
-			|| toPromote.getType().equals("king")
-			|| toPromote.getType().equals("gold")) {
+			|| !toPromote.getCanPromote()) {
 			logger.info("promotion not allowed here, isPromoted={}, type={}",
 				toPromote == null ? null : toPromote.getIsPromoted(),
 				toPromote == null ? null : toPromote.getType()
@@ -359,6 +550,9 @@ public class ShogiState extends GameState implements Serializable {
 		}
 		
 		return true;
+	}
+	public boolean isPromotionMandatory(int toX, int toY, Piece piece, Piece.Color color) {
+		return isPromotionMandatory(toX, toY, piece.getType(), color);
 	}
 	
 	public boolean isPromotionMandatory(int toX, int toY, String pieceType, Piece.Color color) {
@@ -422,6 +616,25 @@ public class ShogiState extends GameState implements Serializable {
 			this.squaresToHighlight.add(coord);
 		}
 	}
+	
+	public void addSquaresToHighlight(int...coords) {
+		
+		boolean alreadyPresent = false;
+		
+		for(int i = 0; i < coords.length - 1; i += 2) {
+			for(int j = 0; j < squaresToHighlight.size() - 1; j += 2) {
+				if(coords[i] == squaresToHighlight.get(j) && coords[i + 1] == squaresToHighlight.get(j + 1)) {
+					alreadyPresent = true;
+				}
+			}
+		}
+		
+		if(!alreadyPresent) {
+			for(int coord: coords) {
+				this.squaresToHighlight.add(coord);
+			}
+		}
+	}
 
 	public List<Integer> getSquaresToHighlight() {
 		return squaresToHighlight;
@@ -429,6 +642,10 @@ public class ShogiState extends GameState implements Serializable {
 
 	public Piece getPendingPromotion() {
 		return pendingPromotion;
+	}
+
+	public Piece getPendingSecondMove() {
+		return pendingSecondMove;
 	}
 	
 	public void nextMove() {

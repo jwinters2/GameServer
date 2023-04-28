@@ -57,6 +57,10 @@ public abstract class Piece implements Serializable {
 		
 		return false;
 	}
+	
+	public boolean canLionMove(int x, int y, ShogiState state) {
+		return false;
+	}
 
 	public boolean hasLegalMove(ShogiState state) {
 		
@@ -70,7 +74,8 @@ public abstract class Piece implements Serializable {
 		
 		return false;
 	}
-	public void move(int x, int y) {
+	
+	public void move(int x, int y, ShogiState state) {
 		this.x = x;
 		this.y = y;
 	}
@@ -111,5 +116,27 @@ public abstract class Piece implements Serializable {
 	
 	public void promote() {
 		this.isPromoted = true;
+	}
+	
+	public boolean getCanPromote() {
+		return true;
+	}
+
+	public List<MoveType> getMoveSet() {
+		return moveSet;
+	}
+
+	public List<MoveType> getPromotedMoveSet() {
+		return promotedMoveSet;
+	}
+	
+	public boolean isRoyal() {
+		return false;
+	}
+	
+	// some variants have pieces that can move twice in one turn
+	// so depending on how we moved the first turn, the same player might have a second move to make
+	public List<MoveType> getSecondLionMoves() {
+		return null;
 	}
 }

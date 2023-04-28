@@ -55,7 +55,9 @@ class Game {
 		request.onload = function (response) {
 			console.log(response);
 			if(response.srcElement.status !== 200) {
-				response.srcElement.chessObj.showPromotionMenu = false;
+				if (response.srcElement.chessObj.showPromotionMenu) {
+					response.srcElement.chessObj.showPromotionMenu = false;
+				}
 				response.srcElement.chessObj.draw();
 			}
 		};
